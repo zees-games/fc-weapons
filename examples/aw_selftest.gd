@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 427
+const CHECKS := 430
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
 
@@ -43,6 +43,7 @@ func _ready() -> void:
 	_idle_sleep()
 	_mark_fade()
 	_person_carry()
+	await _equip_budget()
 	_would_idle()
 	_holster_and_inspect()
 	await _finish()
@@ -604,6 +605,31 @@ func _person_carry() -> void:
 	alone.on_reloading(true)
 	alone.advance(0.4)
 	_check("and a reload still dips it", alone._holder.position.y < alone._rest().origin.y - 0.01)
+	bare.free()
+	_end()
+
+
+## A map change equips every respawned person's held gun in one frame; past
+## [member AwWorldModel.equip_budget_usec] the model waits for a later frame, but what is held does not.
+func _equip_budget() -> void:
+	_begin("held guns past a frame's equip budget build on a later frame")
+	var bare := Node3D.new()
+	add_child(bare)
+	var first := AwWorldModel.new()
+	var second := AwWorldModel.new()
+	bare.add_child(first)
+	bare.add_child(second)
+	await get_tree().process_frame
+	AwWorldModel.equip_budget_usec = 1
+	first.equip(_dressed(&"rifle"))
+	second.equip(_dressed(&"shotgun"))
+	_check("the frame's first gun builds at once", first.describe().has_model)
+	_check("the next waits, already holding the shotgun (%s)" % second.equipped(),
+		not second.describe().has_model and second.equipped() == &"shotgun")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	AwWorldModel.equip_budget_usec = 0
+	_check("a frame later it has its model", second.describe().has_model)
 	bare.free()
 	_end()
 

@@ -42,5 +42,6 @@ extends RefCounted
 #     AwViewModel.scope_offset() and AwScopeOverlay.motion shift a scope's lens with a strafe, a walk and a shot.
 # 21: inspect. AwViewModel.inspect() / cancel_inspect() / inspect_fraction() (AwWeaponPose.inspect and the inspect keys);
 #     the holster has its own keys (AwWeaponPose.HOLSTER_KEYS, Tunables.holster_keys).
-const LEVEL := 21
+# 22: AwWorldModel.equip_budget_usec: past it, a frame's world-model equips build their models on later frames.
+const LEVEL := 22
 const OLDEST := 1

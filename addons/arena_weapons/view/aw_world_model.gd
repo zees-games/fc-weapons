@@ -70,6 +70,15 @@ const RECOIL_SHARE := 0.35
 ## Smoothing rate of the response, per second.
 @export_range(0.5, 40.0, 0.5) var wall_rate: float = 12.0
 
+## Microseconds one frame may spend building watchers' weapon models; 0 (the default) builds every one at once.
+## [b]Every respawn on a map change equips a model for every player in one tick[/b] (about 4 ms each, 66 ms for 16):
+## past the budget an [method equip] records the weapon ([method equipped] answers at once) and builds its model on
+## a later frame, one budget's worth a frame. The first build of a frame always goes ahead, so a single switch never
+## waits. Presentation only: nothing a shot, a hit or the simulation reads comes from this node.
+static var equip_budget_usec := 0
+static var _budget_frame := -1
+static var _budget_spent := 0
+
 const WALL_ARM := 0.45
 const WALL_MARGIN := 0.04
 const WALL_PROBE_EVERY := 0.05
@@ -80,6 +89,8 @@ var _wall_clock: float = 0.0
 var _wall_was: bool = false
 var _attachments: Array[Node3D] = []
 
+## True while [member _art]'s model waits for a frame with [member equip_budget_usec] to spare.
+var _deferred: bool = false
 const ChargeFx := preload("aw_charge_fx.gd")
 var _charge_fx: Node3D = null
 var _last_charge := 0.0
@@ -168,6 +179,7 @@ func attach_to(character: Object) -> bool:
 func equip(art: AwWeaponVisual) -> DotResult:
 	_build()
 	_clear_models()
+	_deferred = false
 
 	_art = art
 
@@ -183,9 +195,32 @@ func equip(art: AwWeaponVisual) -> DotResult:
 	if not art.has_model():
 		return DotResult.success(null)
 
+	if not _budget_left():
+		_deferred = true
+		return DotResult.success(null)
+
+	return _build_model(art)
+
+
+## Whether this frame still has [member equip_budget_usec] to spend on a model; always true for the first, or with no budget.
+static func _budget_left() -> bool:
+	if equip_budget_usec <= 0:
+		return true
+	var frame := Engine.get_process_frames()
+	if frame != _budget_frame:
+		_budget_frame = frame
+		_budget_spent = 0
+		return true
+	return _budget_spent < equip_budget_usec
+
+
+## Puts [param art]'s model in the hand, charging the time to this frame's budget.
+func _build_model(art: AwWeaponVisual) -> DotResult:
+	var started := Time.get_ticks_usec()
 	_weapon = AwModelCache.instantiate(art.model_path)
 
 	if _weapon == null:
+		_budget_spent += Time.get_ticks_usec() - started
 		return DotResult.fail(
 			DotError.CODE_IO, "No model for %s." % String(art.id), art.model_path
 		)
@@ -200,12 +235,27 @@ func equip(art: AwWeaponVisual) -> DotResult:
 
 	_apply_shadows()
 	_support_local = _support_point_for(art)
+	_budget_spent += Time.get_ticks_usec() - started
 	return DotResult.success(null)
+
+
+## Builds a model [method equip] left for a later frame, and dresses it with the fitting set meanwhile.
+func _build_deferred() -> void:
+	if not _budget_left():
+		return
+	_deferred = false
+	if _art == null or not _built:
+		return
+	var fitting := _fitting
+	var _res := _build_model(_art)
+	if fitting != null:
+		set_fitting(fitting)
 
 
 func clear() -> void:
 	_send_support(false)
 	_clear_models()
+	_deferred = false
 	_art = null
 	_id = &""
 
@@ -381,6 +431,8 @@ func _cycle_seconds() -> float:
 
 
 func _process(delta: float) -> void:
+	if _deferred:
+		_build_deferred()
 	# Hidden (the local player's own, a switch), one frame lets go of the support hand, then the
 	# time is banked and spent in one step when it shows: every step clamps or converges, and a
 	# hidden gun was still probing walls and asking the body for its sprint every frame.
