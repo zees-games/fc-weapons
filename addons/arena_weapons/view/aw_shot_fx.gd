@@ -134,8 +134,10 @@ var exclude: Array[RID] = []
 var _shells: Array[Dictionary] = []
 var _shell_pool: Array[MeshInstance3D] = []
 
-## The marks on the world still showing: {node, age, size}. See [constant MAX_MARKS].
+## The marks on the world still showing, oldest first: {node, born}. See [constant MAX_MARKS].
 var _marks: Array[Dictionary] = []
+## Seconds of mark time so far; a mark's age is this minus its [code]born[/code].
+var _mark_clock := 0.0
 
 ## Where and when (msec) the last body was drawn hit, so a confirmation of the same hit
 ## arriving from the server ([method play_body_hit]) does not draw it twice.
@@ -600,21 +602,28 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 
 
 func _advance_marks(delta: float) -> void:
-	var kept: Array[Dictionary] = []
+	_mark_clock += delta
+	# Marks are kept oldest first and all age together, so only a head of the list can be fading
+	# or done: the walk stops at the first mark still holding. A held mark keeps the transparency
+	# 0 it was made with. Every shooter's 32 marks were touched every frame for the 6 s they hold.
+	var fade_from := MARK_LIFE * 0.75
+	var done := 0
 	for mark in _marks:
+		var age := _mark_clock - float(mark["born"])
+		if age < fade_from:
+			break
 		var node: Node3D = mark["node"]
-		if not is_instance_valid(node):
-			continue
-		mark["age"] = float(mark["age"]) + delta
-		var through := float(mark["age"]) / MARK_LIFE
+		var through := age / MARK_LIFE
 		if through >= 1.0:
 			_dispose(node)
+			done += 1
 			continue
 		# Holds, then fades over its last quarter: a mark that fades from the start is gone
 		# before anybody looks at the wall.
-		node.transparency = clampf((through - 0.75) / 0.25, 0.0, 1.0)
-		kept.append(mark)
-	_marks = kept
+		if is_instance_valid(node):
+			node.transparency = clampf((through - 0.75) / 0.25, 0.0, 1.0)
+	if done > 0:
+		_marks = _marks.slice(done)
 
 
 # --- Building effects -------------------------------------------------------
@@ -770,7 +779,7 @@ func _mark(at: Vector3, facing: Vector3, hit_scale: float = 1.0) -> void:
 	var spin := Basis(facing, randf() * TAU)
 	node.global_transform = Transform3D(spin * Basis(x * size, y * size, facing),
 		at + facing * 0.004)
-	_marks.append({"node": node, "age": 0.0})
+	_marks.append({"node": node, "born": _mark_clock})
 	set_process(true)
 
 

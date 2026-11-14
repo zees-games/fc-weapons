@@ -5,7 +5,7 @@ extends "aw_selftest_grenades.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 425
+const CHECKS := 427
 ## Guns whose model shows its own notch, aperture or post (the rest aim at their row's written aim).
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
@@ -43,6 +43,7 @@ func _ready() -> void:
 	await _one_arm_set()
 	_charge_fizzle()
 	_idle_sleep()
+	_mark_fade()
 	_person_carry()
 	_would_idle()
 	_holster_and_inspect()
@@ -1346,6 +1347,50 @@ func _glove_cache() -> void:
 		fresh.size() == 1 and absf(fresh[0].r - 0.8) < 0.02 and not AwViewArms._means.has(tex2.get_instance_id()))
 	AwViewArms.albedo_cache = was
 	mi.free()
+	_end()
+
+
+## Marks walk only their fading head: the same transparencies and lifetimes as aging every mark
+## each frame, over seeded uneven frames with marks made between them.
+func _mark_fade() -> void:
+	_begin("mark fade walks the head")
+	var holder := Node3D.new()
+	add_child(holder)
+	var wall := StaticBody3D.new()
+	holder.add_child(wall)
+	var shots := AwShotFx.new()
+	shots.sounds = false
+	holder.add_child(shots)
+	shots.set_process(false)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	var ages: Array[float] = []  # the reference: each mark aged by every frame's delta
+	var worst := 0.0
+	var count_ok := true
+	var most := 0
+	for frame in 1200:
+		if frame % 40 == 0 and frame < 700:
+			shots.play_impact(Vector3(rng.randf_range(-2.0, 2.0), 1.0, -10.0), Vector3.BACK, wall)
+			ages.append(0.0)
+		var delta := rng.randf_range(0.004, 0.05)
+		shots.advance(delta)
+		var kept: Array[float] = []
+		for age in ages:
+			if (age + delta) / AwShotFx.MARK_LIFE < 1.0:
+				kept.append(age + delta)
+		ages = kept
+		if shots.mark_count() != ages.size():
+			count_ok = false
+			break
+		most = maxi(most, ages.size())
+		for i in ages.size():
+			var want := clampf((ages[i] / AwShotFx.MARK_LIFE - 0.75) / 0.25, 0.0, 1.0)
+			var node: Node3D = shots._marks[i]["node"]
+			worst = maxf(worst, absf(node.transparency - want))
+	_check("as many marks as aging each one (%d at most, %d left)" % [most, ages.size()],
+		count_ok and most >= 5 and ages.is_empty())
+	_check("the same fade, worst %.7f" % worst, worst < 1e-5)
+	holder.free()
 	_end()
 
 
