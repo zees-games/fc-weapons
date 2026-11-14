@@ -1,5 +1,3 @@
-# fc-weapons
-
 The weapon set for [Fatal Contact](https://github.com/zees-games/game-fatal-contact) (FC): weapon definitions (stats, ammunition, reloads, view and aim holds), 3D models, sounds and the runtime that draws and fires them in first and third person.
 
 Models come from CC0 packs, baked to one contract: origin at the grip, muzzle toward -Z, metres. The code is MIT. See [CREDITS.md](CREDITS.md) for every asset.
