@@ -125,11 +125,22 @@ var _carry: Object = null
 var _carry_for: StringName = &"-"
 var _switching: bool = false
 
+## Bumped whenever a rig enters or leaves the tree or builds its shot effects, so each model's
+## [method _carrier_draws_its_own] answer goes stale at once. -1 in [member _draws_own_epoch]: not asked yet.
+static var rig_epoch := 0
+var _draws_own_epoch := -1
+var _draws_own := false
+
 ## The reload a watcher sees: whether one is on, its blend in and out, time into it and one cycle's length.
 var _reloading: bool = false
 var _reload_blend: float = 0.0
 var _reload_time: float = 0.0
 var _reload_period: float = 1.5
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE or what == NOTIFICATION_EXIT_TREE:
+		_draws_own_epoch = -1
 
 
 func _ready() -> void:
@@ -754,7 +765,19 @@ func _carrier_body() -> Node:
 ## every one of its own shots twice, a few centimetres apart — and the game that would
 ## forget is the one that drives every player's world model from the replicated counter,
 ## its own included, which is the simplest way to write it.
+##
+## The answer is kept until a rig enters or leaves the tree, a rig builds its shot effects
+## ([member rig_epoch]), or this model itself moves: the walk visits every sibling of every
+## ancestor, the whole player list among them, and a watcher asks it on every shot it sees.
 func _carrier_draws_its_own() -> bool:
+	if _draws_own_epoch == rig_epoch:
+		return _draws_own
+	_draws_own = _walk_for_carrier_fx()
+	_draws_own_epoch = rig_epoch
+	return _draws_own
+
+
+func _walk_for_carrier_fx() -> bool:
 	var node := get_parent()
 	var depth := 0
 

@@ -108,6 +108,7 @@ func _resolve_presentation() -> void:
 		_fx.catalogue = catalogue
 		add_child(_fx)
 		_fx.exclude_carrier(_player)
+		AwWorldModel.rig_epoch += 1
 		_view.wall_mask = _fx.collision_mask | wall_extra_mask
 
 

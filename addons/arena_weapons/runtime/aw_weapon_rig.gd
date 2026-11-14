@@ -19,6 +19,13 @@ signal bashed(outcome: DotWeaponOutcome)
 signal equipped(id: StringName)
 
 
+## A world model near this rig asks whether it draws its own shots ([method AwWorldModel._carrier_draws_its_own])
+## and keeps the answer until this moves.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE or what == NOTIFICATION_EXIT_TREE:
+		AwWorldModel.rig_epoch += 1
+
+
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return

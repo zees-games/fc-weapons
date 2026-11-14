@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 430
+const CHECKS := 434
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
 
@@ -45,6 +45,7 @@ func _ready() -> void:
 	_person_carry()
 	await _equip_budget()
 	_would_idle()
+	_carrier_cache()
 	_holster_and_inspect()
 	await _finish()
 
@@ -632,6 +633,36 @@ func _equip_budget() -> void:
 	_check("a frame later it has its model", second.describe().has_model)
 	bare.free()
 	_end()
+
+
+## A held gun asks once whether a rig beside it draws its shots, and asks again when a rig comes or goes or the gun moves.
+func _carrier_cache() -> void:
+	_begin("world model: whether its carrier draws its own shots")
+	var carrier := Node3D.new()
+	var bare := Node3D.new()
+	add_child(carrier)
+	add_child(bare)
+	var held := AwWorldModel.new()
+	held.effects = false
+	carrier.add_child(held)
+	var before := held._carrier_draws_its_own()
+	var rig := AwWeaponRig.new()
+	rig._fx = AwShotFx.new()
+	carrier.add_child(rig)
+	_check("a rig with its own effects arriving beside the gun is seen", held._carrier_draws_its_own())
+	held.reparent(bare)
+	_check("the gun moved away from that rig asks again", held._carrier_draws_its_own() == before)
+	held.reparent(carrier)
+	_check("and back beside it, sees it again", held._carrier_draws_its_own())
+	var fx := rig._fx
+	carrier.remove_child(rig)
+	_check("the rig gone, the gun draws its own again", held._carrier_draws_its_own() == before)
+	rig.free()
+	fx.free()
+	carrier.queue_free()
+	bare.queue_free()
+	_end()
+
 
 
 func _finish() -> void:
