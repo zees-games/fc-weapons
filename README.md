@@ -1,63 +1,76 @@
 # fc-weapons
 
-Arena's whole weapon set (the game players know as Zee's Fatal Contact): its own weapon definitions (stats, ammunition, reloads, view and aim holds) and the models they wear, from [Styloo's Guns Asset Pack](https://styloo.itch.io/guns-asset-pack), Polyy's two low-poly gun packs and a CC0 knife, all CC0, baked to the family's model contract (origin at the grip, muzzle toward -Z, metres). On `zees-games`; dot-cloud pack id `gamemann/fc-weapons` (published as `gamemann/arena-weapons` up to v1.3.x; the addon directory stays `addons/arena_weapons` and its classes keep the `Aw` prefix, since every game loads it by that path).
+The weapon set for [Fatal Contact](https://github.com/zees-games/game-fatal-contact) (FC): weapon definitions (stats, ammunition, reloads, view and aim holds), 3D models, sounds and the runtime that draws and fires them in first and third person.
 
-**game-fatal-contact requires it**: it registers this pack under plain ids (`rifle`, not `aw_rifle`) and runs them on this pack's own runtime (`Aw*`: rig, view model, world model, net, shot effects, art registry, ADS rules); it links no other weapon addon. A host that mixes packs (game-zombie-zone, game-playlot) reads `weapon_defs()`, `art_rows()` and `spawn_entries()` and gets `aw_`-prefixed ids; `role_art()` still dresses a host's own weapons by role. Every stat is tunable per weapon in `cfg/addons/arena_weapons/weapon/<id>.yml` (dot-weapon's `DotWeaponProfiles`).
+Models come from CC0 packs, baked to one contract: origin at the grip, muzzle toward -Z, metres. The code is MIT. See [CREDITS.md](CREDITS.md) for every asset.
 
-| Slot | Weapons (id: model) |
+Pack id: `gamemann/fc-weapons` (it was `gamemann/arena-weapons` up to v1.3.x). The addon directory is still `addons/arena_weapons` and its classes still start with `Aw`, because every game loads it by that path.
+
+## Using it
+
+FC requires this pack. It registers the weapons under plain ids (`rifle`) and runs them on this pack's runtime. A game that mixes several weapon packs (zombie-zone, Playlot) calls `weapon_defs()`, `art_rows()` and `spawn_entries()` on `AwSpawnProvider` and gets ids with an `aw_` prefix. `role_art()` dresses a game's own weapons by role.
+
+Link `addons/arena_weapons` into your project, or let `dot-bootstrap` do it. The current API level is 21 (see `addons/arena_weapons/arena_weapons_api.gd`, which also lists what each level added).
+
+## Weapons
+
+| Slot | Weapons |
 | --- | --- |
 | 1 melee | `knife` |
 | 2 sidearm | `pistol`, `revolver`, `machine_pistol`, `derringer` |
-| 3 primary | `smg`, `carbine`, `rifle`, `bullpup`, `battle_rifle`, `burst_rifle`, `shotgun` (`pump_shotgun`), `drum_shotgun`, `marksman`, `lmg` |
-| 4 heavy | `sniper` (`sniper_rifle`), `minigun`, `launcher` (`rocket_launcher`), `quad_launcher`, `grenade_launcher`, `beamer` (`plasma_rifle`), `charge_rifle` (`rail_rifle`) |
-| 5 thrown | `frag` (`frag_grenade`), `sticky` (`frag_grenade_alt`) |
+| 3 primary | `smg`, `carbine`, `rifle`, `bullpup`, `battle_rifle`, `burst_rifle`, `shotgun`, `drum_shotgun`, `marksman`, `lmg` |
+| 4 heavy | `sniper`, `minigun`, `launcher`, `quad_launcher`, `grenade_launcher`, `beamer`, `charge_rifle` |
+| 5 thrown | `frag`, `sticky`, plus `flash`, `smoke` and `incendiary` utility grenades |
 
-Equipment models shipped for a host's pickups and effects, with no weapon behind them yet: `flash_grenade`, `smoke_grenade`, `incendiary_grenade`, `ammo_box`, `rocket_launcher_alt` and four rounds.
+Models for ammo boxes, extra grenades and rounds also ship, for a game's pickups and effects.
 
-The models use flat emission-style colour (the pack's own advice: not a metallic-roughness workflow), so they ignore scene lighting. The "emission version" is the one shipped.
+## Settings
 
-## Layout
+Every stat of every weapon is tunable in `cfg/addons/arena_weapons/weapon/<id>.yml` (through dot-weapon's `DotWeaponProfiles`). Nothing is fixed in code: set a value in the file to change it.
 
-`addons/arena_weapons/`: `aw_weapon_pack.gd` (`AwWeaponPack`, the weapon definitions), `aw_weapon_art.gd` (`AwWeaponArt`, the only file with a model name), `spawn_provider.gd` (`AwSpawnProvider`, the host contract), `assets/models/*.glb`. `tools/bake_models.py` (Blender) makes the models from the source packs' folders, `tools/measure_sights.py` measures the muzzle, sight point and aim hold that go in the table. `examples/aw_selftest.tscn` is the headless suite (`./game.sh test`); `examples/aw_selftest_ads.tscn` checks the motion down the sights and through a scope.
+| Setting | What it does |
+| --- | --- |
+| `fire_modes` | Fire modes of a weapon. The first entry is the starting mode. Automatic guns also fire semi. SMGs, carbines and rifles also burst. |
+| `sv_grenade_*` cvars | Grenade flight, bounce, stick and fuse rules (`AwGrenadeRules`) |
 
-A build that leaves `addons/arena_weapons/assets/` out (the web shell, to stay small) can draw the models from a mounted pack laid out the same way: `AwModelCache.add_fallback_root("res://dot_cloud/<id>/<version>/addons/arena_weapons/assets")` after the mount, `remove_fallback_root` when leaving. Until then each weapon still fires and is drawn invisible (one WARN per model).
+The host binds `DotWeaponCommand.BUTTON_FIRE_MODE` to switch modes.
 
-## Fire modes
+## What is in the pack
 
-Every automatic gun also fires semi, and the submachine guns, carbines and rifles burst as well, declared in `fire_modes` (first entry is the starting mode) and tunable per weapon in the profile. The host binds `DotWeaponCommand.BUTTON_FIRE_MODE`; a game plays the click (zee-dot-weapons ships three).
+| Path | Contents |
+| --- | --- |
+| `addons/arena_weapons/aw_weapon_pack.gd` | `AwWeaponPack`, the weapon definitions |
+| `addons/arena_weapons/aw_weapon_art.gd` | `AwWeaponArt`, the only file that names a model |
+| `addons/arena_weapons/spawn_provider.gd` | `AwSpawnProvider`, the contract a game uses |
+| `addons/arena_weapons/assets/` | Models (`models/`), attachment models, per-gun sounds |
+| `weapons/*.tres` | Weapon resources |
+| `groups.json` | Download groups, one per weapon (`weapon-<id>`) |
+| `tools/` | Baking and measuring scripts (Blender models, sight points, attachments) |
+| `examples/aw_selftest.tscn` | The headless test suite |
+| `examples/aw_selftest_ads.tscn` | Checks motion down the sights and through a scope |
+
+## Features for a host game
+
+- **Grenades and utility zones.** `AwUtilityZones` runs flash, smoke and incendiary grenades. The game calls `detonate(grenade, def)` when one goes off and `tick(delta)` once per game tick, and supplies its combat rules (`victims`, `los`, `damage`) so friendly fire and armour stay its own. On the client `AwGrenadeFx` plays the effects. Needs dot-fx.
+- **Attachments.** Ten attachments (`att_<id>`): red dot, holographic, 3x prism, 6x scope, suppressor, compensator, vertical and angled grips, laser, extended magazine. Each gun lists the mounts its model has. The server checks a fitting with `validate_fitting`.
+- **Sounds.** Each gun has its own layered shot sound in `assets/sounds/`. Other sounds (reload, dry click, equip) come from dot-audio's stock by sound class (`AwSpawnProvider.sound_classes()`).
+- **Inspect and holster.** `AwViewModel.inspect()` plays a look-over of the gun. It moves only the view, never the shot or the net.
+- **Effects pool.** `AwFxPool` builds shot effects ahead of time under a loading cover, so the first remote shot does not stall a tick. An empty pool is not an error.
+- **Download groups.** A web shell sets `DotCloudAddonSet.groups` to `AwWeaponGroups.groups_for(ids)` for the weapons its loadout can hand out. List every weapon a player can receive, because a deferred group cannot be added at runtime.
+- **Builds without models.** A build that leaves `assets/` out (the web shell) can draw models from a mounted pack: call `AwModelCache.add_fallback_root(...)` after mounting and `remove_fallback_root` when leaving. Until then each weapon still fires and is drawn invisible, with one warning per model.
+
+## Tests
+
+Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `examples/aw_selftest_ads.tscn` for the aiming checks. Fatal Contact's own test run covers them too.
 
 ## Credits
 
-See [CREDITS.md](CREDITS.md). The models are CC0 1.0; the code in this repository is MIT.
+| What | Author | Licence |
+| --- | --- | --- |
+| Most primary guns, rocket launchers, grenades, ammo | Styloo (Guns Asset Pack), Polyy (two low-poly gun packs) | CC0 1.0 |
+| Knife, pistol, sniper, rifle, stick grenade | Vinrax, Mateusz Sadek, Lamoot, singaii | CC0 1.0 |
+| Attachments, finishing and wear maps | TMC (own work) | CC0 1.0 |
+| Per-gun shot sounds | Free Firearm Sound Library authors, KuraiWolf, Tabasco, Michel Baradari, jc-sounds, others | CC0 1.0, CC-BY 3.0 and 4.0 |
+| Code in this repository | TMC | MIT |
 
-## Utility grenade glue (API level 5)
-
-`AwUtilityZones` is the server side of flash, smoke and incendiary grenades, driven by the host: call `detonate(grenade, def)` when one goes off and `tick(delta)` once per game tick. The game plugs its combat in through callables (`victims`, `los` built with `AwUtilityZones.los_from_ray`, `damage`), so friendly fire and armour stay the game's rules. It runs the fire zones, keeps `AwBlindLedger` (one capped end time per victim) and emits `effect({fx, position, radius, seconds, victim})`. On the client `AwGrenadeFx.add_defs(catalogue)` registers the dot-fx smoke, fire and blind defs and `AwGrenadeFx.show(fx, tree, info, own_id)` plays an effect; the cloud scenes `fx/smoke_cloud.tscn` and `fx/fire_cloud.tscn` ship in the addon (plain scenes with generated soft-sprite gradients, no art files, so nothing in the content pack changes); pass a folder as `fx_dir` only to override them. `AwBlindLedger.strength(victim)` and the `strength` of a blind event (0 to 1, distance and facing scaled) say how hard a flash hit, and `AwGrenadeFx.show` makes the screen flash that strong. Needs dot-fx linked.
-
-## Sounds (API level 7)
-
-The pack ships no audio. Guns play dot-audio's CC0 weapon stock by sound class (sources, authors and licences in dot-audio's `stock/CREDITS.md`). `AwSpawnProvider.sound_classes()` gives each gun's class as plain data (`lmg`, the battle and burst rifles, marksman, carbine, derringer, machine pistol, drum shotgun, grenade launcher and charge rifle each have a recording of their own; prefixed ids included); the host feeds each pair to its weapon-sound table (`AwWeaponSound.set_class`). Reload, dry click and equip follow the class too. The authors and licences of every sound (KuraiWolf, Tabasco, Michel Baradari, cyklon698, celestialghost8, TAD, Zane Little Music, jc-sounds; all CC0 or CC-BY) are in dot-audio's `stock/CREDITS.md`, and are repeated in [CREDITS.md](CREDITS.md).
-
-## Effects pool (API level 9)
-
-Another player's hand used to build its effects on its first shot or charge, inside the tick. `AwFxPool` builds them ahead: add one to the tree under your loading cover, call `fill(shots, charges)` each frame until it answers true and `fill_flashes()` once, and wait for `flashes_ready()`. From then on `AwWorldModel` takes its `AwShotFx` and charge ball from the pool and every remote shot draws one of a few shared muzzle flashes. An empty or missing pool is not an error: the world model builds its own as before. Hands freed with a map take their effects with them, so fill again under the next cover. First-person effects and everything a shot decides are untouched.
-
-## Layered shot sound ahead of time (API level 15)
-
-The first shot of a gun with a layered sound (the knife among them) built dot-audio's layer manager, room and player inside the tick: 61 ms on a GPU box. `AwShotFx.prewarm_layers()` builds them now; call it on the local hand's shot effects under your loading cover. It answers true when layered shots are on and ready, false when they are off or dot-audio is missing, and is safe to call again. A game that never calls it gets the old first-shot build.
-
-Somebody else's gun shares one layered shot: `AwFxPool.fill` builds it on the pool's `layers_bus` (empty builds none) after the parked effects, and each remote `AwShotFx` takes it (`AwFxPool.shared_layers`) instead of building its own on its first shot. It follows the viewport's camera for the room.
-
-The first equip of a gun in play no longer measures its sight or reads its textures: the sight line is cached per model and placement, and a prewarm on an armless view still reads the gun's texture means the glove fit asks for.
-
-## Download groups (API level 14)
-
-`groups.json` at the pack root puts each weapon's model, its textures and their imported outputs in one group, `weapon-<id>` (`AwWeaponGroups.group_of`). The knife and pistol, the default loadout, and the shared props stay ungrouped, so a client that asks for no groups still draws them. A web shell sets `DotCloudAddonSet.groups` to `AwWeaponGroups.groups_for(ids)` of the weapons a game's loadout can hand out; with no groups set dot-cloud's default `"*"` fetches every weapon. A deferred group cannot be topped up at runtime (the overlay is built once), so a game must list every weapon it can give a player.
-
-## Attachments (API level 19)
-
-Ten attachments, each its own item (`att_<id>`) with its own model (own work, `tools/make_attachments.gd`): red dot, holographic, 3x prism, 6x scope, suppressor, compensator, vertical and angled grips, laser, extended magazine. Each gun's `def.mounts` lists the mounts its model has (`AwAttachmentSockets`, measured by `tools/measure_sockets.gd`); a gun with a built-in sight has no optic mount, a launcher none. The host builds `AwSpawnProvider.attachment_defs()` once (it also draws them), checks a requested fitting with `validate_fitting` on the server, applies it to the gun's def, and replicates it with `encode`/`decode`; `AwSpawnProvider.sound_class_for(def, class)` gives a suppressed gun its quiet report. A fitted optic sets the aimed zoom and sight line in the view model (`AwViewModel.set_fitting`).
-
-## Inspect and holster (API level 21)
-
-`AwViewModel.inspect()` plays a 2.6 s look-over of the gun in hand (`AwWeaponPose` inspect keys, `inspect_fraction()` 0 to 1); fire, aim, reload, a recoil kick or a switch cut it short in 0.2 s (`cancel_inspect()`). It moves the view only; the rig, the shot and the net never see it. The holster has its own keys (`HOLSTER_KEYS`), a slightly front-loaded drop instead of the draw played backwards, so a 0.1 s holster does not carry its whole move in one frame.
+Full per-asset author, link and licence tables are in [CREDITS.md](CREDITS.md). CC0 asks for no credit, but it is given anyway.
