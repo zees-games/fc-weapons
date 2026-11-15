@@ -216,6 +216,17 @@ func would_idle(command: DotWeaponCommand) -> bool:
 	return _ready_for_use and arsenal != null and arsenal.is_idle_for(command, _previous_command)
 
 
+## [method simulate_tick] with no context, for a host whose [method would_idle] just answered true for this
+## command: the same idle tick without asking the arsenal a second time. Call it only then.
+func simulate_idle(command: DotWeaponCommand, tick: int) -> DotWeaponOutcome:
+	_last_tick = tick
+	var prof := phase_timers
+	if prof:
+		_lap_at = Time.get_ticks_usec()
+		phase_calls[0] += 1
+	return _idle_tick(command, tick, prof)
+
+
 ## What [method simulate_tick] does when [method DotWeaponArsenal.is_idle_for] holds: with no button
 ## down there is no aim, bash or use, so only the bookkeeping that every tick does is left.
 func _idle_tick(command: DotWeaponCommand, tick: int, prof: bool = false) -> DotWeaponOutcome:

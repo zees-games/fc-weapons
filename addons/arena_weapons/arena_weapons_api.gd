@@ -44,5 +44,6 @@ extends RefCounted
 #     the holster has its own keys (AwWeaponPose.HOLSTER_KEYS, Tunables.holster_keys).
 # 22: AwWorldModel.equip_budget_usec: past it, a frame's world-model equips build their models on later frames.
 # 23: AwModelCache.shrink_textures_headless (default on): headless, a loaded model's textures become 4x4 downsamples.
-const LEVEL := 23
+# 24: AwWeaponRig.simulate_idle(command, tick): the idle tick for a host whose would_idle just answered true, without asking again.
+const LEVEL := 24
 const OLDEST := 1

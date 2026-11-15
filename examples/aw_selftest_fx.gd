@@ -406,10 +406,29 @@ func _would_idle() -> void:
 				idles = true
 				break
 	_check("a set-up rig with nothing pressed idles on a weapon that needs no context", idles)
+	_idle_parity(r2, cat, cmd)
 	cmd.buttons = DotWeaponCommand.BUTTON_ATTACK
 	_check("a pressed attack does not", ok and idles and not r2.would_idle(cmd))
 	r2.queue_free()
 	_end()
+
+
+## simulate_idle after would_idle leaves the rig and the weapon's state where simulate_tick(cmd, tick, null) does.
+func _idle_parity(r2: AwWeaponRig, cat: DotWeaponCatalogue, cmd: DotWeaponCommand) -> void:
+	var r3 := AwWeaponRig.new()
+	r3.catalogue = cat
+	add_child(r3)
+	var same := r3.setup().ok and r2.arsenal.current() != null
+	if same:
+		r3.give_everything()
+		r3.arsenal.equip(r2.arsenal.current_slot())
+		for tick in range(10, 20):
+			var a := r2.simulate_tick(cmd, tick, null)
+			var b := r3.simulate_idle(cmd, tick) if r3.would_idle(cmd) else null
+			same = same and b != null and a.used == b.used and a.kind == b.kind and a.refusal == b.refusal \
+				and r2.arsenal.current().behaviour.state == r3.arsenal.current().behaviour.state
+	_check("simulate_idle after would_idle matches simulate_tick with no context", same)
+	r3.queue_free()
 
 
 ## Effects with nothing to show stop their per-frame work and pick it up again on the next shot, draw or showing.
