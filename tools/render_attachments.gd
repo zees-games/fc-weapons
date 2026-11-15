@@ -1,8 +1,7 @@
 extends SceneTree
-## Contact sheet of fitted attachments: rows are guns (args after the output), columns the first-person hip and aimed
-## frames and a side-on third-person frame for fitting A (holo or red dot, suppressor, vertical grip, laser, extended
-## magazine), then aimed and third person for fitting B (scope or prism, compensator, angled grip). A mount the gun lacks
-## or an attachment it refuses is left off. tools/render_attachments.sh <out.png under the project> <gun>...
+## Contact sheet of fitted attachments: rows are guns, columns the first-person hip and aimed frames and a side-on third-person frame for fitting A (holo or red dot,
+## suppressor, vertical grip, laser, extended magazine), then aimed and third person for fitting B (scope or prism, compensator, angled grip); unfit mounts are left off.
+## tools/render_attachments.sh <out.png under the project> <gun>...
 
 const W := 480
 const H := 270

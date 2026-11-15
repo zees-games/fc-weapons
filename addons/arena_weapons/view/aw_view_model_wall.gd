@@ -19,10 +19,9 @@ const CLIP_HOLD := 0.25
 var _clip_left: float = 0.0
 
 
-## The wall-free pass goes off the moment this view model stops being drawn or run. Its CanvasLayer ignores a hidden
-## Node3D parent and a stopped process, and its camera shares the world: left on, it went on drawing the whole view
-## layer (the player's own gun) from where it last stood, a small dark copy of the gun hanging in the world for every
-## parked killcam hand and hidden spare (owner video: four, switching and reloading with the player's).
+## The wall-free pass goes off the moment this view model stops being drawn or run: its CanvasLayer ignores a hidden Node3D parent and a stopped process,
+## and its camera shares the world, so left on it would keep drawing the view layer (the player's own gun) from where it last stood, a small dark copy
+## of the gun hanging in the world for every parked killcam hand and hidden spare.
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_VISIBILITY_CHANGED, NOTIFICATION_DISABLED, NOTIFICATION_PAUSED, NOTIFICATION_EXIT_TREE, NOTIFICATION_PARENTED, NOTIFICATION_UNPARENTED:

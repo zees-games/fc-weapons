@@ -1,9 +1,7 @@
 extends SceneTree
-## Builds the attachment models (own work, primitives only) into addons/arena_weapons/assets/attachments/<id>.tscn.
-## Each is drawn on its gun's `socket_<mount>` with no offset: a muzzle part runs toward -Z from its origin, an optic sits on +Y,
-## an underbarrel part hangs toward -Y, a side part sits toward +X, a magazine extension hangs below the magazine.
-## An optic's `<id>_glass` mesh is what the sight line runs through (aw_attachment_dress.gd).
-## godot --headless --path . --script res://tools/make_attachments.gd
+## Builds the attachment models (own work, primitives only) into addons/arena_weapons/assets/attachments/<id>.tscn, each drawn on its gun's `socket_<mount>` with no offset:
+## muzzle parts run toward -Z, optics sit on +Y (their `<id>_glass` mesh is what the sight line runs through), underbarrel parts hang toward -Y, side parts sit toward +X,
+## magazine extensions hang below the magazine. godot --headless --path . --script res://tools/make_attachments.gd
 
 const OUT := "res://addons/arena_weapons/assets/attachments/"
 

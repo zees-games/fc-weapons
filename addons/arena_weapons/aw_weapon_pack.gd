@@ -58,10 +58,9 @@ const SOUND_CLASSES := {
 	&"beamer": &"beam", &"charge_rifle": &"rail",
 }
 
-## Drawn kick per gun, over the pose's defaults (`view_*` keys of [constant AwWeaponPose.Tunables.KICK_PARAMS]).
-## Presentation only: the bullet's climb is the ballistics' `recoil_*` and is never read from here.
-## Heavy single shots climb high, shove back and turn the camera with a slower settle; automatics climb more on the
-## gun but give the camera a smaller share, because the camera already follows the bullets' own climb.
+## Drawn kick per gun, over the pose's defaults (`view_*` keys of [constant AwWeaponPose.Tunables.KICK_PARAMS]); presentation only, the bullet's climb
+## is the ballistics' `recoil_*`. Heavy single shots climb high, shove back and turn the camera with a slower settle; automatics climb more on the gun
+## but give the camera a smaller share, because the camera already follows the bullets' own climb.
 const VIEW_FEEL_AUTO := {&"view_kick_pitch": 10.0, &"view_kick_min": 2.5, &"view_camera_share": 0.12}
 const VIEW_FEEL := {
 	&"revolver": {&"view_kick_pitch": 6.0, &"view_kick_knee": 0.35, &"view_kick_back": 0.008, &"view_kick_back_max": 0.06, &"view_kick_response": 16.0},

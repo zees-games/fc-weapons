@@ -263,7 +263,14 @@ func _floor_clip() -> void:
 	_check("and finds it within reach", view._world_near(space, camera.global_position, eye_height + 0.1))
 	await _overlay_follows_view(view, camera)
 	view.queue_free()
-	# The web has no wall-free pass: a stencil copy of each material draws the part the floor hides instead.
+	await _floor_clip_web(camera)
+	camera.queue_free()
+	floor_body.queue_free()
+	_end()
+
+
+## The web half of [method _floor_clip]: no wall-free pass there, so a stencil copy of each material draws the part the floor hides instead.
+func _floor_clip_web(camera: Camera3D) -> void:
 	var web := AwViewModel.new()
 	web.show_arms = false
 	web.hands_fov = 55.0
@@ -295,9 +302,6 @@ func _floor_clip() -> void:
 	_check("web, looking level: the pass is off, so it cannot draw the gun over the hands (%d on)" % revealed[0.0][0], revealed[0.0][0] == 0)
 	_check("the pass's copies are prepared under the loading cover", AwViewModel._reveal_passes.values().all(func(m: Material) -> bool: return m in AwViewModel.prepared_materials()))
 	web.queue_free()
-	camera.queue_free()
-	floor_body.queue_free()
-	_end()
 
 
 ## The wall-free pass's layer and camera are not hidden or stopped with the view model, and its camera shares the world: left on
@@ -460,7 +464,7 @@ func _aabb(n: Node, parent: Transform3D) -> AABB:
 
 
 ## The menu pictures: warm() draws them a frame each through one viewport (a viewport apiece headless, which has no pixels to read back), and a
-## cached id costs nothing after. Pressing B used to make 27 MSAA viewports at once.
+## cached id costs nothing after, so pressing B does not make 27 MSAA viewports at once.
 func _previews() -> void:
 	_begin("weapon previews, warmed through one viewport")
 	# Six of the pack's own models, registered as art the way a game does.

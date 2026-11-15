@@ -44,10 +44,9 @@ func _on_reload_cue(cue: StringName, db: float) -> void:
 	reload_cue_played.emit(cue, _cue_weapon)
 
 
-## Ticks the reload motion spans: exactly the arsenal's reload, so its fraction reaches 1 as the reload ends and the
-## gun is home again. A per-round reload lands its first round as the start ends and each further one a round time
-## later, so it is the start plus one round time per missing round after the first. One round time more ended
-## the motion mid-roll and the gun snapped to idle in one frame.
+## Ticks the reload motion spans: exactly the arsenal's reload, so its fraction reaches 1 as the reload ends and the gun is home again. A per-round
+## reload lands its first round as the start ends and each further one a round time later: the start plus one round time per missing round after the
+## first. One round time more would end the motion mid-roll and snap the gun to idle in one frame.
 func reload_motion_ticks(def: DotWeaponDef, space: int) -> int:
 	var ticks := def.reload_ticks
 	if def.reload_per_round:

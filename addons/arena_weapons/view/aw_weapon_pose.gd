@@ -6,7 +6,7 @@ extends "aw_weapon_pose_keys.gd"
 ## Not part of the netcode contract: it runs on render frames and never writes to anything the simulation reads.
 
 ## How the springs behave: [AwWeaponPoseTunables], kept under this name for the scripts that read it here.
-const Tunables := AwWeaponPoseTunables
+const Tunables := preload("aw_weapon_pose_tunables.gd")
 
 
 ## Samples [param keys] at [param t]: returns [position, rotation in degrees]. Nothing it is

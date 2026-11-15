@@ -232,10 +232,9 @@ const PACK_FLASH_SHADERS := [
 static var _over_shaders: Dictionary = {}
 
 
-## [param shader] drawn over whatever is in front of it, as the core quad is: a first-person flash sits at the
-## muzzle, and seen from the eye the gun's own receiver and the hands are in front of the muzzle, so a depth-tested
-## flash was hidden behind its gun on the revolver and the big guns (renders 2026-11-12). One copy per shader,
-## built under the load gate by [method warm]. Null for null; the shader itself when it names no render mode.
+## [param shader] drawn over whatever is in front of it, as the core quad is: seen from the eye the gun's receiver and the hands are in front of the muzzle,
+## so a depth-tested flash hides behind the revolver and the big guns. One copy per shader, built under the load gate by [method warm].
+## Null for null; the shader itself when it names no render mode.
 static func over_shader(shader: Shader) -> Shader:
 	if shader == null:
 		return null

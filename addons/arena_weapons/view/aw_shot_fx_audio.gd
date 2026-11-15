@@ -21,9 +21,8 @@ const CASING_GAP_MSEC := 90
 ## taking a voice cut its own report off.
 const IMPACT_GAP_MSEC := 30
 
-## Where an Ogg voice start decodes on the game thread (web without threads, see [method ogg_starts_slow]),
-## each one costs about a millisecond, and a 32-player fight starts dozens a second. There, impacts from
-## other players' shots are heard only within [constant SLOW_IMPACT_DISTANCE] metres and at most one per
+## Where an Ogg voice start decodes on the game thread (web without threads, see [method ogg_starts_slow]) each costs about a millisecond, and a 32-player
+## fight starts dozens a second. There, other players' impacts are heard only within [constant SLOW_IMPACT_DISTANCE] metres and at most one per
 ## [constant SLOW_IMPACT_GAP_MSEC] across all shooters. Native and the local gun are unchanged.
 const SLOW_IMPACT_DISTANCE := 40.0
 const SLOW_IMPACT_GAP_MSEC := 100

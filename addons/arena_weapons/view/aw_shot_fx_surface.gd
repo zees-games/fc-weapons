@@ -63,7 +63,7 @@ static func impact_kind(collider: Object) -> StringName:
 
 
 ## Whether a shot landing on [param collider] may leave a mark: only on what never moves. A mark
-## is placed in world space and would hang in the air where a crate or a door used to be.
+## is placed in world space and would hang in the air where a crate or a door had been.
 static func takes_marks(collider: Object) -> bool:
 	if collider == null:
 		return false

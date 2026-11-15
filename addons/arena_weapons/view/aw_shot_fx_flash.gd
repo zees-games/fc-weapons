@@ -6,13 +6,9 @@ extends "aw_shot_fx_audio.gd"
 ## Most effects alive at once, per carrier.
 const MAX_LIVE := 48
 
-## What each weapon class's flash and case are, by [AwWeaponSound] class: `size` scales the
-## flash (1 is a rifle's, 12 cm across at the muzzle), `light` its light, `petals` how many
-## crossed streaks leave the muzzle (a shotgun's is a fat four, a sniper's a long two), `length`
-## stretches them, and `case` is the spent case's length in metres, `hull` true for a shotgun's
-## fat red one, `delay` seconds before it leaves (a bolt or a pump cycles after the shot). A
-## class not here is a rifle's. No `case` means nothing is ejected: a revolver keeps its
-## cases, and a launcher has none.
+## Each weapon class's flash and case, by [AwWeaponSound] class: `size` scales the flash (1 is a rifle's, 12 cm across), `light` its light, `petals` the crossed
+## streaks (a shotgun's fat four, a sniper's long two), `length` stretches them, `case` is the spent case's length in metres, `hull` true for a shotgun's fat red one,
+## `delay` seconds before it leaves (a bolt or pump cycles after the shot). A class not here is a rifle's; no `case` ejects nothing (a revolver, a launcher).
 const FLASH := {
 	AwWeaponSound.LIGHT: {"size": 0.7, "light": 0.7, "petals": 2, "length": 0.9, "case": 0.024},
 	AwWeaponSound.SUPPRESSED: {"size": 0.3, "light": 0.15, "petals": 1, "length": 0.6, "case": 0.024},
@@ -171,13 +167,9 @@ const PACK_GROW := {
 ## The Binbun flash materials a first-person flash was given, by the shared original: see [method _unfade].
 var _unfaded: Dictionary = {}
 
-## Turns the art's proximity fade off on a first-person flash, once, when it is attached. dot-fx fades a first-person
-## flash over [member DotMuzzleFlashConfig.first_person_fade] (0.6 m) in front of the depth behind it, and in first
-## person that depth is the gun's own barrel a few centimetres back: the flash drew at a few percent alpha and only
-## the core quad was seen (renders 2026-11-12). The art's materials are one per scene, shared by every copy, and every
-## first-person copy built later sets the fade on them again, so this flash gets its own copies (one per original,
-## shared by its pool) with the fade off, and keeps them. The copies also draw over the gun ([method over_shader]):
-## with the fade off the flash was still hidden behind the receiver, and only the core quad showed.
+## Turns the art's proximity fade off on a first-person flash, once, when attached: dot-fx fades it over [member DotMuzzleFlashConfig.first_person_fade] (0.6 m) in front
+## of the depth behind it, which in first person is the gun's own barrel, so only the core quad showed. The art's materials are shared by every copy, so this flash gets
+## its own copies (one per original, shared by its pool) with the fade off, drawn over the gun ([method over_shader]) so the receiver does not hide them either.
 func _unfade(flash: Node) -> void:
 	for node: Node in flash.find_children("*", "GeometryInstance3D", true, false):
 		var geo := node as GeometryInstance3D

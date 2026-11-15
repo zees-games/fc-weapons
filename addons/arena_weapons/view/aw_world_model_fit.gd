@@ -24,10 +24,8 @@ var _eject_local: Vector3 = Vector3.INF
 
 @export_group("Behaviour")
 
-## Whether the weapon casts a shadow.
-##
-## On by default because a weapon with no shadow floats, and a floating weapon is one of
-## the few third-person artefacts a player will actually mention.
+## Whether the weapon casts a shadow. On by default because a weapon with no shadow floats, and a floating weapon
+## is one of the few third-person artefacts a player will actually mention.
 @export var cast_shadow: bool = true
 
 

@@ -1,6 +1,9 @@
 class_name AwWeaponPoseTunables
 extends RefCounted
 
+## The key tables, by path: naming [AwWeaponPose] here would make the two scripts a cycle the parser cannot resolve.
+const _Keys := preload("aw_weapon_pose_keys.gd")
+
 ## How the springs behave. One resource for the whole rig; a weapon scales it by its own
 ## [member AwWeaponVisual.weight] rather than carrying its own copy.
 ## Split out of [AwWeaponPose] for file size; the pose reaches it as [code]AwWeaponPose.Tunables[/code].
@@ -43,20 +46,13 @@ var bob_lateral: float = 1.4
 ## Ground speed producing the full bob.
 var bob_reference: float = 6.0
 
-## Bob cycles per metre travelled.
-##
-## [b]Per metre, not per second.[/b] A bob driven by time keeps bobbing when the
+## Bob cycles per metre travelled. [b]Per metre, not per second:[/b] a bob driven by time keeps bobbing when the
 ## player walks into a wall, and slides rather than steps when they slow down.
 var bob_per_metre: float = 0.55
 
-## The most bob cycles a second, however fast the carrier moves: a cadence, not a speed.
-##
-## [b]Without it the bob became a buzz.[/b] Per metre alone, a carrier at 9 m/s (a fast
-## shooter's run) bobbed 10 footfalls a second, 1.1 cm up and down: a weapon vibrating
-## rather than carried, 2.3 mm of change in each frame's movement at 144 fps where a
-## walk's is a tenth of that (game-fatal-contact's `headless_feel`). A runner's legs speed up
-## to about three steps a second and then take longer strides, so the distance a cycle
-## covers grows past this rate instead. 1.5 cycles is three footfalls a second.
+## The most bob cycles a second, however fast the carrier moves: a cadence, not a speed. Per metre alone, a 9 m/s runner bobbed 10 footfalls a second, a weapon
+## vibrating rather than carried (game-fatal-contact's `headless_feel`). A runner's legs reach about three steps a second and then stride longer, so past this rate
+## the distance a cycle covers grows instead. 1.5 cycles is three footfalls a second.
 var bob_max_rate: float = 1.5
 
 ## How quickly the bob amplitude follows speed, per second.
@@ -67,16 +63,9 @@ var bob_response: float = 7.0
 ## [b]Not the whole story, because the curve bends.[/b] See [member kick_knee].
 var kick_pitch: float = 4.0
 
-## How hard large recoil is compressed: climb is
-## [code]kick_pitch * r / (1 + r * kick_knee)[/code].
-##
-## [b]Compressed, and the range it replaced is why.[/b] The behaviours' recoil runs
-## from 0.12 (the minigun) to 4.0 (the sniper), and that range is right for what it
-## is for — a camera that climbs. Fed linearly into a view model, and multiplied by
-## the weapon's weight on top, it made one minigun shot move the gun 0.6 degrees and
-## one sniper shot 17 degrees and 13 cm: the automatics did not visibly fire and the
-## heavy weapons threw the gun half-way up the screen. Compressed, the same pack runs
-## from about one degree to about six, which is the range a hand can hold.
+## How hard large recoil is compressed: climb is [code]kick_pitch * r / (1 + r * kick_knee)[/code]. The behaviours' recoil runs from 0.12 (minigun) to 4.0 (sniper),
+## right for a camera; fed linearly into a view model and times the weapon's weight, one minigun shot moved the gun 0.6 degrees and one sniper shot 17 degrees.
+## Compressed, the same pack runs from about one degree to about six, the range a hand can hold.
 var kick_knee: float = 0.45
 
 ## Degrees of sideways kick per degree of recoil yaw, compressed by the same curve.
@@ -109,29 +98,21 @@ var kick_rate_ref: float = 0.12
 ## The most that stiffening multiplies [member kick_response] by.
 var kick_rate_max: float = 1.8
 
-## [b]The spring is critically damped, and that is not a tunable any more.[/b] It was
-## 0.7, which overshoots: on a sniper the barrel dipped visibly under where it rested
-## after every shot, a wobble that reads as the model being loose in the hand rather
-## than as a weapon going off. Critical is also what makes [method _critical] exact.
-
-## The fraction of the weapon's climb the camera takes, for [method view_punch].
-##
-## Small, because the camera is not where the shot went: the simulation fires along
-## the command's angles and nothing here changes them. A punch that recovers inside a
-## fifth of a second reads as the weapon going off; a large one reads as the crosshair
-## lying about where the next shot lands.
+## The fraction of the weapon's climb the camera takes, for [method view_punch] (the kick spring is critically damped, not tunable: underdamped, a sniper's barrel
+## dipped under its rest after each shot). Small, because the simulation fires along the command's angles and nothing here changes them: a punch that recovers
+## inside a fifth of a second reads as the weapon going off; a large one reads as the crosshair lying about where the next shot lands.
 var camera_share: float = 0.3
 
 ## The draw, as keys from fully holstered (0) to in hand (1). See [method sample_keys].
 ## Replaced per weapon by the view model from [member AwWeaponVisual.draw_keys].
-var draw_keys: Array = AwWeaponPose.DRAW_KEYS
+var draw_keys: Array = _Keys.DRAW_KEYS
 
 ## The holster, on the draw's scale and played from 1 down to 0 (see [method AwWeaponPose.set_deploy]).
 ## Its own keys: the draw backwards begins with the draw's settle and barely moves for a third of the holster.
-var holster_keys: Array = AwWeaponPose.HOLSTER_KEYS
+var holster_keys: Array = _Keys.HOLSTER_KEYS
 
 ## Looking the weapon over, as keys over [member inspect_seconds]. Empty is none.
-var inspect_keys: Array = AwWeaponPose.INSPECT_KEYS
+var inspect_keys: Array = _Keys.INSPECT_KEYS
 
 ## How long an inspect takes, in seconds.
 var inspect_seconds: float = 2.6
@@ -140,7 +121,7 @@ var inspect_seconds: float = 2.6
 var inspect_cancel_seconds: float = 0.2
 
 ## The reload, as keys over its fraction, 0 to 1. Empty is no reload motion.
-var reload_keys: Array = AwWeaponPose.RELOAD_KEYS_RIFLE
+var reload_keys: Array = _Keys.RELOAD_KEYS_RIFLE
 
 ## The sprint carry at full blend: metres and degrees (pitch up, yaw muzzle-left, roll), about the grip.
 var sprint_offset := Vector3.ZERO
@@ -151,7 +132,7 @@ var sprint_bob: float = 1.0
 var sprint_bob_roll: float = 0.0
 
 ## A melee swing, as keys over its own time (see [member swing_seconds]). Empty is none.
-var swing_keys: Array = AwWeaponPose.SWING_KEYS
+var swing_keys: Array = _Keys.SWING_KEYS
 
 ## How long a swing's keys take, in seconds. Presentation time, not the weapon's cooldown:
 ## a swing that lasted the whole cooldown of a slow hammer would still be crossing the
@@ -159,7 +140,7 @@ var swing_keys: Array = AwWeaponPose.SWING_KEYS
 var swing_seconds: float = 0.36
 
 ## A throw, as keys over [member throw_seconds].
-var throw_keys: Array = AwWeaponPose.THROW_KEYS
+var throw_keys: Array = _Keys.THROW_KEYS
 
 var throw_seconds: float = 0.45
 

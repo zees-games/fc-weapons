@@ -1,10 +1,7 @@
 extends SceneTree
-## Contact sheet of one shot's drawn kick per gun: rows are guns, columns frames after the trigger (60 fps), with the
-## camera turned by view_punch as the game does. Arg 1 out.png, arg 2 "before" (pose defaults), "after" (pack params),
-## "fx" (after, plus the rig's muzzle flash and spent case) or "tp" (a held gun seen side-on firing, as a watcher sees it).
-## Arg 3 "proc" draws the procedural flash instead of dot-fx's, to compare the two ("-" keeps dot-fx's). Arg 4, a comma list of
-## gun ids, replaces the default rows (e.g. "lmg,minigun,launcher,battle_rifle" for the big guns).
-## Run with --fixed-fps 60 (tools/render_kick.sh) so the effects step one 60th a frame.
+## Contact sheet of one shot's drawn kick per gun: rows are guns, columns 60 fps frames after the trigger, the camera turned by view_punch. Args: out.png; "before" (pose
+## defaults), "after" (pack params), "fx" (after plus the rig's flash and case) or "tp" (third person side-on); "proc" for the procedural flash ("-" keeps dot-fx's); a comma
+## list of gun ids to replace the default rows. Run with --fixed-fps 60 (tools/render_kick.sh) so the effects step one 60th a frame.
 const GUNS := [&"sniper", &"shotgun", &"revolver", &"rifle"]
 const FRAMES := [0, 3, 6, 12, 24]
 ## The fx columns: the shot frame, the flash fading, and the case leaving (a bolt or a pump throws it about 25 frames late).
