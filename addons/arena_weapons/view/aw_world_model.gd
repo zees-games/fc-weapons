@@ -92,6 +92,7 @@ var _attachments: Array[Node3D] = []
 ## True while [member _art]'s model waits for a frame with [member equip_budget_usec] to spare.
 var _deferred: bool = false
 const ChargeFx := preload("aw_charge_fx.gd")
+const CarryClass := preload("aw_carry_class.gd")
 var _charge_fx: Node3D = null
 var _last_charge := 0.0
 
@@ -232,9 +233,7 @@ func _build_model(art: AwWeaponVisual) -> DotResult:
 
 	if _weapon == null:
 		_budget_spent += Time.get_ticks_usec() - started
-		return DotResult.fail(
-			DotError.CODE_IO, "No model for %s." % String(art.id), art.model_path
-		)
+		return DotResult.fail(DotError.CODE_IO, "No model loads for this weapon.", art.model_path)
 
 	_weapon.name = "Weapon"
 	_holder.add_child(_weapon)
@@ -677,32 +676,9 @@ func _tell_carry() -> void:
 	carry.set(&"switching", _switching)
 
 
-## The carry class (dot-player-char's `DotHumanoidCarry.CLASSES`) [param art] is held as: from its pose, and for a
-## long gun from its sound class (the pack's own, else the one a host gave [AwWeaponSound] for a prefixed or another
-## pack's id); null for a knife or a grenade, which the clip's arms hold.
+## The carry class (dot-player-char's `DotHumanoidCarry.CLASSES`) [param art] is held as; see [code]aw_carry_class.gd[/code].
 static func carry_class(art: AwWeaponVisual) -> Variant:
-	if art == null:
-		return null
-	match art.pose:
-		&"pistol":
-			return &"pistol"
-		&"heavy":
-			return &"heavy"
-		&"melee", &"thrown":
-			return null
-	var sound: StringName = AwWeaponPack.SOUND_CLASSES.get(art.id, &"")
-	if sound == &"":
-		sound = AwWeaponSound.class_for(art.id, &"")
-	match sound:
-		&"shotgun", &"autoshot":
-			return &"shotgun"
-		&"sniper", &"marksman", &"rail":
-			return &"sniper"
-		&"smg", &"mpistol":
-			return &"smg"
-		&"minigun", &"launcher", &"grenade":
-			return &"heavy"
-	return &"rifle"
+	return CarryClass.of(art)
 
 
 func _send_support(_on: bool) -> void:
@@ -758,17 +734,9 @@ func _carrier_body() -> Node:
 	return null
 
 
-## Whether a first-person rig with its own effects carries this hand on this machine.
-##
-## [b]Asked of the tree, not configured, and the configuration was tried in the head
-## first.[/b] A game that forgot to switch the local player's world model off would play
-## every one of its own shots twice, a few centimetres apart — and the game that would
-## forget is the one that drives every player's world model from the replicated counter,
-## its own included, which is the simplest way to write it.
-##
-## The answer is kept until a rig enters or leaves the tree, a rig builds its shot effects
-## ([member rig_epoch]), or this model itself moves: the walk visits every sibling of every
-## ancestor, the whole player list among them, and a watcher asks it on every shot it sees.
+## Whether a first-person rig with its own effects carries this hand on this machine. Asked of the tree, not configured:
+## a game that forgot to switch the local player's world model off would play every shot twice. Kept until [member rig_epoch]
+## moves or this model does, because the walk visits every sibling of every ancestor and a watcher asks on every shot.
 func _carrier_draws_its_own() -> bool:
 	if _draws_own_epoch == rig_epoch:
 		return _draws_own
