@@ -610,6 +610,66 @@ func _assets_pack() -> void:
 	_end()
 
 
+## A headless build keeps each model's textures as 4x4 downsamples (the dummy renderer holds a full
+## decoded copy otherwise): the glove reads the same colours, and the bounds come from the same pass.
+func _headless_textures() -> void:
+	_begin("headless models keep 4x4 textures")
+	var path := _dressed(&"rifle").model_path
+	var was := AwModelCache.shrink_textures_headless
+	var cached := AwViewArms.albedo_cache
+	AwViewArms.albedo_cache = false
+	# A fresh read of the file: the model may already be cached (and shrunk) by an earlier section.
+	var fresh := ResourceLoader.load(AwModelCache.resolve(path), "", ResourceLoader.CACHE_MODE_IGNORE_DEEP) as PackedScene
+	var whole: Node = fresh.instantiate() if fresh != null else null
+	var before: Array[Color] = []
+	var box := AABB()
+	if whole != null:
+		before = AwViewArms.surface_albedos(whole)
+		var boxes: Array[AABB] = []
+		AwModelCache._collect_bounds(whole, Transform3D.IDENTITY, boxes)
+		for b in boxes:
+			box = b if box.size == Vector3.ZERO else box.merge(b)
+	_check("the file itself has whole textures", whole != null and _largest_texture(whole) > 4)
+	if whole != null:
+		whole.free()
+	AwModelCache.shrink_textures_headless = true
+	AwModelCache.clear()
+	var headless := DisplayServer.get_name() == "headless"
+	var loaded := AwModelCache.scene(path).ok
+	_check("headless, the bounds are measured as the model loads", loaded and (not headless or AwModelCache.describe().measured == 1) and AwModelCache.bounds(path).is_equal_approx(box))
+	var small := AwModelCache.instantiate(path)
+	var after: Array[Color] = []
+	if small != null:
+		after = AwViewArms.surface_albedos(small)
+	var same := after.size() == before.size() and not after.is_empty()
+	for i in mini(after.size(), before.size()):
+		same = same and after[i].is_equal_approx(before[i])
+	_check("headless, textures are 4x4 and the glove reads the same colours", small != null and same and (not headless or _largest_texture(small) == 4))
+	if small != null:
+		small.free()
+	AwModelCache.shrink_textures_headless = was
+	AwViewArms.albedo_cache = cached
+	AwModelCache.clear()
+	_end()
+
+
+## The widest texture side on any material under [param root].
+func _largest_texture(root: Node) -> int:
+	var widest := 0
+	for n in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		for s in mi.mesh.get_surface_count():
+			var mat := mi.get_active_material(s)
+			if mat == null:
+				continue
+			for prop in mat.get_property_list():
+				if prop["type"] != TYPE_OBJECT:
+					continue
+				var tex := mat.get(prop["name"]) as Texture2D
+				if tex != null:
+					widest = maxi(widest, maxi(tex.get_width(), tex.get_height()))
+	return widest
+
 ## Writes a pck holding a 0.2 m box scene at [param inside]; the pck's path, or "" if it could not.
 func _synth_assets_pack(inside: String) -> String:
 	var root := Node3D.new()

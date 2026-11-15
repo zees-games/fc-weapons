@@ -17,10 +17,8 @@ extends RefCounted
 ## muzzle somewhere behind the player's ear. A measurement cannot drift from the model
 ## it measured.
 ##
-## [b]Nothing here is called on a dedicated server.[/b] A server resolves weapons,
-## damage and hit registration without ever asking what a weapon looks like; if this
-## file is reached in a headless build, something has asked a simulation question of
-## the art layer.
+## [b]A dedicated server keeps the models warm too[/b], so a first equip does not read a file;
+## headless, their textures are shrunk as they load ([member shrink_textures_headless]).
 
 const CHANNEL := "aw.models"
 
@@ -124,7 +122,65 @@ static func scene(path: String) -> DotResult:
 		)
 
 	_scenes[path] = loaded
+	if shrink_textures_headless and DisplayServer.get_name() == "headless":
+		_shrink(loaded as PackedScene, path)
 	return DotResult.success(loaded)
+
+
+## Whether a headless build swaps a loaded model's textures for 4x4 downsamples. The dummy renderer
+## keeps a decoded copy of each texture it never draws (12 MB a rifle, 270 MB for the kit); the
+## 4x4 is what AwViewArmsColour.texture_mean reads, so the glove fit is unchanged. False keeps them.
+static var shrink_textures_headless := true
+
+
+## Shrinks the textures of [param packed]'s materials in place (they are shared by every instance)
+## and measures its bounds while the instance is at hand.
+static func _shrink(packed: PackedScene, path: String) -> void:
+	var node := packed.instantiate()
+	var small := {}
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		stack.append_array(n.get_children())
+		var mi := n as MeshInstance3D
+		if mi == null:
+			continue
+		var mats: Array[Material] = [mi.material_override, mi.material_overlay]
+		for i in mi.get_surface_override_material_count():
+			mats.append(mi.get_surface_override_material(i))
+		if mi.mesh != null:
+			for s in mi.mesh.get_surface_count():
+				mats.append(mi.mesh.surface_get_material(s))
+		for mat in mats:
+			while mat != null:
+				_shrink_material(mat, small)
+				mat = mat.next_pass
+	if node is Node3D and not _bounds.has(path):
+		var boxes: Array[AABB] = []
+		_collect_bounds(node, Transform3D.IDENTITY, boxes)
+		var box := AABB()
+		for i in range(boxes.size()):
+			box = boxes[i] if i == 0 else box.merge(boxes[i])
+		_bounds[path] = box
+	node.free()
+
+
+static func _shrink_material(mat: Material, small: Dictionary) -> void:
+	for prop in mat.get_property_list():
+		if prop["type"] != TYPE_OBJECT:
+			continue
+		var tex := mat.get(prop["name"]) as Texture2D
+		if tex == null or (tex.get_width() <= 4 and tex.get_height() <= 4):
+			continue
+		var key := tex.get_instance_id()
+		if not small.has(key):
+			var img := tex.get_image()
+			if img == null or img.is_empty() or (img.is_compressed() and img.decompress() != OK):
+				small[key] = tex
+			else:
+				img.resize(4, 4, Image.INTERPOLATE_BILINEAR)
+				small[key] = ImageTexture.create_from_image(img)
+		mat.set(prop["name"], small[key])
 
 
 ## True when [method scene] would find a file for [param path], here or under a fallback root.

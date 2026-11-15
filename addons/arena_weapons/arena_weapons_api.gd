@@ -43,5 +43,6 @@ extends RefCounted
 # 21: inspect. AwViewModel.inspect() / cancel_inspect() / inspect_fraction() (AwWeaponPose.inspect and the inspect keys);
 #     the holster has its own keys (AwWeaponPose.HOLSTER_KEYS, Tunables.holster_keys).
 # 22: AwWorldModel.equip_budget_usec: past it, a frame's world-model equips build their models on later frames.
-const LEVEL := 22
+# 23: AwModelCache.shrink_textures_headless (default on): headless, a loaded model's textures become 4x4 downsamples.
+const LEVEL := 23
 const OLDEST := 1
