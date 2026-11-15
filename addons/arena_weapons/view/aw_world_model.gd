@@ -1,6 +1,6 @@
 @tool
 class_name AwWorldModel
-extends "aw_world_model_keys.gd"
+extends "aw_world_model_fit.gd"
 
 ## The weapon everybody [i]else[/i] sees, hanging off a character's hand.
 ##
@@ -27,9 +27,6 @@ extends "aw_world_model_keys.gd"
 # AwModelCache and handed back as a DotResult; "nowhere to attach" is headless, not wrong.
 
 ## How much of a weapon's recoil a watcher sees.
-const Dress := preload("aw_attachment_dress.gd")
-const MagCarve := preload("aw_mag_carve.gd")
-
 const RECOIL_SHARE := 0.35
 
 @export_group("Attachment")
@@ -41,12 +38,6 @@ const RECOIL_SHARE := 0.35
 @export var mount: StringName = &"right_hand"
 
 @export_group("Behaviour")
-
-## Whether the weapon casts a shadow.
-##
-## On by default because a weapon with no shadow floats, and a floating weapon is one of
-## the few third-person artefacts a player will actually mention.
-@export var cast_shadow: bool = true
 
 ## Hides the model while the character is switching weapons.
 ##
@@ -87,22 +78,8 @@ var _wall_amount: float = 0.0
 var _wall_target: float = 0.0
 var _wall_clock: float = 0.0
 var _wall_was: bool = false
-var _holder: Node3D = null
-var _weapon: Node3D = null
-var _mag: Node3D = null
-var _mag_local := Transform3D.IDENTITY
 var _attachments: Array[Node3D] = []
-var _dressed: Dictionary = {}
-var _fitting: DotWeaponFitting = null
-var _fit_code: int = -1
 
-## The catalogue [method on_fitted] decodes a replicated fitting against; the arsenal's own.
-var attachments: DotWeaponAttachments = null
-var _art: AwWeaponVisual = null
-var _id: StringName = &""
-const HandReach := preload("aw_hand_reach.gd")
-## The ejection port in the model's space, measured on the first shot after an equip (INF until then).
-var _eject_local: Vector3 = Vector3.INF
 const ChargeFx := preload("aw_charge_fx.gd")
 var _charge_fx: Node3D = null
 var _last_charge := 0.0
@@ -124,7 +101,6 @@ var _built: bool = false
 ## it), and the support hand's place in the holder's space, [constant Vector3.INF] for one hand.
 var _owner_cache: Object = null
 var _sprint: float = 0.0
-var _support_local := Vector3.INF
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
 
@@ -225,25 +201,6 @@ func equip(art: AwWeaponVisual) -> DotResult:
 	_apply_shadows()
 	_support_local = _support_point_for(art)
 	return DotResult.success(null)
-
-
-## Draws [param fitting]'s attachments on the weapon in hand, and moves the muzzle to the suppressor's end.
-func set_fitting(fitting: DotWeaponFitting) -> void:
-	_fitting = fitting.duplicate_fitting() if fitting != null else null
-	if _weapon == null or _art == null:
-		return
-	_dressed = Dress.apply(_weapon, _fitting, _art.model_forward, _dressed)
-	_apply_shadows()
-
-
-## Follows a carrier's replicated [code]net_fitted[/code] [param code]; needs [member attachments] to decode it.
-func on_fitted(code: int) -> void:
-	if code == _fit_code or attachments == null or _id == &"":
-		return
-	_fit_code = code
-	var base := AwWeaponCatalogue.shared().get_def(_id)
-	if base != null and attachments.code_bits(base) <= DotWeaponNetSync.FITTED_BITS:
-		set_fitting(attachments.decode(base, code))
 
 
 func clear() -> void:
@@ -384,24 +341,6 @@ func _start_action(keys: Array, seconds: float, hides: bool) -> void:
 	_kick = 0.0
 
 
-## Where the spent case leaves this gun in the world: the same port the first-person rig throws from. Effects only.
-func eject_transform() -> Transform3D:
-	if _weapon == null:
-		return global_transform
-	if not _eject_local.is_finite():
-		_eject_local = HandReach.eject_local(_weapon, _art)
-	var world := _weapon.global_transform
-	return Transform3D(world.basis.orthonormalized(), world * _eject_local)
-
-
-## Which way the barrel points in the world: the art's forward through the model's basis.
-func muzzle_direction() -> Vector3:
-	if _weapon == null or _art == null:
-		return -global_basis.z.normalized()
-
-	return (_weapon.global_basis * _art.model_forward).normalized()
-
-
 ## Whether the character is mid-switch. Hides the model while they are, if asked to.
 func on_switching(switching: bool) -> void:
 	_switching = switching
@@ -515,20 +454,6 @@ func advance(delta: float) -> void:
 		# Seated again and the reload over: the gun is one mesh once more.
 		MagCarve.merge_back(_mag)
 		_mag = null
-
-
-## The reload's magazine: split out of the gun on the reload's first frame (the first person view measured where it sits),
-## pulled out with the support hand, carried to the belt and back, and seated.
-func _detach_magazine() -> void:
-	if _mag != null or _weapon == null or _art == null or not _support_local.is_finite():
-		return
-	var box := MagCarve.recall(_art.model_path)
-	if box.size == Vector3.ZERO:
-		return
-	_mag = MagCarve.carve(_weapon, _holder, Transform3D.IDENTITY, box, "%s|%s" % [_art.model_path, box])
-	if _mag != null:
-		_mag_local = _mag.transform
-		_apply_shadows()
 
 
 ## Follows the support hand while it has the magazine: out of the well at a quarter of the cycle, down to the belt and
@@ -726,42 +651,6 @@ func _send_support(_on: bool) -> void:
 		person.call(&"set_support_grip", Vector3.INF)
 
 
-## Where the support hand holds [param art]'s model, in the holder's space: its own `support_grip`, else
-## the fractions [member AwWeaponVisual.fore_along] and [member AwWeaponVisual.fore_up] over the mesh's bounds.
-func _support_point_for(art: AwWeaponVisual) -> Vector3:
-	if art.support_grip.is_finite():
-		return art.support_grip
-	if _weapon == null:
-		return Vector3.INF
-	var box := AABB()
-	var seeded := false
-	for mi in _meshes(_weapon):
-		if mi.mesh == null:
-			continue
-		var to_holder := Transform3D.IDENTITY
-		var walk: Node = mi
-		while walk != null and walk != _holder:
-			if walk is Node3D:
-				to_holder = (walk as Node3D).transform * to_holder
-			walk = walk.get_parent()
-		var part := to_holder * mi.mesh.get_aabb()
-		box = part if not seeded else box.merge(part)
-		seeded = true
-	if not seeded:
-		return Vector3.INF
-	var forward := art.model_forward.normalized()
-	var t_min := INF
-	var t_max := -INF
-	for i in 8:
-		var t := box.get_endpoint(i).dot(forward)
-		t_min = minf(t_min, t)
-		t_max = maxf(t_max, t)
-	var centre := box.get_center()
-	var point := centre - forward * centre.dot(forward) + forward * lerpf(t_min, t_max, art.fore_along)
-	point.y = box.position.y + box.size.y * art.fore_up
-	return point
-
-
 func _show_in_hand(shown: bool) -> void:
 	if _weapon != null and _weapon.visible != shown:
 		_weapon.visible = shown
@@ -825,26 +714,6 @@ func _carrier_draws_its_own() -> bool:
 		depth += 1
 
 	return false
-
-
-func _apply_shadows() -> void:
-	var mode := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_shadow \
-		else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-
-	for mesh in _meshes(self):
-		mesh.cast_shadow = mode
-
-
-func _meshes(node: Node) -> Array[MeshInstance3D]:
-	var out: Array[MeshInstance3D] = []
-
-	if node is MeshInstance3D:
-		out.append(node)
-
-	for child in node.get_children():
-		out.append_array(_meshes(child))
-
-	return out
 
 
 func _clear_models() -> void:

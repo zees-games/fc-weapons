@@ -275,21 +275,8 @@ static func _cut_mesh(mesh: Mesh, to_space: Transform3D, planes: Array, cut: Dic
 
 ## `[arrays, removed, points]` for one surface (non-indexed, every attribute interpolated), or `[]` when nothing is inside.
 static func _cut_surface(arrays: Array, to_space: Transform3D, planes: Array, box: AABB = AABB()) -> Array:
-	if box.has_volume() or box.size != Vector3.ZERO:
-		# Surface bounds wholly beyond one plane (with a margin for float noise): nothing inside, skip every vertex.
-		var corners_box: Array[Vector3] = []
-		for c in 8:
-			corners_box.append(to_space * box.get_endpoint(c))
-		for plane: Array in planes:
-			var pn: Vector3 = plane[0]
-			var pd: float = plane[1] + 0.001
-			var all_beyond := true
-			for w in corners_box:
-				if pn.dot(w) <= pd:
-					all_beyond = false
-					break
-			if all_beyond:
-				return []
+	if (box.has_volume() or box.size != Vector3.ZERO) and _box_beyond(to_space, planes, box):
+		return []
 	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var index: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
 	var count := index.size() if not index.is_empty() else verts.size()
@@ -361,6 +348,25 @@ static func _cut_surface(arrays: Array, to_space: Transform3D, planes: Array, bo
 	if removed == 0:
 		return []
 	return [_build(arrays, corners, bary), removed, points]
+
+
+## Whether [param box] (moved by [param to_space]) lies wholly beyond one of [param planes], with a margin for float
+## noise: nothing of the surface is inside, so every vertex can be skipped.
+static func _box_beyond(to_space: Transform3D, planes: Array, box: AABB) -> bool:
+	var corners_box: Array[Vector3] = []
+	for c in 8:
+		corners_box.append(to_space * box.get_endpoint(c))
+	for plane: Array in planes:
+		var pn: Vector3 = plane[0]
+		var pd: float = plane[1] + 0.001
+		var all_beyond := true
+		for w in corners_box:
+			if pn.dot(w) <= pd:
+				all_beyond = false
+				break
+		if all_beyond:
+			return true
+	return false
 
 
 ## Whether every corner of [param p] is outside one of [param planes]: the triangle misses the region.

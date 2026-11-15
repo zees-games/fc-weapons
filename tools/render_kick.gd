@@ -25,16 +25,7 @@ func _initialize() -> void:
 		_guns = Array(a[3].split(",")).map(func(g: String) -> StringName: return StringName(g))
 	var frames: Array = FX_FRAMES if mode in ["fx", "tp"] else FRAMES
 	root.size = Vector2i(W * 2, H * 2)
-	var env := WorldEnvironment.new()
-	env.environment = Environment.new()
-	env.environment.background_mode = Environment.BG_COLOR
-	env.environment.background_color = Color(0.55, 0.68, 0.82)
-	env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.environment.ambient_light_color = Color(0.6, 0.6, 0.65)
-	root.add_child(env)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-50, 30, 0)
-	root.add_child(sun)
+	_lights()
 	_scenery()
 	var sheet := Image.create(W * frames.size(), H * _guns.size(), false, Image.FORMAT_RGB8)
 	var defs := {}
@@ -63,16 +54,7 @@ func _initialize() -> void:
 		view.fire_interval = float(def.use_interval_ticks) / float(AwWeaponPack.TICK_RATE)
 		var fx: AwShotFx = null
 		if mode == "fx":
-			fx = _shot_fx(true)
-			# As the game's load cover does: the gun's first-person flash is built before the first shot.
-			var category: String = AwShotFx.CLASS_CATEGORY.get(AwWeaponSound.class_for(id, DotWeaponOutcome.KIND_SHOT), "rifle")
-			DotWeaponMuzzle.warm(fx, category, def, true)
-			# And, as its load gate does, the effects' shared materials are drawn once, so no shot compiles one.
-			var warmup := DotRenderWarmup.new()
-			warmup.add_items(AwShotFx.warm())
-			cam.add_child(warmup)
-			warmup.start()
-			await warmup.finished
+			fx = await _warmed_fx(id, def, cam)
 		for _i in 90:
 			view.advance(1.0 / 60.0)
 			await process_frame
@@ -88,26 +70,7 @@ func _initialize() -> void:
 			fx.play_use(shot, view.muzzle_transform(), id)
 			if view.ejects():
 				fx.play_eject(view.eject_transform(), id, view.eject_speed(), view.eject_scale())
-		var frame := 0
-		var peak := 0.0
-		for col in frames.size():
-			while frame < int(frames[col]):
-				view.advance(1.0 / 60.0)
-				frame += 1
-				peak = maxf(peak, view.view_punch().x)
-				if fx != null:
-					await process_frame
-			var p := view.view_punch()
-			cam.rotation_degrees = Vector3(p.x, p.y, 0.0)
-			if fx != null:
-				await RenderingServer.frame_post_draw
-			else:
-				await process_frame
-				await process_frame
-			var img := root.get_texture().get_image()
-			img.convert(Image.FORMAT_RGB8)
-			img.resize(W, H)
-			sheet.blit_rect(img, Rect2i(0, 0, W, H), Vector2i(col * W, row * H))
+		var peak: float = await _capture_row(view, cam, fx, frames, sheet, row)
 		print("RESULT %s %s camera_peak=%.2f%s" % [id, mode, peak, _fx_line(fx)])
 		if fx != null:
 			fx.free()
@@ -117,6 +80,61 @@ func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
 	sheet.save_png(out)
 	quit()
+
+
+## Steps [param view] through [param frames] after the shot, turning [param cam] by its view punch, and blits each
+## frame into [param sheet]'s [param row]; returns the punch's peak pitch.
+func _capture_row(view: AwViewModel, cam: Camera3D, fx: AwShotFx, frames: Array, sheet: Image, row: int) -> float:
+	var frame := 0
+	var peak := 0.0
+	for col in frames.size():
+		while frame < int(frames[col]):
+			view.advance(1.0 / 60.0)
+			frame += 1
+			peak = maxf(peak, view.view_punch().x)
+			if fx != null:
+				await process_frame
+		var p := view.view_punch()
+		cam.rotation_degrees = Vector3(p.x, p.y, 0.0)
+		if fx != null:
+			await RenderingServer.frame_post_draw
+		else:
+			await process_frame
+			await process_frame
+		var img := root.get_texture().get_image()
+		img.convert(Image.FORMAT_RGB8)
+		img.resize(W, H)
+		sheet.blit_rect(img, Rect2i(0, 0, W, H), Vector2i(col * W, row * H))
+	return peak
+
+
+## The sky, ambient light and sun every sheet is drawn under.
+func _lights() -> void:
+	var env := WorldEnvironment.new()
+	env.environment = Environment.new()
+	env.environment.background_mode = Environment.BG_COLOR
+	env.environment.background_color = Color(0.55, 0.68, 0.82)
+	env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.environment.ambient_light_color = Color(0.6, 0.6, 0.65)
+	root.add_child(env)
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-50, 30, 0)
+	root.add_child(sun)
+
+
+## A first-person AwShotFx readied for [param id]'s first shot, under [param cam].
+func _warmed_fx(id: StringName, def: DotWeaponDef, cam: Camera3D) -> AwShotFx:
+	var fx := _shot_fx(true)
+	# As the game's load cover does: the gun's first-person flash is built before the first shot.
+	var category: String = AwShotFx.CLASS_CATEGORY.get(AwWeaponSound.class_for(id, DotWeaponOutcome.KIND_SHOT), "rifle")
+	DotWeaponMuzzle.warm(fx, category, def, true)
+	# And, as its load gate does, the effects' shared materials are drawn once, so no shot compiles one.
+	var warmup := DotRenderWarmup.new()
+	warmup.add_items(AwShotFx.warm())
+	cam.add_child(warmup)
+	warmup.start()
+	await warmup.finished
+	return fx
 
 
 func _shot_fx(first_person: bool) -> AwShotFx:
