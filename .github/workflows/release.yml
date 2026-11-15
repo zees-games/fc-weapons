@@ -1,6 +1,6 @@
 # A v* tag releases this repository: the addons/arena_weapons zip, and with `pack` the
 # pack zip that carries addons/arena_weapons (its code) with the weapons data, which a
-# host mounts as an add-on overlay. The whole job is in modcommunity/dot-ci; its README
+# host mounts as an add-on overlay. The whole job is in gamespice-platform/ci; its README
 # says what the inputs are.
 name: Release
 
@@ -10,7 +10,7 @@ on:
 
 jobs:
     validate:
-        uses: modcommunity/dot-ci/.github/workflows/validate.yml@v1
+        uses: gamespice-platform/ci/.github/workflows/validate.yml@v1
         with:
             suite-timeout: 900
         secrets:
@@ -18,7 +18,7 @@ jobs:
 
     release:
         needs: validate
-        uses: modcommunity/dot-ci/.github/workflows/release.yml@v1
+        uses: gamespice-platform/ci/.github/workflows/release.yml@v1
         permissions:
             contents: write
         with:
