@@ -53,7 +53,13 @@ var _layers: AwShotLayers = null
 var _layers_shared := false
 
 ## What other people's shots may cost (`cl_shotfx_*`); shared by every AwShotFx. Bind it with [method DotWeaponCvarRules.bind_cvars].
-static var rules: AwShotFxRules = AwShotFxRules.new()
+## Made on first use: an instance built while this script loads blocks reloading AwShotFxRules (the parse pass).
+static var rules: AwShotFxRules:
+	get:
+		if _rules == null:
+			_rules = AwShotFxRules.new()
+		return _rules
+static var _rules: AwShotFxRules = null
 
 ## True for the local player's own gun, which none of [member rules] limits. Set before adding to the tree.
 @export var first_person: bool = false
