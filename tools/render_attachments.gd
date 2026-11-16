@@ -1,12 +1,12 @@
 extends SceneTree
 ## Contact sheet of fitted attachments: rows are guns, columns the first-person hip and aimed frames and a side-on third-person frame for fitting A (holo or red dot,
-## suppressor, vertical grip, laser, extended magazine), then aimed and third person for fitting B (scope or prism, compensator, angled grip); unfit mounts are left off.
+## suppressor, vertical grip, laser, extended magazine, Rocketjump), then aimed and third person for fitting B (scope or prism, compensator, angled grip); unfit mounts are left off.
 ## tools/render_attachments.sh <out.png under the project> <gun>...
 
 const W := 480
 const H := 270
-const FIT_A := {&"optic": [&"holo", &"red_dot"], &"muzzle": [&"suppressor"], &"underbarrel": [&"vertical_grip"], &"side": [&"laser"], &"magazine": [&"extended_mag"]}
-const FIT_B := {&"optic": [&"scope_6x", &"prism_3x", &"red_dot"], &"muzzle": [&"compensator"], &"underbarrel": [&"angled_grip"]}
+const FIT_A := {&"optic": [&"holo", &"red_dot"], &"muzzle": [&"suppressor"], &"underbarrel": [&"vertical_grip"], &"side": [&"laser"], &"magazine": [&"extended_mag"], &"warhead": [&"rocketjump"]}
+const FIT_B := {&"optic": [&"scope_6x", &"prism_3x", &"red_dot"], &"muzzle": [&"compensator"], &"underbarrel": [&"angled_grip"], &"warhead": [&"rocketjump"]}
 const FOV := 80.0
 
 

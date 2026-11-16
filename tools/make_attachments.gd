@@ -1,7 +1,8 @@
 extends SceneTree
 ## Builds the attachment models (own work, primitives only) into addons/arena_weapons/assets/attachments/<id>.tscn, each drawn on its gun's `socket_<mount>` with no offset:
 ## muzzle parts run toward -Z, optics sit on +Y (their `<id>_glass` mesh is what the sight line runs through), underbarrel parts hang toward -Y, side parts sit toward +X,
-## magazine extensions hang below the magazine. godot --headless --path . --script res://tools/make_attachments.gd
+## magazine extensions hang below the magazine, a warhead sits on the missile's nose (its tip at the socket).
+## godot --headless --path . --script res://tools/make_attachments.gd [-- <id>...] (ids: only those, so the rest keep their files)
 
 const OUT := "res://addons/arena_weapons/assets/attachments/"
 
@@ -59,13 +60,21 @@ const PARTS := {
 		["extension", "box", Vector3(0.030, 0.050, 0.034), Vector3(0, -0.025, 0), "polymer"],
 		["plate", "box", Vector3(0.034, 0.006, 0.040), Vector3(0, -0.053, 0), "metal"],
 	],
+	"rocketjump": [
+		["cap", "tube", Vector3(0.030, 0.050, 0), Vector3(0, 0, 0.012), "practice"],
+		["face", "tube", Vector3(0.022, 0.006, 0), Vector3(0, 0, -0.015), "dark"],
+		["band", "tube", Vector3(0.069, 0.040, 0), Vector3(0, 0, 0.170), "practice"],
+	],
 }
 
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	var made := 0
+	var only := OS.get_cmdline_user_args()
 	for id: String in PARTS:
+		if not only.is_empty() and not only.has(id):
+			continue
 		var root := Node3D.new()
 		root.name = id
 		for part: Array in PARTS[id]:
@@ -142,6 +151,9 @@ static func _material(kind: String) -> StandardMaterial3D:
 			m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			m.metallic_specular = 1.0
 			m.roughness = 0.05
+		"practice":
+			m.albedo_color = Color(0.95, 0.42, 0.05)
+			m.roughness = 0.55
 		"laser":
 			m.albedo_color = Color(1.0, 0.1, 0.05)
 			m.emission_enabled = true

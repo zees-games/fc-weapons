@@ -3,7 +3,8 @@ extends RefCounted
 
 ## Where each gun model takes its attachments: model name -> mount -> position in the model's space (origin at the grip, muzzle
 ## toward -Z), measured by tools/measure_sockets.gd. A mount a gun lacks is left out: a built-in sight or scope has no optic
-## mount, a pump or a tube no underbarrel, a launcher none at all. `mag` names the model's magazine, which the magazine socket rides on.
+## mount, a pump or a tube no underbarrel, a launcher none but
+## the single-missile launcher's `warhead`, on its missile's nose. `mag` names the model's magazine, which the magazine socket rides on.
 const SOCKETS := {
 	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.060, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
 	&"revolver": {"optic": Vector3(0.0, 0.132, -0.045), "side": Vector3(0.018, 0.106, -0.135)},
@@ -23,9 +24,12 @@ const SOCKETS := {
 	&"grenade_launcher": {"side": Vector3(0.132, 0.101, -0.281)},
 	&"plasma_rifle": {"underbarrel": Vector3(0.0, -0.052, -0.375), "side": Vector3(0.081, 0.074, -0.341)},
 	&"rail_rifle": {"underbarrel": Vector3(0.0, 0.0, -0.601), "side": Vector3(0.034, 0.096, -0.566)},
+	&"rocket_launcher": {"warhead": Vector3(0.0, -0.015, -0.756)},
 }
 
-const MOUNTS: Array[StringName] = [&"optic", &"muzzle", &"underbarrel", &"side", &"magazine"]
+## The tip of a launcher's loaded missile: the Rocketjump goes there.
+const MOUNT_WARHEAD := &"warhead"
+const MOUNTS: Array[StringName] = [&"optic", &"muzzle", &"underbarrel", &"side", &"magazine", MOUNT_WARHEAD]
 
 
 ## The model name a model path or a model's scene file names: `res://…/carbine.glb` -> `carbine`.

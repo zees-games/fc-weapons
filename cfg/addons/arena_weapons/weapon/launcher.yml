@@ -16,7 +16,7 @@ charge_ticks: 64
 charge_requires_min: false
 min_charge: 0.35
 ammo_type: "ordnance"
-magazine: 4
+magazine: 1
 reserve: 12
 reserve_max: 24
 cost_per_use: 1
@@ -27,7 +27,7 @@ reload_start_ticks: 22
 auto_reload: true
 weight: 6.5
 crosshair_scale: 0.0
-mounts: []
+mounts: ["warhead"]
 extra:
   tuning:
     damage: 32.0
@@ -72,7 +72,7 @@ extra:
     ricochet_chance: 0.0
     tracer_interval: 0
     bullet_mass: 0.004
-    splash_radius: 4.5
+    splash_radius: 5.5
     splash_damage: 88.0
     splash_hurts_owner: true
     speed: 44.0

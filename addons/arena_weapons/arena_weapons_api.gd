@@ -48,5 +48,8 @@ extends RefCounted
 # 25: scope body view. AwViewModel.scope_body / scope_body_relief / scope_body_active() / scope_ocular_points(), a scope style's
 #     `ocular`: the gun stays up through a lens scope and AwScopeOverlay draws the zoomed picture into its ocular.
 # 26: AwGrenadeSound (count, stream): the detonation recordings of the five thrown grenades, for a host to play where one goes off.
-const LEVEL := 26
+# 27: rockets and bounce. AwRocketRules (sv_rocket_*: single launcher's tube and blast, Rocketjump launch), AwRocketJump
+#     (launch_velocity, self_damage_scale), the `warhead` mount and its Rocketjump, AwMissileArt.build(weapon_id);
+#     AwGrenade.bounce_velocity / settles / damp_factor and sv_grenade_damping / _rest_speed / _max_bounces.
+const LEVEL := 27
 const OLDEST := 1

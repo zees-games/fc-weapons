@@ -22,16 +22,19 @@ const ROWS := {
 	&"angled_grip": {"name": "Angled Grip", "mount": &"underbarrel", "scale": {"recoil_yaw": 0.7, "spread_moving": 0.85}},
 	&"laser": {"name": "Laser Sight", "mount": &"side", "scale": {"spread": 0.8, "spread_moving": 0.85}},
 	&"extended_mag": {"name": "Extended Magazine", "mount": &"magazine", "scale": {"magazine": 1.5, "reload_ticks": 1.15}},
+	# Its damage cut is the sv_rocket_jump_damage_scale cvar, so [method attachments] sets it from the rules.
+	&"rocketjump": {"name": "Rocketjump", "mount": &"warhead", "params": {"rocketjump": true}},
 }
 
 ## Who made the models: rows as [method AwSpawnProvider.credits] returns.
 const CREDITS: Array[Dictionary] = [
-	{"id": "arena-weapons-attachments", "model": "attachments (red_dot, holo, prism_3x, scope_6x, suppressor, compensator, grips, laser, extended_mag)", "author": "Arena Weapons (own work, tools/make_attachments.gd)", "licence": "CC0-1.0", "url": "https://github.com/zees-games/fc-weapons/blob/main/tools/make_attachments.gd"},
+	{"id": "arena-weapons-attachments", "model": "attachments (red_dot, holo, prism_3x, scope_6x, suppressor, compensator, grips, laser, extended_mag, rocketjump)", "author": "Arena Weapons (own work, tools/make_attachments.gd)", "licence": "CC0-1.0", "url": "https://github.com/zees-games/fc-weapons/blob/main/tools/make_attachments.gd"},
 ]
 
 
-## Every attachment, fresh each call.
-static func attachments() -> Array[DotWeaponAttachment]:
+## Every attachment, fresh each call; [param rocket_rules] (the server's `sv_rocket_*`) sets the Rocketjump's damage cut.
+static func attachments(rocket_rules: AwRocketRules = null) -> Array[DotWeaponAttachment]:
+	var rules := rocket_rules if rocket_rules != null else AwRocketRules.new()
 	var out: Array[DotWeaponAttachment] = []
 	for id: StringName in ROWS:
 		var row: Dictionary = ROWS[id]
@@ -46,14 +49,16 @@ static func attachments() -> Array[DotWeaponAttachment]:
 		if row.has("zoom"):
 			a.params_set[DotWeaponAttachment.PARAM_ZOOM] = row["zoom"]
 		a.excludes_tags.assign(row.get("excludes", []))
+		if id == AwRocketJump.ID:
+			a.scale = {"damage": rules.jump_damage_scale, "splash_damage": rules.jump_damage_scale}
 		out.append(a)
 	return out
 
 
-## The attachments as a catalogue a host validates and applies fittings with.
-static func catalogue() -> DotWeaponAttachments:
+## The attachments as a catalogue a host validates and applies fittings with; rebuild it when `sv_rocket_*` changes.
+static func catalogue(rocket_rules: AwRocketRules = null) -> DotWeaponAttachments:
 	var out := DotWeaponAttachments.new()
-	for a in attachments():
+	for a in attachments(rocket_rules):
 		out.add(a)
 	return out
 

@@ -78,7 +78,54 @@ func _grenades() -> void:
 
 	var _set := rules.set_cvar("sv_grenade_bounce", "5")
 	_check("cvars clamp to their range and have sane defaults", is_equal_approx(rules.bounce, 0.95) and is_equal_approx(AwGrenadeRules.new().friction, 0.7))
+	_grenade_bounce(defs, floor_y)
 	_end()
+
+
+## A dropped grenade rebounds as high as sv_grenade_bounce says; sv_grenade_damping drags it; a sticky still sticks.
+func _grenade_bounce(defs: Array[DotWeaponDef], floor_y: Callable) -> void:
+	var throw := func(id: StringName, vel: Vector3, r: AwGrenadeRules) -> AwGrenade:
+		var s := DotWeaponSpawn.make(id, Vector3(0, 1, 0), vel, 7)
+		s.fuse_ticks = 5000
+		s.gravity_scale = 1.0
+		return AwGrenade.from_spawn(s, _def(defs, id), r)
+	var rebound := func(r: AwGrenadeRules) -> float:
+		var g: AwGrenade = throw.call(&"aw_frag", Vector3.ZERO, r)
+		var top := 0.0
+		for i in 200:
+			var _gone := g.step(floor_y, 64)
+			if g.bounces == 1:
+				top = maxf(top, g.position.y)
+		return top
+	var soft := AwGrenadeRules.new()
+	soft.set_cvar("sv_grenade_bounce", "0.2")
+	var hard := AwGrenadeRules.new()
+	hard.set_cvar("sv_grenade_bounce", "0.8")
+	var low: float = rebound.call(soft)
+	var high: float = rebound.call(hard)
+	_check("a dropped grenade bounces up off the floor, higher with sv_grenade_bounce (%.2f m, %.2f m)" % [low, high], low > 0.02 and high > low * 4.0 and high < 1.0)
+
+	var none := func(_a: Vector3, _b: Vector3) -> Dictionary: return {}
+	var drag := AwGrenadeRules.new()
+	drag.set_cvar("sv_grenade_damping", "2")
+	var free: AwGrenade = throw.call(&"aw_frag", Vector3(10, 0, 0), AwGrenadeRules.new())
+	var slowed: AwGrenade = throw.call(&"aw_frag", Vector3(10, 0, 0), drag)
+	for i in 32:
+		var _a := free.step(none, 64)
+		var _b := slowed.step(none, 64)
+	_check("sv_grenade_damping slows a flying grenade (%.1f against %.1f m/s)" % [slowed.velocity.x, free.velocity.x], is_equal_approx(free.velocity.x, 10.0) and slowed.velocity.x < 4.0 and slowed.velocity.x > 3.0)
+
+	var once := AwGrenadeRules.new()
+	once.set_cvar("sv_grenade_max_bounces", "1")
+	var dead: AwGrenade = throw.call(&"aw_frag", Vector3.ZERO, once)
+	while dead.bounces == 0:
+		var _gone := dead.step(floor_y, 64)
+	_check("sv_grenade_max_bounces stops it dead; 0 keeps bouncing", dead.velocity == Vector3.ZERO and AwGrenadeRules.new().max_bounces == 0.0)
+
+	var sticky: AwGrenade = throw.call(&"aw_sticky", Vector3(2, -2, 0), hard)
+	for i in 60:
+		var _gone := sticky.step(floor_y, 64)
+	_check("a sticky sticks however bouncy the cvar", sticky.stuck and sticky.velocity == Vector3.ZERO and sticky.bounces <= 1)
 
 
 func _utility() -> void:
@@ -167,7 +214,7 @@ func _utility_fx() -> void:
 	var own_defs := AwGrenadeFx.defs()
 	_check("with no folder the clouds load from the addon's own fx/", own_defs[0].scene_path == own_dir + "/smoke_cloud.tscn" and ResourceLoader.exists(own_defs[0].scene_path) and ResourceLoader.exists(own_defs[1].scene_path))
 	_check("both shipped cloud scenes instance", (load(own_defs[0].scene_path) as PackedScene).instantiate() != null and (load(own_defs[1].scene_path) as PackedScene).instantiate() != null)
-	_check("API level 26", preload("res://addons/arena_weapons/arena_weapons_api.gd").LEVEL == 26)
+	_check("API level 27", preload("res://addons/arena_weapons/arena_weapons_api.gd").LEVEL == 27)
 
 	var fx_defs := AwGrenadeFx.defs("res://fx")
 	_check("three fx defs: two clouds from the game's folder and a screen flash", fx_defs.size() == 3 and fx_defs[0].scene_path == "res://fx/smoke_cloud.tscn" and fx_defs[2].kind == DotFxDef.Kind.SCREEN)
@@ -181,3 +228,67 @@ func _thrown() -> bool:
 	AwArtDress.apply(art, AwSpawnProvider.role_art()[&"frag"])
 	return art.model_path == AwWeaponArt.model_path("stick_grenade") and art.model_forward == Vector3.UP
 
+
+
+func _rockets() -> void:
+	_begin("rocket launchers and the Rocketjump")
+	var defs := AwSpawnProvider.weapon_defs()
+	var single := _def(defs, &"aw_launcher")
+	var quad := _def(defs, &"aw_quad_launcher")
+	var sb := single.tuning as DotWeaponBallistics
+	var qb := quad.tuning as DotWeaponBallistics
+	_check("the single-missile launcher holds one missile, the quad four", single.magazine == 1 and quad.magazine == 4)
+	_check("its blast is wider than the quad's (%.1f m against %.1f m)" % [sb.splash_radius, qb.splash_radius], sb.splash_radius > qb.splash_radius)
+	var rules := AwRocketRules.new()
+	var _m := rules.set_cvar("sv_rocket_launcher_magazine", "2")
+	var _r := rules.set_cvar("sv_rocket_launcher_splash_radius", "8")
+	var tuned := AwWeaponPack.launcher()
+	var other := AwWeaponPack.quad_launcher()
+	rules.apply(tuned)
+	rules.apply(other)
+	_check("sv_rocket_launcher_* retune the single launcher and leave the quad alone", tuned.magazine == 2 and is_equal_approx((tuned.tuning as DotWeaponBallistics).splash_radius, 8.0) and other.magazine == 4)
+
+	var weak := AwRocketRules.new()
+	var _w := weak.set_cvar("sv_rocket_jump_damage_scale", "0.25")
+	var fit := DotWeaponFitting.make(single.id)
+	fit.fit(AwAttachmentSockets.MOUNT_WARHEAD, AwRocketJump.ID)
+	var res := AwAttachmentPack.catalogue(weak).apply(single, fit)
+	var rj: DotWeaponDef = res.value if res.ok else null
+	var rb: DotWeaponBallistics = rj.tuning as DotWeaponBallistics if rj != null else null
+	_check("the Rocketjump fits the launcher and cuts its damage by sv_rocket_jump_damage_scale", rb != null and AwRocketJump.is_rocketjump(rj) and is_equal_approx(rb.splash_damage, sb.splash_damage * 0.25) and not AwRocketJump.is_rocketjump(single))
+	var choices := AwSpawnProvider.attachment_defs().choices_for(_def(defs, &"aw_rifle"))
+	_check("no other gun is offered it", not choices.values().any(func(ids: Array) -> bool: return ids.has(AwRocketJump.ID)))
+
+	var jr := AwRocketRules.new()
+	var feet := Vector3(0, 0.1, 0)
+	var body := Vector3(0, 0.9, 0)
+	var still := Vector3.ZERO
+	var fwd := Vector3(0, 0, -1)
+	var air := AwRocketJump.launch_velocity(rj, jr, still, body, feet, false, fwd)
+	var ground := AwRocketJump.launch_velocity(rj, jr, still, body, feet, true, fwd)
+	_check("a blast at the feet throws up and toward the jump (%s)" % air, air.y > 5.0 and air.z < -1.0 and absf(air.x) < 0.01)
+	_check("weaker from the floor, unchanged for a plain missile or out of range", ground.length() < air.length() and ground.y > 0.0
+		and AwRocketJump.launch_velocity(single, jr, still, body, feet, false, fwd) == still
+		and AwRocketJump.launch_velocity(rj, jr, still, body + Vector3(0, 50, 0), feet, false, fwd) == still)
+	var side := AwRocketJump.launch_velocity(rj, jr, still, body, feet, false, Vector3(1, 0, 0))
+	_check("the move input steers the launch", side.x > 1.0 and absf(side.z) < 0.01)
+	var fast := AwRocketRules.new()
+	var _s := fast.set_cvar("sv_rocket_jump_speed", "200")
+	var capped := AwRocketJump.launch_velocity(rj, fast, still, body, feet, false, fwd)
+	var _c := fast.set_cvar("sv_rocket_jump_max_speed", "0")
+	var free := AwRocketJump.launch_velocity(rj, fast, still, body, feet, false, fwd)
+	_check("sv_rocket_jump_max_speed holds the launch; 0 lifts it (%.1f, %.1f m/s)" % [capped.length(), free.length()], is_equal_approx(capped.length(), 24.0) and free.length() > 100.0)
+	var _p := jr.set_cvar("sv_rocket_jump_self_damage_scale", "0.5")
+	_check("sv_rocket_jump_self_damage_scale scales the shooter's own hurt; a plain missile's is whole", is_equal_approx(AwRocketJump.self_damage_scale(rj, jr), 0.5) and AwRocketJump.self_damage_scale(single, jr) == 1.0 and AwRocketRules.new().jump_self_damage_scale == 0.0)
+
+	var missile := AwMissileArt.build(&"launcher")
+	var body_mesh: MeshInstance3D = missile.get_node_or_null(^"Body") as MeshInstance3D if missile != null else null
+	var box: AABB = body_mesh.transform * body_mesh.mesh.get_aabb() if body_mesh != null else AABB()
+	_check("the launcher flies its own missile, long along -Z and centred (%s)" % box.size, box.size.z > 0.3 and box.size.x < 0.2 and box.get_center().length() < 0.01)
+	var small := AwMissileArt.build(&"quad_launcher")
+	var gren := AwMissileArt.build(&"grenade_launcher")
+	_check("the quad's is smaller, the grenade launcher flies its round, a rifle has none", small != null and gren != null and AwMissileArt.build(&"rifle") == null)
+	for n: Node in [missile, small, gren]:
+		if n != null:
+			n.free()
+	_end()

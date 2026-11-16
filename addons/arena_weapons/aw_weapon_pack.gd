@@ -374,7 +374,10 @@ static func minigun(t: Dictionary = {}) -> DotWeaponDef:
 
 
 static func launcher(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _rocket(t, &"launcher", "Rocket Launcher", rpm_ticks(70.0), 4, 12, 2.8)
+	var def := _rocket(t, &"launcher", "Rocket Launcher", rpm_ticks(70.0), 1, 12, 2.8)
+	# One missile per reload and the biggest blast of the launchers; sv_rocket_launcher_* retune both live.
+	def.params[&"rocket_tube"] = "single"
+	AwRocketRules.new().apply(def)
 	return def
 
 
