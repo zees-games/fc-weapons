@@ -68,6 +68,13 @@ for o in targets:
 bpy.context.view_layer.objects.active = targets[0]
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
+# AW_WELD=1: weld coincident vertices first. Some sources are triangle soup (every triangle its own island), so any unwrap
+# gives one island per triangle and the generated noise breaks at every facet (a hammered look); the corner normals are kept.
+if os.environ.get('AW_WELD', '0') == '1':
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.remove_doubles(threshold=float(os.environ.get('AW_WELD_DIST', '0.00002')))
+    bpy.ops.object.mode_set(mode='OBJECT')
 orig_uv = {}
 for o in targets:
     orig_uv[o.name] = o.data.uv_layers[0].name if o.data.uv_layers else None

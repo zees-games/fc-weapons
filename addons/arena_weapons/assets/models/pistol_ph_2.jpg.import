@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dt8tdp6hiofu"
-path="res://.godot/imported/flash_grenade_2.png-7bd3b8a42c21ddc927207fbf7dbde24c.ctex"
+uid="uid://cb81k3qsld4xn"
+path="res://.godot/imported/pistol_ph_2.jpg-4c4caf7d99cddd9db46af0ca98cb42cc.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "3c15bddb68655c2b9cd759d5976c927b"
+"md5": "7029a12cb8fbf46e000256e30be2a7cc"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/flash_grenade_2.png"
-dest_files=["res://.godot/imported/flash_grenade_2.png-7bd3b8a42c21ddc927207fbf7dbde24c.ctex"]
+source_file="res://addons/arena_weapons/assets/models/pistol_ph_2.jpg"
+dest_files=["res://.godot/imported/pistol_ph_2.jpg-4c4caf7d99cddd9db46af0ca98cb42cc.ctex"]
 
 [params]
 

@@ -12,10 +12,19 @@ const DOT_COLOR := Color(0.75, 1.0, 0.35)
 const DOT_NAME := "SightDot"
 const DOT_FADE_FROM := 0.6
 const RED_DOT_NAME := "RedDot"
-## A red dot's rim and lens float on the sight line with no housing round them, a ring hanging over the gun at the hip:
-## they show from this aim fraction on, as the sight comes to the eye.
+## The red dot's reticle and lens tint show from this aim fraction on, as the sight comes to the eye; its housing (tube,
+## mount and turrets round the window) and rim show at every fraction, filling the hole the window cuts in the gun.
 const RED_SHOW_FROM := 0.35
 const RETICLE_NAME := "Reticle"
+const LENS_NAME := "Lens"
+const HOUSING_NAME := "Housing"
+## The housing's anodised finish and its sizes as shares of the window's radius: the tube's wall, how far it runs back
+## toward the eye and forward past the window; and the tube's sides.
+const HOUSING_COLOR := Color(0.045, 0.047, 0.052)
+const HOUSING_WALL := 0.2
+const HOUSING_BACK := 1.7
+const HOUSING_FRONT := 0.12
+const HOUSING_SIDES := 40
 ## The red dot's lens: a faint tint, and the thin rim round it as a share of the window's radius.
 const LENS_COLOR := Color(0.55, 0.85, 1.0, 0.035)
 const RIM_COLOR := Color(0.06, 0.06, 0.07)
@@ -137,7 +146,7 @@ static func _red(art: AwWeaponVisual, rules: AwAdsRules) -> Dictionary:
 	return (rules if rules != null else AwAdsRules.new()).red_dot_for(art.id)
 
 
-## The dot, its lens and rim at [param depth] along [param cone]'s axis; [method track] keeps the dot on the axis from wherever the eye is.
+## The dot, its lens, rim and housing at [param depth] along [param cone]'s axis; [method track] keeps the dot on the axis from wherever the eye is.
 static func _red_dot(cone: Dictionary, depth: float, red: Dictionary) -> Node3D:
 	var root := Node3D.new()
 	root.name = RED_DOT_NAME
@@ -148,7 +157,7 @@ static func _red_dot(cone: Dictionary, depth: float, red: Dictionary) -> Node3D:
 	root.set_meta(&"axis", axis)
 	root.set_meta(&"window", window)
 	var lens := MeshInstance3D.new()
-	lens.name = "Lens"
+	lens.name = LENS_NAME
 	lens.mesh = _part("lens")
 	lens.scale = Vector3.ONE * window
 	lens.material_override = _part("lens_material")
@@ -159,6 +168,7 @@ static func _red_dot(cone: Dictionary, depth: float, red: Dictionary) -> Node3D:
 	rim.scale = Vector3.ONE * window
 	rim.material_override = _part("rim_material")
 	root.add_child(rim)
+	root.add_child(_housing(window))
 	var dot := MeshInstance3D.new()
 	dot.name = RETICLE_NAME
 	dot.mesh = _part("dot")
@@ -169,6 +179,67 @@ static func _red_dot(cone: Dictionary, depth: float, red: Dictionary) -> Node3D:
 	dot.set_meta(&"glow", float(red.brightness))
 	root.add_child(dot)
 	return root
+
+
+## The housing round a red dot's window of radius [param window]: in the root's frame +Y runs down the aim, +Z is up and
+## +X right, so the tube runs along Y behind the window, the mount sits under it and the turrets on its top and right.
+static func _housing(window: float) -> Node3D:
+	var housing := Node3D.new()
+	housing.name = HOUSING_NAME
+	housing.scale = Vector3.ONE * window
+	var outer := 1.0 + HOUSING_WALL
+	var mid := (HOUSING_FRONT - HOUSING_BACK) * 0.5
+	var pieces := [
+		["Tube", "housing_tube", Vector3.ZERO, Vector3.ZERO, Vector3.ONE],
+		# Mount: a riser under the tube and a wider rail clamp under that.
+		["Mount", "housing_box", Vector3(0.0, mid, -outer - 0.2), Vector3.ZERO, Vector3(0.9, HOUSING_BACK * 0.8, 0.45)],
+		["Clamp", "housing_box", Vector3(0.0, mid, -outer - 0.5), Vector3.ZERO, Vector3(1.5, HOUSING_BACK * 0.9, 0.2)],
+		# Elevation cap on top and brightness turret on the right, just behind the window.
+		["TurretTop", "housing_cap", Vector3(0.0, -0.7, outer + 0.12), Vector3(PI * 0.5, 0.0, 0.0), Vector3(0.38, 0.32, 0.38)],
+		["TurretSide", "housing_cap", Vector3(outer + 0.12, -0.7, 0.0), Vector3(0.0, 0.0, PI * 0.5), Vector3(0.42, 0.32, 0.42)],
+	]
+	for piece: Array in pieces:
+		var mesh := MeshInstance3D.new()
+		mesh.name = piece[0]
+		mesh.mesh = _part(piece[1])
+		mesh.material_override = _part("housing_material")
+		mesh.position = piece[2]
+		mesh.rotation = piece[3]
+		mesh.scale = piece[4]
+		housing.add_child(mesh)
+	return housing
+
+
+## The housing's tube: a hollow cylinder of inner radius 1 along +Y, from [constant HOUSING_BACK] behind the window to
+## [constant HOUSING_FRONT] past it, its ends closed by flat rings.
+static func _tube_mesh() -> ArrayMesh:
+	var outer := 1.0 + HOUSING_WALL
+	var back := -HOUSING_BACK
+	var front := HOUSING_FRONT
+	# Each wall: radius and y at its start, radius and y at its end, and its normal as (radial, y).
+	var walls := [
+		[outer, back, outer, front, Vector2(1.0, 0.0)],
+		[outer, front, 1.0, front, Vector2(0.0, 1.0)],
+		[1.0, front, 1.0, back, Vector2(-1.0, 0.0)],
+		[1.0, back, outer, back, Vector2(0.0, -1.0)],
+	]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for wall: Array in walls:
+		var n: Vector2 = wall[4]
+		for i in HOUSING_SIDES:
+			var quad: Array[Vector3] = []
+			var normals: Array[Vector3] = []
+			for corner: Array in [[i, 0], [i + 1, 0], [i + 1, 2], [i, 2]]:
+				var angle := TAU * float(corner[0]) / HOUSING_SIDES
+				var at: int = corner[1]
+				var r: float = wall[at]
+				quad.append(Vector3(r * cos(angle), float(wall[at + 1]), r * sin(angle)))
+				normals.append(Vector3(n.x * cos(angle), n.y, n.x * sin(angle)))
+			for k: int in [0, 2, 1, 0, 3, 2]:
+				st.set_normal(normals[k])
+				st.add_vertex(quad[k])
+	return st.commit()
 
 
 ## A unit-size part of the red dot (scaled per gun), built once: building the cylinder, torus and sphere and their materials per equip cost 110 ms on a cold gun.
@@ -202,6 +273,27 @@ static func _part(part: String) -> Resource:
 				_parts[part] = _flat(LENS_COLOR, true)
 			"rim_material":
 				_parts[part] = _flat(RIM_COLOR, false)
+			"housing_tube":
+				_parts[part] = _tube_mesh()
+			"housing_box":
+				var box := BoxMesh.new()
+				box.size = Vector3.ONE
+				_parts[part] = box
+			"housing_cap":
+				var cap := CylinderMesh.new()
+				cap.top_radius = 1.0
+				cap.bottom_radius = 1.0
+				cap.height = 1.0
+				cap.radial_segments = 20
+				cap.rings = 1
+				_parts[part] = cap
+			"housing_material":
+				var anodised := StandardMaterial3D.new()
+				anodised.albedo_color = HOUSING_COLOR
+				anodised.metallic = 0.6
+				anodised.roughness = 0.45
+				anodised.disable_receive_shadows = true
+				_parts[part] = anodised
 	return _parts[part]
 
 
@@ -239,7 +331,8 @@ static func track(sight: Node3D, eye: Vector3) -> void:
 	var local := red.transform.affine_inverse() * eye
 	# In the root's frame the axis is +Y and the window is the plane y = 0: the dot is the eye's foot on it.
 	dot.position = Vector3(local.x, 0.0, local.z)
-	dot.visible = float(dot.get_meta(&"glow", 0.0)) > 0.0 and Vector2(local.x, local.z).length() < float(red.get_meta(&"window", 0.0))
+	dot.visible = bool(red.get_meta(&"shown", true)) and float(dot.get_meta(&"glow", 0.0)) > 0.0 \
+		and Vector2(local.x, local.z).length() < float(red.get_meta(&"window", 0.0))
 
 
 ## The red-dot root [param sight] is or holds, else null. By its meta, not its name: added beside the last gun's
@@ -254,11 +347,19 @@ static func red_of(sight: Node3D) -> Node3D:
 
 
 ## Shows the dot under [param sight] by the aim fraction [param f]: none at the hip, full at the eye. A red dot's
-## rim and lens show from [constant RED_SHOW_FROM].
+## reticle and lens show from [constant RED_SHOW_FROM]; its housing and rim stay, as a real sight's do.
 static func fade(sight: Node3D, f: float) -> void:
 	var red := red_of(sight)
 	if red != null:
-		red.visible = f >= RED_SHOW_FROM
+		var shown := f >= RED_SHOW_FROM
+		red.set_meta(&"shown", shown)
+		var lens := red.get_node_or_null(LENS_NAME) as Node3D
+		if lens != null:
+			lens.visible = shown
+		# [method track] shows the reticle again each frame while it is on the axis.
+		var reticle := red.get_node_or_null(RETICLE_NAME) as Node3D
+		if reticle != null and not shown:
+			reticle.visible = false
 	var dot := sight.get_node_or_null(DOT_NAME) as MeshInstance3D
 	if dot == null:
 		return

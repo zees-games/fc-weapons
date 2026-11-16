@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bu1ti8irqxlxc"
-path="res://.godot/imported/bullpup_2.png-da94b8710f8c8ee6ab71d7a02a0b9296.ctex"
+uid="uid://bqnbfo8h60cn2"
+path="res://.godot/imported/smoke_grenade_2.jpg-d9610e86430d51288814c13882c4994f.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "b95dda2db7429fa1f6f6fc6c8cabf2ed"
+"md5": "e86bde120a6b5b4993f3d867fcd43a61"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/bullpup_2.png"
-dest_files=["res://.godot/imported/bullpup_2.png-da94b8710f8c8ee6ab71d7a02a0b9296.ctex"]
+source_file="res://addons/arena_weapons/assets/models/smoke_grenade_2.jpg"
+dest_files=["res://.godot/imported/smoke_grenade_2.jpg-d9610e86430d51288814c13882c4994f.ctex"]
 
 [params]
 

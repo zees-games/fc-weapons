@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kqaw1aoeimxv"
-path="res://.godot/imported/ammo_box_2.png-6e25f8ce2f96859fe86ecf4b3f1cef80.ctex"
+uid="uid://wqj4cb5puahn"
+path="res://.godot/imported/revolver_2.jpg-973fb8e6491ca0bad64f0eb7a35b2702.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "10984d13c669c9ff2576076230c088fd"
+"md5": "37dd1a335b52ba5446b1684f3825d368"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/ammo_box_2.png"
-dest_files=["res://.godot/imported/ammo_box_2.png-6e25f8ce2f96859fe86ecf4b3f1cef80.ctex"]
+source_file="res://addons/arena_weapons/assets/models/revolver_2.jpg"
+dest_files=["res://.godot/imported/revolver_2.jpg-973fb8e6491ca0bad64f0eb7a35b2702.ctex"]
 
 [params]
 

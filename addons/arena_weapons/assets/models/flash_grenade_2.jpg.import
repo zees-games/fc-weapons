@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ms45s3e73qrj"
-path="res://.godot/imported/incendiary_grenade_2.png-413235132b3163351a782ef10c6eeaf8.ctex"
+uid="uid://dt8tdp6hiofu"
+path="res://.godot/imported/flash_grenade_2.jpg-7bd3b8a42c21ddc927207fbf7dbde24c.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "ee9af47655b885045ff6037585e02a52"
+"md5": "3c15bddb68655c2b9cd759d5976c927b"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/incendiary_grenade_2.png"
-dest_files=["res://.godot/imported/incendiary_grenade_2.png-413235132b3163351a782ef10c6eeaf8.ctex"]
+source_file="res://addons/arena_weapons/assets/models/flash_grenade_2.jpg"
+dest_files=["res://.godot/imported/flash_grenade_2.jpg-7bd3b8a42c21ddc927207fbf7dbde24c.ctex"]
 
 [params]
 

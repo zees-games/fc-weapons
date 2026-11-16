@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cw1yxwspubw6p"
-path="res://.godot/imported/knife_ph_2.png-39478f9c3a427d70ba0efb75215c6a32.ctex"
+uid="uid://bu1ti8irqxlxc"
+path="res://.godot/imported/bullpup_2.jpg-da94b8710f8c8ee6ab71d7a02a0b9296.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "8c0752dc2e1c18d053a8a293bb7c5900"
+"md5": "b95dda2db7429fa1f6f6fc6c8cabf2ed"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/knife_ph_2.png"
-dest_files=["res://.godot/imported/knife_ph_2.png-39478f9c3a427d70ba0efb75215c6a32.ctex"]
+source_file="res://addons/arena_weapons/assets/models/bullpup_2.jpg"
+dest_files=["res://.godot/imported/bullpup_2.jpg-da94b8710f8c8ee6ab71d7a02a0b9296.ctex"]
 
 [params]
 

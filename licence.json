@@ -28,7 +28,7 @@
         "title": "Metal038 and Metal027 (ambientCG), baked into the gun maps by tools/detail_models.py"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models/pistol_ph.glb", "addons/arena_weapons/assets/models/pistol_ph_service_pistol_diff.jpg", "addons/arena_weapons/assets/models/pistol_ph_service_pistol_metal-service_pistol_rough.jpg", "addons/arena_weapons/assets/models/pistol_ph_service_pistol_nor_gl.jpg", "addons/arena_weapons/assets/models/sniper_ph.glb", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff-bolt_action_rifle_7_62_accesories_alpha.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_metal-bolt_action_rifle_7_62_accesories_rough.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_nor_gl.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_diff.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_metal-bolt_action_rifle_7_62_rough.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg"],
+        "paths": ["addons/arena_weapons/assets/models/pistol_ph.glb", "addons/arena_weapons/assets/models/pistol_ph_0.jpg", "addons/arena_weapons/assets/models/pistol_ph_1.jpg", "addons/arena_weapons/assets/models/pistol_ph_2.jpg", "addons/arena_weapons/assets/models/sniper_ph.glb", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff-bolt_action_rifle_7_62_accesories_alpha.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_metal-bolt_action_rifle_7_62_accesories_rough.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_nor_gl.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_diff.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_metal-bolt_action_rifle_7_62_rough.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg"],
         "licence": "CC0-1.0",
         "author": "Mateusz Sadek",
         "url": "https://polyhaven.com/a/service_pistol",
@@ -42,11 +42,11 @@
         "title": "Stick Grenade (Poly Haven, CC0; baked to 1K by tools/bake_polyhaven_small.py)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models/knife_ph.glb"],
+        "paths": ["addons/arena_weapons/assets/models/knife_ph.glb", "addons/arena_weapons/assets/models/knife_ph_0.jpg", "addons/arena_weapons/assets/models/knife_ph_1.jpg", "addons/arena_weapons/assets/models/knife_ph_2.jpg"],
         "licence": "CC0-1.0",
         "author": "Mateusz Sadek",
         "url": "https://polyhaven.com/a/fish_knife",
-        "title": "Fish Knife (Poly Haven, CC0; baked to 1K by tools/bake_polyhaven_small.py)"
+        "title": "Fish Knife (Poly Haven, CC0; 2K PBR maps, mesh from tools/bake_polyhaven_small.py)"
     },
     {
         "paths": ["addons/arena_weapons/assets/sounds/"],

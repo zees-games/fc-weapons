@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cb81k3qsld4xn"
-path="res://.godot/imported/pistol_ph_2.png-4c4caf7d99cddd9db46af0ca98cb42cc.ctex"
+uid="uid://bxmt5nkabunyy"
+path="res://.godot/imported/frag_grenade_alt_2.jpg-fb597b5d8503954295293e63cd8da0d8.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "7029a12cb8fbf46e000256e30be2a7cc"
+"md5": "f32449a5ac81bf6a3ab19d9d5d28ce4c"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/pistol_ph_2.png"
-dest_files=["res://.godot/imported/pistol_ph_2.png-4c4caf7d99cddd9db46af0ca98cb42cc.ctex"]
+source_file="res://addons/arena_weapons/assets/models/frag_grenade_alt_2.jpg"
+dest_files=["res://.godot/imported/frag_grenade_alt_2.jpg-fb597b5d8503954295293e63cd8da0d8.ctex"]
 
 [params]
 

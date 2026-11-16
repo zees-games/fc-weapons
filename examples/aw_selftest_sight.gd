@@ -140,15 +140,21 @@ func _scope_modes() -> void:
 	view.equip(plain)
 	overlay.follow(view)
 	_check("the next gun does not keep the last gun's lens", is_equal_approx(overlay.lens_circle, 0.46))
-	# A red dot's rim has no housing round it: it would hang over the gun at the hip.
+	# A red dot's housing fills the hole its window cuts in the gun at every aim; its reticle and lens come with the aim.
 	var sight := Node3D.new()
-	var red := Node3D.new()
-	red.set_meta(&"window", 4.0)
+	var red: Node3D = AwViewModel.SightFit._red_dot({"axis": Vector3.FORWARD, "eye": Vector3.ZERO, "tan": tan(deg_to_rad(4.0))},
+		0.2, AwAdsRules.new().red_dot_for(&"bullpup"))
 	sight.add_child(red)
+	var reticle := red.get_node(AwViewModel.SightFit.RETICLE_NAME) as Node3D
+	var housing := red.get_node_or_null(AwViewModel.SightFit.HOUSING_NAME) as Node3D
+	_check("a red dot is built with a housing", housing != null and housing.get_child_count() >= 3)
 	AwViewModel.SightFit.fade(sight, 0.0)
-	_check("a red dot's rim is hidden at the hip", not red.visible)
+	AwViewModel.SightFit.track(sight, Vector3.ZERO)
+	_check("its housing shows at the hip", red.visible and housing.visible)
+	_check("its reticle is hidden at the hip", not reticle.visible)
 	AwViewModel.SightFit.fade(sight, 1.0)
-	_check("and shown at the eye", red.visible)
+	AwViewModel.SightFit.track(sight, Vector3.ZERO)
+	_check("and shown at the eye", reticle.visible)
 	sight.free()
 	camera.queue_free()
 	overlay.queue_free()

@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wqj4cb5puahn"
-path="res://.godot/imported/revolver_2.png-973fb8e6491ca0bad64f0eb7a35b2702.ctex"
+uid="uid://c6sq67mo8kwak"
+path="res://.godot/imported/derringer_2.jpg-1380e21ccac888d32600c3e4fd924bcf.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "37dd1a335b52ba5446b1684f3825d368"
+"md5": "89da2a1df8b6731458ba73603f8c458c"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/revolver_2.png"
-dest_files=["res://.godot/imported/revolver_2.png-973fb8e6491ca0bad64f0eb7a35b2702.ctex"]
+source_file="res://addons/arena_weapons/assets/models/derringer_2.jpg"
+dest_files=["res://.godot/imported/derringer_2.jpg-1380e21ccac888d32600c3e4fd924bcf.ctex"]
 
 [params]
 

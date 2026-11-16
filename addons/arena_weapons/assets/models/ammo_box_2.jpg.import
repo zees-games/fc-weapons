@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c6sq67mo8kwak"
-path="res://.godot/imported/derringer_2.png-1380e21ccac888d32600c3e4fd924bcf.ctex"
+uid="uid://kqaw1aoeimxv"
+path="res://.godot/imported/ammo_box_2.jpg-6e25f8ce2f96859fe86ecf4b3f1cef80.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "89da2a1df8b6731458ba73603f8c458c"
+"md5": "10984d13c669c9ff2576076230c088fd"
 }
 
 [deps]
 
-source_file="res://addons/arena_weapons/assets/models/derringer_2.png"
-dest_files=["res://.godot/imported/derringer_2.png-1380e21ccac888d32600c3e4fd924bcf.ctex"]
+source_file="res://addons/arena_weapons/assets/models/ammo_box_2.jpg"
+dest_files=["res://.godot/imported/ammo_box_2.jpg-6e25f8ce2f96859fe86ecf4b3f1cef80.ctex"]
 
 [params]
 

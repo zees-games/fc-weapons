@@ -2,6 +2,8 @@
 # Rebuilds the textures of the named models in place from their pristine sources:
 #   tools/tex_pipeline.sh <src dir with the original <name>.glb> <work dir> <size> <samples> <name>...
 # Needs blender 4.3 and a python with numpy, scipy and PIL. Source GLBs: `git show <main>:addons/arena_weapons/assets/models/<name>.glb`.
+# Recipes used: revolver, derringer 2048 and the grenades, ammo_box 1024 at AW_MODE=orig; bullpup, burst_rifle 1024 at
+# AW_MODE=smart AW_WELD=1 (triangle-soup sources). Normal maps are then re-encoded JPEG q92 to keep the web download down.
 set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd)
 srcd=$1 work=$2 size=$3 samples=$4; shift 4

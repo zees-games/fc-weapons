@@ -113,10 +113,25 @@ STIP_AMT = {'grenade_launcher': 0.12, 'drum_shotgun': 0.12}
 BLADE = {'knife': (0.40, 0.36, 2), 'knife_ph': (0.40, 0.36, 2)}
 # models whose painted (coat) colour is replaced by one flat paint colour (linear): the source's coat texels are a photo-like green smear
 COAT_FLAT = {'quad_rocket_launcher': (0.060, 0.072, 0.040)}
+# models whose source paint is AI-generated noise (Polyy's low-poly packs): its blotches became hammered-looking bumps and a pale bare-steel
+# finish. 'finish' forces one metal finish on every part (3 black anodised), 'detail' scales the bumps taken from the painted albedo,
+# 'bump' scales the broad noise in the height, 'as_poly' reads the metal and painted (coat) texels as black polymer (a polymer-bodied gun),
+# 'wear' scales the bare-steel wear and paint chips (their noisy edges wore pale all over) and 'metal' caps the metallic (anodised, not
+# mirror steel). 'paint_blue' reads blue and teal texels as paint, not blued steel (a painted grenade or ammo can); 'as_coat' reads
+# the metal and polymer texels as paint too (the ammo can's dark green sides read as bare steel or black plastic).
+# The grenades and ammo can are painted kit: at full wear their paint chipped to bare steel all over at 1024 px.
+# Their meshes are triangle soup: bake them with AW_WELD=1 AW_MODE=smart (tools/tex_pipeline.sh), or every triangle is its own island.
+LOOK = {'bullpup': {'finish': 3, 'detail': 0.15, 'bump': 0.3, 'as_poly': True, 'wear': 0.3, 'metal': 0.6},
+        'burst_rifle': {'finish': 3, 'detail': 0.15, 'bump': 0.3, 'wear': 0.3, 'metal': 0.6},
+        'flash_grenade': {'paint_blue': True, 'wear': 0.3},
+        'frag_grenade_alt': {'wear': 0.3},
+        'smoke_grenade': {'wear': 0.3},
+        'incendiary_grenade': {'wear': 0.3},
+        'ammo_box': {'paint_blue': True, 'as_coat': True, 'wear': 0.3}}
 WOOD_MODELS = {'derringer', 'rifle', 'pump_shotgun', 'battle_rifle', 'revolver', 'pistol_ph', 'sniper_ph', 'knife', 'knife_ph', 'rocket_launcher', 'rocket_launcher_alt', 'carbine', 'smg'}
 
 
-def classify(a, allow_wood=True):
+def classify(a, allow_wood=True, paint_blue=False):
     s0 = a.shape[0]
     af = np.stack([blur(a[..., i], 1.5 * s0 / 1024) for i in range(3)], 2)
     mx, mn = af.max(2), af.min(2)
@@ -128,7 +143,7 @@ def classify(a, allow_wood=True):
     wood = warm & (sat > 0.33) & (mx > 0.16) & allow_wood
     brass = (hue >= 0.09) & (hue < 0.2) & (sat > 0.42) & (mx > 0.4) & ~wood & allow_wood
     bluish = (hue > 0.5) & (hue < 0.72)
-    coat = (sat > 0.17) & (mx > 0.12) & ~wood & ~brass & ~bluish
+    coat = (sat > 0.17) & (mx > 0.12) & ~wood & ~brass & (paint_blue | ~bluish)
     poly = (mx < 0.19) & ~wood & ~coat
     metal = ~(wood | brass | poly | coat)
     oh = np.stack([metal, poly, wood, brass, coat], 0).astype(np.float32)
@@ -174,10 +189,17 @@ def build(name, size, rng):
     edge = blur(gray('edge', size), 1.0 * size / 1024)
     ao_big, ao_small = gray('ao_big', size), gray('ao_small', size)
     k = size / 1024.0
-    W = classify(a, os.path.basename(name).replace('.glb', '') in WOOD_MODELS)
+    mname = os.path.basename(name).replace('.glb', '')
+    look = LOOK.get(mname, {})
+    W = classify(a, mname in WOOD_MODELS, look.get('paint_blue', False))
     wm, wp, ww, wb, wc = W
     L = lum(a)
-    mname = os.path.basename(name).replace('.glb', '')
+    if look.get('as_poly'):
+        W = np.stack([wm * 0, wp + wc + wm, ww, wb, wc * 0], 0)
+        wm, wp, ww, wb, wc = W
+    if look.get('as_coat'):
+        W = np.stack([wm * 0, wp * 0, ww, wb, wc + wm + wp], 0)
+        wm, wp, ww, wb, wc = W
     part = part_map(size)
     seed = sum(map(ord, name))
     cloth = np.zeros((size, size), np.float32)
@@ -200,8 +222,9 @@ def build(name, size, rng):
         glow = np.clip(glow * 1.15, 0, 1)
         ecol = np.clip(af2 / np.maximum(mx2, 1e-3)[..., None], 0, 1)
     # fine detail the old painted albedo carried (magazine ribs, panel lines, grip checkering): high-pass -> height + cavity
-    hp = blur(L, 0.9 * k) - blur(L, 4.5 * k)
+    hp = (blur(L, 0.9 * k) - blur(L, 4.5 * k)) * look.get('detail', 1.0)
     det = np.clip(hp / 0.12, -1, 1)
+    bump = look.get('bump', 1.0)
     groove = sstep(-hp, 0.02, 0.11)
     ridge = sstep(hp, 0.02, 0.11)
     # shared noise
@@ -231,6 +254,8 @@ def build(name, size, rng):
             fin_of[i] = [2, 4, 2, 1, 4, 2, 2, 4, 1, 2][r]
     if mname in BLADE:
         fin_of[:] = BLADE[mname][2]
+    if 'finish' in look:
+        fin_of[:] = look['finish']
     fin = fin_of[np.clip(part, 0, 39)]
     base = FIN_ALB[fin]
     # broad tonal patches (oil, handling, light rust bloom) plus brushed streaks, so a part is never one flat dark value
@@ -239,24 +264,24 @@ def build(name, size, rng):
     brush = fbm(size, rng, max(8, size // 2), 5, octaves=3)
     m_alb = (base + plum * (fin == 0)[..., None]) * tone * (0.88 + 0.30 * (brush[..., None] - 0.5) * (0.5 + 0.5 * (fin == 2)[..., None]) + 0.12 * (fine[..., None] - 0.5))
     wear_amt = FIN_WEAR[fin]
-    bare = np.clip((edgew * 0.95 + handling * 0.5 + scr * 0.45 * (0.5 + low) + ridge * 0.25 + pits * 0.1) * wear_amt, 0, 1)
+    bare = np.clip((edgew * 0.95 + handling * 0.5 + scr * 0.45 * (0.5 + low) + ridge * 0.25 + pits * 0.1) * wear_amt, 0, 1) * look.get('wear', 1.0)
     steel = np.array([0.50, 0.485, 0.465], np.float32)[None, None, :] * (0.7 + 0.4 * mid[..., None])
     m_alb = lerp(m_alb, steel, bare[..., None])
     m_alb = m_alb * (1 - 0.55 * dirt[..., None]) * (1 - 0.35 * groove[..., None])
     m_rough = FIN_ROU[fin] + (mid - 0.5) * 0.22 + (fine - 0.5) * 0.08 + (low - 0.5) * 0.1
     m_rough = lerp(m_rough, 0.26 + 0.14 * mid, bare) + dirt * 0.18 + groove * 0.1
     # not a perfect mirror: oil / grime patches are dielectric, so some diffuse albedo always shows and the sky does not own the colour
-    m_met = np.clip(0.93 - dirt * 0.5 - groove * 0.3 - 0.25 * sstep(low, 0.5, 0.8) * (1 - bare), 0, 1)
-    m_h = (fine - 0.5) * 0.04 + (low - 0.5) * 0.15 - pits * 0.08 - scr * 0.15 + det * 0.22 - bare * 0.1 + (brush - 0.5) * 0.06 * (fin == 2)
+    m_met = np.clip(0.93 - dirt * 0.5 - groove * 0.3 - 0.25 * sstep(low, 0.5, 0.8) * (1 - bare), 0, look.get('metal', 1.0))
+    m_h = (fine - 0.5) * 0.04 + (low - 0.5) * 0.15 * bump - pits * 0.08 - scr * 0.15 + det * 0.22 - bare * 0.1 + (brush - 0.5) * 0.06 * (fin == 2)
     # ---- polymer: grey-black, pebble stipple, lighter where handled
     cell = voronoi_cells(size, rng, 4.2 * k)
     stip = (1 - sstep(cell, 0.6 * k, 2.1 * k)) * STIP_AMT.get(mname, 1.0)
-    p_wear = np.clip(edgew * 0.7 + scr * 0.35 + handling * 0.6, 0, 1)
+    p_wear = np.clip(edgew * 0.7 + scr * 0.35 + handling * 0.6, 0, 1) * look.get('wear', 1.0)
     p_alb = np.array([0.050, 0.052, 0.056], np.float32)[None, None, :] * (0.7 + 0.7 * low[..., None]) * (0.85 + 0.3 * stip[..., None])
     p_alb = lerp(p_alb, np.array([0.14, 0.14, 0.145], np.float32)[None, None, :], p_wear[..., None] * 0.75)
     p_alb = p_alb * (1 - 0.4 * dirt[..., None]) * (1 - 0.4 * groove[..., None])
     p_rough = np.clip(0.62 + 0.16 * (fine - 0.5) + 0.15 * (low - 0.5) - p_wear * 0.2 - stip * 0.08, 0, 1)
-    p_h = stip * 0.30 + (fine - 0.5) * 0.06 + (low - 0.5) * 0.08 + det * 0.3 - scr * 0.15 - edgew * 0.15
+    p_h = stip * 0.30 + (fine - 0.5) * 0.06 + (low - 0.5) * 0.08 * bump + det * 0.3 - scr * 0.15 - edgew * 0.15
     # ---- wood: warm figured grain (rings along V, pores, mid-tone from the old paint), satin lacquer, worn raw at edges
     # grain: long irregular streaks (not a regular sine, that read as stripes), wavy cathedral rings of changing pitch, low contrast;
     # a palette per part (walnut / dark walnut / beech) so the stock and the handguard are not one colour
@@ -294,7 +319,7 @@ def build(name, size, rng):
         cl = lum(ca)[..., None]
     c_alb = lerp(cl, ca, 0.8) * np.clip(blur(ca, 3 * k) / np.maximum(cl, 1e-3), 0, 2) ** 0 * (0.75 + 0.5 * low[..., None]) * (0.92 + 0.16 * fine[..., None])
     c_alb = np.clip(c_alb * 0.9, 0, 1) * (1 - 0.45 * dirt[..., None]) * (1 - 0.35 * groove[..., None])
-    chip = np.clip(edgew * 0.9 + scr * 0.4 + handling * 0.4, 0, 1)
+    chip = np.clip(edgew * 0.9 + scr * 0.4 + handling * 0.4, 0, 1) * look.get('wear', 1.0)
     c_alb = lerp(c_alb, steel * 0.9, chip[..., None])
     c_rough = np.clip(0.55 + 0.2 * (mid - 0.5) + 0.1 * fine - chip * 0.25 + dirt * 0.1, 0, 1)
     c_met = chip * 0.95
