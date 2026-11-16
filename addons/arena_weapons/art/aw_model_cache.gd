@@ -28,6 +28,14 @@ static var _scenes: Dictionary = {}
 ## Path -> AABB in the model's own space.
 static var _bounds: Dictionary = {}
 
+## "path|forward" -> the bore's offset from the forward axis ([method muzzle_bore]).
+static var _bores: Dictionary = {}
+
+## How far back from the barrel's far end (metres) the mesh counts as the muzzle's face in [method muzzle_bore]. Thin,
+## so a front sight or a bayonet lug a centimetre or two behind the crown stays out of it; 0 turns the measurement off
+## and every muzzle sits on the model's forward axis again.
+static var muzzle_face_depth := 0.01
+
 ## Paths already reported as missing, so a model that is not there is logged once
 ## rather than once per frame for as long as somebody is holding it.
 static var _complained: Dictionary = {}
@@ -293,10 +301,64 @@ static func muzzle_distance(path: String, forward: Vector3) -> float:
 	return maxf(0.0, best)
 
 
+## Where the bore leaves the mesh, off the forward axis: the centre of the mesh within [member muzzle_face_depth] of
+## its far end along [param forward], with the forward part taken out (model space, metres).
+##
+## [b]The kit's models are baked with the origin at the grip, below the bore[/b] (2 cm on the rifle, 11 on the
+## revolver, 17 on the drum shotgun), and a muzzle placed along the axis through the origin put the flash and the
+## tracer under the barrel. Measured once per model; zero for a model that cannot be loaded or has no mesh there.
+static func muzzle_bore(path: String, forward: Vector3) -> Vector3:
+	var axis := forward.normalized()
+	if muzzle_face_depth <= 0.0 or not axis.is_normalized():
+		return Vector3.ZERO
+	var key := "%s|%s|%s" % [path, axis, muzzle_face_depth]
+	if _bores.has(key):
+		return _bores[key]
+	var out := Vector3.ZERO
+	var node := instantiate(path)
+	if node != null:
+		var points: Array[PackedVector3Array] = []
+		_collect_vertices(node, Transform3D.IDENTITY, points)
+		node.queue_free()
+		var far := -INF
+		for vs in points:
+			for p in vs:
+				far = maxf(far, p.dot(axis))
+		var face := AABB()
+		var seeded := false
+		for vs in points:
+			for p in vs:
+				if p.dot(axis) >= far - muzzle_face_depth:
+					face = AABB(p, Vector3.ZERO) if not seeded else face.expand(p)
+					seeded = true
+		if seeded:
+			var c := face.get_center()
+			out = c - axis * c.dot(axis)
+	_bores[key] = out
+	return out
+
+
+## Every mesh surface's vertices under [param node], in the root's space.
+static func _collect_vertices(node: Node, at: Transform3D, into: Array[PackedVector3Array]) -> void:
+	var here := at
+	if node is Node3D:
+		here = at * (node as Node3D).transform
+	if node is MeshInstance3D and (node as MeshInstance3D).visible:
+		var mesh := (node as MeshInstance3D).mesh
+		if mesh != null:
+			for s in mesh.get_surface_count():
+				var arrays := mesh.surface_get_arrays(s)
+				if arrays.size() > Mesh.ARRAY_VERTEX and arrays[Mesh.ARRAY_VERTEX] is PackedVector3Array:
+					into.append(here * (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array))
+	for child in node.get_children():
+		_collect_vertices(child, here, into)
+
+
 ## Drops everything. For a test, and for a game unmounting content it will not remount.
 static func clear() -> void:
 	_scenes.clear()
 	_bounds.clear()
+	_bores.clear()
 	_complained.clear()
 
 

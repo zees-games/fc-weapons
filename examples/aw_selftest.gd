@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 518
+const CHECKS := 519
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
 
@@ -515,6 +515,8 @@ func _dress() -> void:
 	AwArtDress.apply(art, rows[&"rifle"])
 	_check("the model is this pack's", art.model_path == AwWeaponArt.model_path("rifle"))
 	_check("the muzzle is the table's", is_equal_approx(art.muzzle_distance, 0.573))
+	# The rifle's origin is its grip, under the bore: the flash starts on the barrel's axis, measured from its end.
+	_check("the muzzle sits up on the bore, not on the grip's axis (%.3f m up)" % art.muzzle_offset.y, art.muzzle_offset.y > 0.015 and absf(art.muzzle_offset.z) < 0.001)
 	_check("the base art itself is untouched until a game applies it", before.model_path != art.model_path)
 	_check("a grenade dressed keeps the throw carry", _thrown())
 	_check("every gun row names its own reload style: %s" % ", ".join(_unstyled()), _unstyled().is_empty())

@@ -35,8 +35,16 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 
 	art.model_forward = Vector3.FORWARD
 	art.muzzle_distance = float(row.get("muzzle", 0.0))
-	art.muzzle_offset = Vector3.ZERO
 	_sockets(art, row)
+	# The bore off the axis through the origin (the models' origin is the grip): the row's own `muzzle_offset`, else
+	# measured from the barrel's end. A `muzzle_socket` replaces both.
+	var bore: Variant = row.get("muzzle_offset")
+	if bore is Array and (bore as Array).size() == 3:
+		art.muzzle_offset = Vector3(float(bore[0]), float(bore[1]), float(bore[2]))
+	elif bore is Vector3:
+		art.muzzle_offset = bore
+	else:
+		art.muzzle_offset = AwModelCache.muzzle_bore(model, art.model_forward)
 	art.ejects = bool(row.get("ejects", true))  # a break action or a revolver row keeps its cases (`ejects: false`)
 	# The model's own sight is aimed down, nothing built over it; the built ring and post only when the row asks
 	# (`iron: true`) or the model has neither a sight nor a written `aim`.
