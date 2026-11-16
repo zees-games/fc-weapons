@@ -47,5 +47,6 @@ extends RefCounted
 # 24: AwWeaponRig.simulate_idle(command, tick): the idle tick for a host whose would_idle just answered true, without asking again.
 # 25: scope body view. AwViewModel.scope_body / scope_body_relief / scope_body_active() / scope_ocular_points(), a scope style's
 #     `ocular`: the gun stays up through a lens scope and AwScopeOverlay draws the zoomed picture into its ocular.
-const LEVEL := 25
+# 26: AwGrenadeSound (count, stream): the detonation recordings of the five thrown grenades, for a host to play where one goes off.
+const LEVEL := 26
 const OLDEST := 1
