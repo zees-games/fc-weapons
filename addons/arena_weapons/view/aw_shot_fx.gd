@@ -48,6 +48,9 @@ const MAX_MARKS := 32
 ## How long a mark stays on a wall, in seconds, the last quarter of it fading.
 const MARK_LIFE := 8.0
 
+## True when [member _lights] and [member _meshes] are the [AwFxPool]'s, shared by every other shooter.
+var _pools_shared := false
+
 var _last_impact_msec: int = -100000
 
 ## The charged weapon's draw when the shot left, for the beam. The rig sets it before play_use.
@@ -103,21 +106,19 @@ func _ready() -> void:
 	top_level = true
 	# Placed at the world origin and never moved: every effect is written in world space.
 	global_transform = Transform3D.IDENTITY
-	_lights = DotFxLightPool.new()
-	_lights.name = "Lights"
-	add_child(_lights)
-	_meshes = DotFxMeshPool.new()
-	_meshes.name = "Meshes"
-	add_child(_meshes)
 	prewarm_pools()
 
 
 ## Builds the pooled lights and impact quads now, so the first shot compiles nothing. Runs from [method _ready]; call it again under a loading cover if the effect is made later.
 func prewarm_pools() -> void:
 	if _lights == null or _meshes == null:
+		_bind_pools()
+	if _lights == null or _meshes == null:
 		return
 	# Somebody else's gun needs a light and a few meshes, not the local gun's whole pool: with thirty-two shooters
 	# the full prewarm was most of what the effects cost before a single shot.
+	if _pools_shared:
+		return
 	if first_person:
 		_lights.prewarm()
 		_meshes.prewarm(_quad_mesh(), _flash_mat(), maxi(DotFxLightBudget.config.prewarm_meshes, FIRST_PERSON_PREWARM_MESHES))
@@ -127,10 +128,31 @@ func prewarm_pools() -> void:
 		_meshes.prewarm(_quad_mesh(), _flash_mat(), REMOTE_PREWARM_MESHES)
 
 
+## Takes the pools this effect draws on: another shooter's shares the [AwFxPool]'s (one set of quads for the crowd, the
+## shooter owning only its voices), anything else, or with no pool in the tree, builds its own.
+func _bind_pools() -> void:
+	if not first_person and not _pools_shared:
+		var shared := AwFxPool.shared_pools(self)
+		if not shared.is_empty():
+			_lights = shared[0]
+			_meshes = shared[1]
+			_pools_shared = true
+			prewarm_voices()
+			return
+	if _lights == null:
+		_lights = DotFxLightPool.new()
+		_lights.name = "Lights"
+		add_child(_lights)
+	if _meshes == null:
+		_meshes = DotFxMeshPool.new()
+		_meshes.name = "Meshes"
+		add_child(_meshes)
+
+
 ## Builds what a watched shooter's first shots would: its voices and [param meshes] quads. For [AwFxPool].
 func prewarm_parked(meshes: int) -> void:
 	prewarm_voices()
-	if _meshes != null and meshes > _meshes.built():
+	if _meshes != null and not _pools_shared and meshes > _meshes.built():
 		_meshes.prewarm(_quad_mesh(), _flash_mat(), meshes - _meshes.built())
 
 
@@ -139,6 +161,19 @@ func prewarm_parked(meshes: int) -> void:
 ## [b]A report still playing when its player is freed is held by the audio server[/b], and
 ## a process that quits in the same frame — a suite, a shell unloading a game — reports
 ## the playback and its stream as leaked at exit.
+func _notification(what: int) -> void:
+	# Quads on loan from a shared pool go back when their shooter is freed; they would stay on screen for ever.
+	if what == NOTIFICATION_PREDELETE and _pools_shared:
+		for fx in _live:
+			if is_instance_valid(fx["node"]):
+				_dispose(fx["node"])
+		for mark in _marks:
+			if is_instance_valid(mark["node"]):
+				_dispose(mark["node"])
+		_live.clear()
+		_marks.clear()
+
+
 func _exit_tree() -> void:
 	stop_flashes()
 	for voice in _voices:

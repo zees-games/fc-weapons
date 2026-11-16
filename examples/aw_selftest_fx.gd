@@ -538,8 +538,21 @@ func _fx_pool() -> void:
 	fx.play_remote(AwWeaponNet.KIND_SHOT, Transform3D.IDENTITY, Vector3.FORWARD, &"rifle")
 	var made := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)) - before
 	_check("taking it and firing once creates no node (%d made, %d under it)" % [made, fx.get_child_count() - kids], made == 0)
-	_check("it came with its voices and quads", (fx.get("_voices") as Array).size() >= 1
-		and (fx.get_node("Meshes") as DotFxMeshPool).built() >= pool.shot_meshes)
+	_check("it came with its voices, and draws on the pool's shared quads, owning none", (fx.get("_voices") as Array).size() >= 1
+		and fx.get_node_or_null("Meshes") == null and fx.get_node_or_null("Lights") == null
+		and pool.shared_mesh_count() >= pool.shared_meshes)
+	var shared_built := pool.shared_mesh_count()
+	_check("a remote shooter holds only its voices: %d children" % fx.get_child_count(), fx.get_child_count() == (fx.get("_voices") as Array).size())
+	var other := AwShotFx.new()
+	other.layered_shots = false
+	hand.add_child(other)
+	other.play_remote(AwWeaponNet.KIND_SHOT, Transform3D.IDENTITY, Vector3.FORWARD, &"rifle")
+	var shared_meshes_node: DotFxMeshPool = pool.get_node("SharedMeshes")
+	var idle_after := shared_meshes_node.idle()
+	_check("its effects are on the shared quads", other.live_count() > 0 and idle_after < shared_built)
+	hand.remove_child(other)
+	other.free()
+	_check("a freed shooter gives its quads back", shared_meshes_node.idle() > idle_after)
 	_check("it ticks again once in a hand", fx.can_process())
 	var ball := AwFxPool.take_charge_fx()
 	hand.add_child(ball)

@@ -16,6 +16,17 @@ const FLASH_VARIANTS := 6
 ## Empty builds none, and each remote shooter then builds its own on its first shot.
 @export var layers_bus: StringName = &"Master"
 
+## Quads built ahead for the pool every remote shooter's flashes, tracers and impacts share, so the first shot of a crowd
+## compiles and allocates nothing. The pool grows past it by demand; 0 builds none ahead and the first shots build them.
+@export_range(0, 4096) var shared_meshes: int = 24
+
+## Flash lights built ahead for the shared pool; it grows past it by demand.
+@export_range(0, 256) var shared_lights: int = 4
+
+## Most idle quads the shared pool keeps after a burst; a release past it frees the quad. 0 keeps every one built
+## (the pool is only as big as the most effects that were ever in the air at once, across all shooters).
+@export_range(0, 65536) var shared_idle: int = 0
+
 ## The pool in the tree. Typed loosely: a static of a script's own type can outlive the script.
 static var _current: Node = null
 
@@ -32,6 +43,10 @@ var _turn: Dictionary = {}
 var _flash_script: GDScript = null
 ## Bus to the shared layered shot (an [AwShotLayers]) on it.
 var _layers: Dictionary = {}
+## The quads and flash lights every remote [AwShotFx] draws from, built on the first ask. Effects are top-level and
+## world-space, so a shooter owns nothing but its report voices: 63 remote players held 14 nodes each before this.
+var _shared_mesh_pool: AwSharedMeshPool = null
+var _shared_light_pool: DotFxLightPool = null
 
 
 func _enter_tree() -> void:
@@ -79,6 +94,35 @@ static func shared_layers(fx: Node, bus: StringName) -> AwShotLayers:
 	if pool == null or fx == null or not fx.is_inside_tree() or fx.get_viewport() != pool.get_viewport():
 		return null
 	return pool._shared_layers(bus)
+
+
+## The quad pool and the light pool remote shooters in [param fx]'s viewport share, as [lights, meshes], or an empty
+## array (no pool, another viewport: the effect then builds its own, as before). Built on the first ask, and prewarmed
+## from [member shared_meshes] and [member shared_lights] so the first shot of the crowd compiles nothing.
+static func shared_pools(fx: AwShotFx) -> Array:
+	var pool := current()
+	if pool == null or fx == null or not fx.is_inside_tree() or fx.get_viewport() != pool.get_viewport():
+		return []
+	return pool._shared_fx_pools(fx)
+
+
+func _shared_fx_pools(fx: AwShotFx) -> Array:
+	if _shared_mesh_pool == null or not is_instance_valid(_shared_mesh_pool):
+		_shared_mesh_pool = AwSharedMeshPool.new()
+		_shared_mesh_pool.name = "SharedMeshes"
+		_shared_mesh_pool.idle_limit = shared_idle
+		add_child(_shared_mesh_pool)
+		_shared_light_pool = DotFxLightPool.new()
+		_shared_light_pool.name = "SharedLights"
+		add_child(_shared_light_pool)
+		_shared_light_pool.prewarm(shared_lights)
+		_shared_mesh_pool.prewarm(fx._quad_mesh(), fx._flash_mat(), shared_meshes)
+	return [_shared_light_pool, _shared_mesh_pool]
+
+
+## Quads the shared pool has built, in use or idle. For a suite and a game's log line.
+func shared_mesh_count() -> int:
+	return _shared_mesh_pool.built() if _shared_mesh_pool != null else 0
 
 
 ## Builds parked effects up to [param shots] and [param charges], at least one a call, stopping
@@ -183,7 +227,7 @@ func flash_count() -> int:
 func _park_shot() -> void:
 	var fx := AwShotFx.new()
 	_parked.add_child(fx)
-	fx.prewarm_parked(shot_meshes)
+	fx.prewarm_parked(shot_meshes)  # its voices; the quads are the shared pool's
 	_shots.append(fx)
 
 
