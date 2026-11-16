@@ -28,6 +28,10 @@ const ChargeFx := preload("aw_charge_fx.gd")
 ## The [method scope_fraction] from which the gun model is no longer drawn: the lens is up and the gun would show through it.
 const SCOPE_GUN_HIDE_FRACTION := 0.5
 var _charge_fx: Node3D = null
+## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
+## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
+const REAR_RING_SHOW_AIM := 0.35
+var _rear_rings: Array[Node3D] = []
 
 var scope_arms_hide_override: float = -1.0
 
@@ -530,6 +534,9 @@ func _apply_aim(f: float) -> void:
 	var hip := _art.view_transform()
 	if _sight != null:
 		SightFit.fade(_sight, f)
+	for ring in _rear_rings:
+		if is_instance_valid(ring):
+			ring.visible = f >= REAR_RING_SHOW_AIM
 	if f <= 0.0:
 		_aim_node.transform = Transform3D.IDENTITY
 		_pose.pivot = hip.origin
@@ -582,6 +589,11 @@ func _fit_sight(art: AwWeaponVisual) -> void:
 ## The first half of [method _fit_sight]: the sight line, the aim hold and the fitted sight. [method prewarm_step] runs the halves in separate frames.
 func _fit_sight_line(art: AwWeaponVisual) -> void:
 	_sight_line = {}
+	# Measured with the rings drawn, then hidden again by the aim.
+	for ring in _rear_rings:
+		if is_instance_valid(ring):
+			ring.visible = true
+	_rear_rings = _find_rear_rings(_weapon)
 	var camera := get_parent() as Camera3D
 	var near := (camera.near if camera != null else 0.05) + NEAR_MARGIN
 	var dot := ads_rules.sight_dot_for(art.id) if ads_rules != null else float(AwAdsRules.SPECS["sight_dot"]["default"])
@@ -590,6 +602,10 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 		_sight_line = fitted.line
 		_sight_aim = fitted.aim
 		_sight = fitted.sight
+		# A built iron sight's rear notch floats over the line, above a gun whose top is lower than its sight line.
+		var rear := _sight.get_node_or_null(^"Rear") as Node3D if _sight != null else null
+		if rear != null:
+			_rear_rings.append(rear)
 
 
 ## The second half of [method _fit_sight]: the red dot cut for the line, and the sight put in the holder.
@@ -806,3 +822,12 @@ func describe_lines() -> PackedStringArray:
 	return out
 
 
+## The visible `rear_ring` nodes under [param root].
+static func _find_rear_rings(root: Node) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	if root == null:
+		return out
+	for node in root.find_children("rear_ring*", "Node3D", true, false):
+		if (node as Node3D).visible:
+			out.append(node)
+	return out
