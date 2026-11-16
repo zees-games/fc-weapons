@@ -144,7 +144,7 @@ func simulate_tick(
 	if prof:
 		_lap(PH_PRESENT)
 
-	_previous_command = command.duplicate_command()
+	_keep_previous(command)
 	if prof:
 		_lap(PH_COPY)
 	return outcome
@@ -250,11 +250,23 @@ func _idle_tick(command: DotWeaponCommand, tick: int, prof: bool = false) -> Dot
 
 	# The previous command is only read for its buttons and slot; copy it only when they differ.
 	if _previous_command == null or _previous_command.buttons != 0 or _previous_command.slot != command.slot:
-		_previous_command = command.duplicate_command()
+		_keep_previous(command)
 	if prof:
 		_lap(PH_COPY)
 
 	return outcome
+
+
+## Copies [param command] into the rig's own previous command: nothing outside the rig holds that object, so it is
+## overwritten instead of replaced by a new one per shooter per tick.
+func _keep_previous(command: DotWeaponCommand) -> void:
+	if _previous_command == null or _previous_command == command:
+		_previous_command = command.duplicate_command()
+		return
+	_previous_command.slot = command.slot
+	_previous_command.buttons = command.buttons
+	_previous_command.yaw = command.yaw
+	_previous_command.pitch = command.pitch
 
 
 ## The arsenal's tick with the spread scaled while the command holds the aim button. The scale
