@@ -20,11 +20,13 @@ Polyy's packs carry a CC0 1.0 LICENSE.txt in the zip and say the models were gen
 
 ## Sounds
 
-Each gun's own layered report (attack, body, outdoor tail, distant; two takes each) is in `assets/sounds/<gun>/`, cut by `tools/make_fire_sounds.py` from one recording per gun of the CC0 library below, plus a generated low thump on the heavy guns. Other sounds come from dot-audio's stock, which cites each file; the recordings below are credited here too, because CC-BY asks for it:
+Each gun's own layered report (attack, body, outdoor tail, distant; two takes each) is in `assets/sounds/<gun>/`, cut by `tools/make_fire_sounds.py` from one recording per gun of the CC0 library below, plus a generated low thump on the heavy guns and the small guns that lacked low end, a generated motor whir on the minigun, and per-gun loudness levelling. The launchers and energy guns are built in the same tool over library takes: the rocket launchers add the two CC0 rocket recordings below, and the grenade launcher's tube pop, the plasma bolt and the rail shot's snap, ring and whoosh are generated (no licence). Other sounds come from dot-audio's stock, which cites each file; the recordings below are credited here too, because CC-BY asks for it:
 
 | What | Author | Licence | Where |
 | --- | --- | --- | --- |
-| `assets/sounds/` per-gun reports (sniper: Tikka; marksman: Arisaka; battle_rifle: 1917; rifle: AK-47; bullpup: AR-15; carbine: Savage 10 .300 BLK; burst_rifle: SKS; lmg: Mosin Nagant; shotgun: Nova; drum_shotgun: Mossberg; pistol: PPQ; machine_pistol: Bersa; derringer: Single Six; revolver: 642; smg: M45; minigun: PPSh) | Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney (The Free Firearm Sound Library) | CC0 1.0 | https://opengameart.org/content/the-free-firearm-sound-library |
+| `assets/sounds/` per-gun reports (sniper: Tikka; marksman: Arisaka; battle_rifle: 1917; rifle: AK-47; bullpup: AR-15; carbine: Savage 10 .300 BLK; burst_rifle: SKS; lmg: Mosin Nagant; shotgun: Nova; drum_shotgun: Mossberg; pistol: PPQ; machine_pistol: Bersa; derringer: 642; revolver: 1911; smg: M45; minigun: PPSh; launcher: Nova; quad_launcher: Mossberg; grenade_launcher: Model 12; charge_rifle: Tikka) | Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney (The Free Firearm Sound Library) | CC0 1.0 | https://opengameart.org/content/the-free-firearm-sound-library |
+| `assets/sounds/launcher/`, `quad_launcher/` rocket motor roar | qubodup | CC0 1.0 | https://opengameart.org/content/rocket-launch |
+| `assets/sounds/quad_launcher/` missile whoosh | mikeask | CC0 1.0 | https://opengameart.org/content/missile-sound |
 | `assets/grenade_sounds/frag_blast_*`, `sticky_blast_*` | EZduzziteh | CC0 1.0 | https://opengameart.org/content/explosions-4 |
 | `assets/grenade_sounds/flash_bang_0` | teeeece | CC0 1.0 | https://opengameart.org/content/flash-bang-sound |
 | `assets/grenade_sounds/smoke_hiss_*` (smoke grenade) | bart | CC0 1.0 | https://opengameart.org/content/steam-release-sounds |

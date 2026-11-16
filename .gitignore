@@ -46,3 +46,6 @@ art-src/reference/
 /addons/arena_weapons/assets/models/*_2k.jpg*
 # stick_grenade.glb is the 1K bake but its images keep Poly Haven's _2k names; its textures ship.
 !/addons/arena_weapons/assets/models/stick_grenade_stick_grenade_*_2k.jpg*
+
+# make_fire_sounds.py downloads its CC0 rocket recordings here; the generated layers are what ship.
+/tools/sound_sources/

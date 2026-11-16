@@ -57,6 +57,8 @@ const CREDITS: Array[Dictionary] = [
 	{"id": "polyhaven-guns", "model": "pistol, sniper (service_pistol, bolt_action_rifle_7_62; 2K PBR)", "author": "Mateusz Sadek (Poly Haven)", "licence": "CC0-1.0", "url": "https://polyhaven.com/a/service_pistol"},
 	{"id": "lamoot-rifle", "model": "rifle (high-poly AK, rebuilt by tools/build_own_ak.py)", "author": "Lamoot", "licence": "CC0-1.0", "url": "https://opengameart.org/content/high-poly-ak-47"},
 	{"id": "polyhaven-small", "model": "frag (stick_grenade), knife (fish_knife); 1K", "author": "singaii, Mateusz Sadek (Poly Haven)", "licence": "CC0-1.0", "url": "https://polyhaven.com/a/stick_grenade"},
+	{"id": "firearm-sound-library", "model": "every gun's own report (sounds, cut by tools/make_fire_sounds.py)", "author": "Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney (The Free Firearm Sound Library)", "licence": "CC0-1.0", "url": "https://opengameart.org/content/the-free-firearm-sound-library"},
+	{"id": "oga-rocket-sounds", "model": "launcher and quad_launcher reports (sounds: rocket launch, missile)", "author": "qubodup, mikeask", "licence": "CC0-1.0", "url": "https://opengameart.org/content/rocket-launch"},
 	{"id": "vinrax-knife", "model": "knife", "author": "Vinrax", "licence": "CC0-1.0", "url": "https://opengameart.org/content/knife-low-poly"},
 ]
 

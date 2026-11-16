@@ -56,6 +56,20 @@
         "title": "The Free Firearm Sound Library: per-gun reports, cut by tools/make_fire_sounds.py (see CREDITS.md)"
     },
     {
+        "paths": ["addons/arena_weapons/assets/sounds/launcher/", "addons/arena_weapons/assets/sounds/quad_launcher/"],
+        "licence": "CC0-1.0",
+        "author": "qubodup",
+        "url": "https://opengameart.org/content/rocket-launch",
+        "title": "Rocket launch (OpenGameArt, CC0): the motor roar under both rocket launchers, by tools/make_fire_sounds.py"
+    },
+    {
+        "paths": ["addons/arena_weapons/assets/sounds/quad_launcher/"],
+        "licence": "CC0-1.0",
+        "author": "mikeask",
+        "url": "https://opengameart.org/content/missile-sound",
+        "title": "Missile sound (OpenGameArt, CC0): the quad launcher's missile whoosh, by tools/make_fire_sounds.py"
+    },
+    {
         "paths": ["addons/arena_weapons/assets/grenade_sounds/frag_blast_0.ogg", "addons/arena_weapons/assets/grenade_sounds/frag_blast_1.ogg", "addons/arena_weapons/assets/grenade_sounds/sticky_blast_0.ogg", "addons/arena_weapons/assets/grenade_sounds/sticky_blast_1.ogg"],
         "licence": "CC0-1.0",
         "author": "EZduzziteh",

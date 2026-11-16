@@ -25,9 +25,9 @@ func _fire_fx() -> void:
 	for gun: StringName in AwWeaponPack.SOUND_CLASSES:
 		if AwShotLayers.has_gun_sound(gun):
 			own += 1
-		elif not gun in [&"launcher", &"quad_launcher", &"grenade_launcher", &"beamer", &"charge_rifle"]:
+		else:
 			silent.append(String(gun))
-	_check("every gun but the launchers and energy guns has its own report: %s" % ", ".join(silent), silent.is_empty() and own > 0)
+	_check("every gun, launchers and energy guns too, has its own report: %s" % ", ".join(silent), silent.is_empty() and own > 0)
 	_check("a host's prefix still finds the gun", AwShotLayers.gun_of(&"fc_burst_rifle") == &"burst_rifle"
 		and AwShotLayers.gun_of(&"fc_rifle") == &"rifle" and AwShotLayers.gun_of(&"axe") == &"")
 	var registered := own
