@@ -47,6 +47,7 @@ GUNS = {
     "minigun": ("PPSh", "P_30P", "P_16P", 0.0, 0.98),
 }
 VARIANTS = 2
+MID_LIFT_DB = 12.0  # on the guns with a generated thump, whose bodies were sub-bass only (mid 18 dB under the low band)
 
 
 def thump(n, hz, seed):
@@ -56,6 +57,16 @@ def thump(n, hz, seed):
     f = hz * (1.0 + 0.6 * np.exp(-t / 0.02)) * rng.uniform(0.97, 1.03)
     y = np.sin(2 * np.pi * np.cumsum(f) / RATE) * np.exp(-t / 0.11)
     return y * L["ramp"](n, 0, int(0.003 * RATE))
+
+
+def mid_lift(body, db):
+    """The recording's own 200 Hz - 3 kHz content of the body raised by [param db]: after the first 50 ms a close take
+    keeps its sub rumble but loses the blast's mid, which is what leaves a heavy gun sounding hollow. No new material."""
+    spec = np.fft.rfft(body)
+    freq = np.fft.rfftfreq(len(body), 1.0 / RATE)
+    band = ((freq >= 200.0) & (freq <= 3000.0)).astype(float)
+    mid = np.fft.irfft(spec * band, len(body))
+    return body + mid * (10 ** (db / 20.0) - 1.0)
 
 
 def pitched(x, factor):
@@ -80,7 +91,7 @@ def build(gun):
         x /= np.max(np.abs(x)) + 1e-9
         attack, body, late = L["split"](x)
         if hz > 0.0:
-            body = body + 0.45 * thump(len(body), hz * factor, 90 + n)
+            body = mid_lift(body, MID_LIFT_DB) + 0.3 * thump(len(body), hz * factor, 90 + n)
         L["write"](os.path.join(folder, "attack_%d.ogg" % n), attack * gain, peak)
         L["write"](os.path.join(folder, "body_%d.ogg" % n), body * gain, peak)
         L["write"](os.path.join(folder, "tail_outdoor_%d.ogg" % n), L["outdoor_for"](x, late, 700 + n) * gain, L["OUTDOOR_DB"])
