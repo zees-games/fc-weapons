@@ -56,5 +56,12 @@ extends RefCounted
 # 29: a narrow hands lens at hands_depth_comp 0 keeps the authored place: AwViewModel.lens_move_share(), AwWeaponPose.lens_share /
 #     lens_turn(angle, share), and AwWallSlam.offset's lens_share; the wall's closing is eased (CLOSING_RATE).
 # 30: AwShotFxRules.crowd_frame (cl_shotfx_crowd_frame): most other shooters' shots drawn in one frame across the crowd.
-const LEVEL := 30
+# 31: AwWeaponRig.native_spread (and native_spread_active()): the hitscan spread tick in dot-sim's native class or in
+#     GDScript, bit-exact either way; DOT_WEAPON_MIN, which AwWeaponRig.setup() checks and fails on.
+const LEVEL := 31
 const OLDEST := 1
+
+## The oldest addons this pack runs on. dot-weapon is checked by AwWeaponRig.setup(); dot-sim is optional (without it,
+## or older than DOT_SIM_MIN, the spread tick stays in GDScript).
+const DOT_WEAPON_MIN := 42
+const DOT_SIM_MIN := "1a28540"

@@ -8,7 +8,7 @@ Pack id: `gamemann/fc-weapons` (it was `gamemann/arena-weapons` up to v1.3.x). T
 
 FC requires this pack. It registers the weapons under plain ids (`rifle`) and runs them on this pack's runtime. A game that mixes several weapon packs (zombie-zone, Playlot) calls `weapon_defs()`, `art_rows()` and `spawn_entries()` on `AwSpawnProvider` and gets ids with an `aw_` prefix. `role_art()` dresses a game's own weapons by role.
 
-Link `addons/arena_weapons` into your project, or let `dot-bootstrap` do it. The current API level is 21 (see `addons/arena_weapons/arena_weapons_api.gd`, which also lists what each level added).
+Link `addons/arena_weapons` into your project, or let `dot-bootstrap` do it. The current API level is 31 (see `addons/arena_weapons/arena_weapons_api.gd`, which also lists what each level added). It needs dot-weapon API 42 or newer (`AwWeaponRig.setup()` fails with a message on an older one); dot-sim from 1a28540 is optional and moves the hitscan spread tick to native code (`AwWeaponRig.native_spread`, on by default, bit-exact with the GDScript tick).
 
 ## Weapons
 

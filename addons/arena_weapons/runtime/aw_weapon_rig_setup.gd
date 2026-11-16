@@ -7,6 +7,8 @@ extends "aw_weapon_rig_reload.gd"
 const CHANNEL := "aw.rig"
 
 const BASH_BEHAVIOUR := "res://addons/arena_weapons/behaviour/aw_weapon_bash.gd"
+const AwApi := preload("../arena_weapons_api.gd")
+const DotWeaponApi := preload("res://addons/dot_weapon/dot_weapon_api.gd")
 
 ## Layers the wall probe stops on beyond the shot mask: set it to what stops the carrier (clip brushes and fences a shot passes), so the gun lowers at them.
 @export_flags_3d_physics var wall_extra_mask: int = 0:
@@ -20,6 +22,9 @@ const BASH_BEHAVIOUR := "res://addons/arena_weapons/behaviour/aw_weapon_bash.gd"
 func setup() -> DotResult:
 	if _ready_for_use:
 		return DotResult.success(null)
+
+	if DotWeaponApi.LEVEL < AwApi.DOT_WEAPON_MIN:
+		return DotResult.fail(DotError.CODE_STATE, "fc-weapons needs dot-weapon API %d or newer, this one is %d: update addons/dot_weapon." % [AwApi.DOT_WEAPON_MIN, DotWeaponApi.LEVEL])
 
 	var res := _resolve_arsenal()
 	if not res.ok:

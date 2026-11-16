@@ -66,6 +66,22 @@ func current_art() -> AwWeaponVisual:
 	return AwWeaponArtTable.table().get(def.id, null) if def != null else null
 
 
+## The spread tick of every rig's hitscan weapons in native code (dot-sim's DotSimWeaponSpread, through dot-weapon 42's
+## [member DotWeaponHitscan.native_tick]) or in GDScript. Both leave the same state and cone bit for bit, so this is a
+## speed switch, for an A/B or a box without dot-sim; a missing native class falls back to GDScript on its own.
+## Process-wide: it is dot-weapon's one static, so it reads back whatever was set last on either side.
+static var native_spread: bool:
+	set(v):
+		DotWeaponHitscan.native_tick = v
+	get:
+		return DotWeaponHitscan.native_tick
+
+
+## Whether the spread tick runs natively right now: the switch is on and dot-sim's class is loaded.
+static func native_spread_active() -> bool:
+	return DotWeaponHitscan.native_tick and ClassDB.class_exists(&"DotSimWeaponSpread")
+
+
 ## Microseconds per part of [method simulate_tick], summed while [member phase_timers] is on (a profiler recording's
 ## sub-spans, the bench); [member phase_calls] counts the idle and the full ticks they cover.
 const PHASES: Array[StringName] = [&"idle_pre", &"idle_arsenal", &"aim", &"arsenal", &"use", &"bash", &"present", &"copy"]

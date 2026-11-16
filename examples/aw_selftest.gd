@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 516
+const CHECKS := 518
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
 
@@ -51,9 +51,28 @@ func _ready() -> void:
 	_would_idle()
 	_carrier_cache()
 	_holster_and_inspect()
+	_native_spread()
 	preload("aw_selftest_throw.gd").new(self).run()
 	preload("aw_selftest_lens.gd").new(self).run()
 	await _finish()
+
+
+## The rig's native spread switch is dot-weapon's static, both ways, and is live only with dot-sim's class loaded.
+func _native_spread() -> void:
+	_begin("native spread switch")
+	var was := AwWeaponRig.native_spread
+	AwWeaponRig.native_spread = not was
+	var flipped := DotWeaponHitscan.native_tick == (not was)
+	DotWeaponHitscan.native_tick = was
+	_check("AwWeaponRig.native_spread sets and reads DotWeaponHitscan.native_tick", flipped and AwWeaponRig.native_spread == was)
+	AwWeaponRig.native_spread = true
+	var on := AwWeaponRig.native_spread_active()
+	AwWeaponRig.native_spread = false
+	var off := AwWeaponRig.native_spread_active()
+	AwWeaponRig.native_spread = was
+	_check("native_spread_active() is the switch and dot-sim's class together",
+		on == ClassDB.class_exists(&"DotSimWeaponSpread") and not off)
+	_end()
 
 
 ## Every gun's reload plays its handling sounds off the animation's own phases: each cue sits inside the phase that
