@@ -118,6 +118,10 @@ extends Resource
 ## Found, it wins over [member iron_sight]; not found, [member iron_sight] decides between the built sight and [member aim_offset].
 @export var sight_own: bool = false
 
+## Model parts left out of the first-person model, by node name (the art row's `view` `drop`): a part the sight cut would carve
+## into a floating piece, such as the launcher's rear sight leaf. The world model keeps them.
+@export var view_drop: PackedStringArray = []
+
 ## Whether the sight is a red dot: a glowing dot on the aim axis in a lens window cut through the housing (ADS rules `red_dot_*`).
 @export var sight_red_dot: bool = false
 

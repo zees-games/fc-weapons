@@ -244,10 +244,17 @@ func _live_cap() -> int:
 	return MAX_LIVE if first_person else clampi(rules.remote_live, 2, MAX_LIVE)
 
 
+## An effect's, mark's or shell's node, or null once it is freed: a typed read of a freed instance
+## errors ("previously freed instance"), as a map change or a pooled clear frees nodes the lists still hold.
+static func _node_of(entry: Dictionary) -> Node3D:
+	var held: Variant = entry.get("node")
+	return held as Node3D if is_instance_valid(held) else null
+
+
 func _add(node: Node3D, fx: Dictionary) -> void:
 	if _live.size() >= _live_cap():
 		var oldest: Dictionary = _live.pop_front()
-		var old: Node3D = oldest["node"]
+		var old := _node_of(oldest)
 		if is_instance_valid(old):
 			_dispose(old)
 

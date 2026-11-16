@@ -6,6 +6,7 @@ const ReloadParts := preload("aw_reload_parts.gd")
 const Dress := preload("aw_attachment_dress.gd")
 const HipHold := preload("aw_hip_hold.gd")
 const Describe := preload("aw_view_describe.gd")
+const ScopeHousing := preload("aw_scope_housing.gd")
 
 ## The weapon you see in your own hands. Parent it to the camera; it is told what happened (on_used, on_reload_started)
 ## and never reads a device, a clock or the arsenal, so it draws a remote player's gun the same way.
@@ -126,9 +127,22 @@ func _equip_head(art: AwWeaponVisual) -> DotResult:
 		)
 
 	_weapon.name = "Weapon"
+	_drop_parts(art)
 	_holder.add_child(_weapon)
 	_set_on_top(_weapon)
 	return DotResult.success(_weapon)
+
+
+## Frees the parts [member AwWeaponVisual.view_drop] names from the first-person model, before anything measures or cuts it.
+## A name the model lacks is an error in the art row, so it says so.
+func _drop_parts(art: AwWeaponVisual) -> void:
+	for part: String in art.view_drop:
+		var node := _weapon.find_child(part, true, false)
+		if node == null:
+			push_error("AwViewModel: %s has no part %s to drop (art view drop)." % [String(art.id), part])
+			continue
+		node.get_parent().remove_child(node)
+		node.free()
 
 
 ## Draws [param fitting]'s attachments on the weapon in hand, and moves the muzzle and the sight line to suit.
@@ -595,10 +609,12 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 		_sight_line = fitted.line
 		_sight_aim = fitted.aim
 		_sight = fitted.sight
-		# A built iron sight's rear notch floats over the line, above a gun whose top is lower than its sight line.
-		var rear := _sight.get_node_or_null(^"Rear") as Node3D if _sight != null else null
-		if rear != null:
-			_rear_rings.append(rear)
+		# A built iron sight's rear notch and front ring float over the line, above a gun whose top is lower than its
+		# sight line (the quad's ring at the hip), so both show only from REAR_RING_SHOW_AIM.
+		for part: NodePath in [^"Rear", ^"Front"]:
+			var piece := _sight.get_node_or_null(part) as Node3D if _sight != null else null
+			if piece != null:
+				_rear_rings.append(piece)
 
 
 ## The second half of [method _fit_sight]: the red dot cut for the line, and the sight put in the holder.
@@ -697,6 +713,10 @@ func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
 			for part in Dress.art_parts(art, _holder):
 				_set_on_top(part)
 				_attachments.append(part)
+			# A clean tube round the baked scope, which the scope body view brings up to fill the screen.
+			var housing := _add_built(ScopeHousing.build(art.scope_style), Transform3D(Basis.IDENTITY, ScopeHousing.origin(art.scope_style)))
+			if housing != null:
+				_attachments.append(housing)
 		6:
 			_reach_for(art)
 		7:

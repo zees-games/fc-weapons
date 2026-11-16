@@ -70,6 +70,7 @@ const SPECS := {
 	"red_dot_size": {"default": 0.25, "min": 0.02, "max": 1.0},
 	"red_dot_brightness": {"default": 4.0, "min": 0.0, "max": 16.0},
 	"red_dot_color": {"default": "#ff2a1a"},
+	"red_dot_hip": {"default": true},
 }
 
 ## The profile every weapon without an override uses.
@@ -280,11 +281,12 @@ func sight_cut_for(id: StringName) -> float:
 	return float(value_for(id, "sight_cut"))
 
 
-## The red-dot sight for [param id] (on when the art or this profile says so): `{window, size, brightness, color}`, window and size in degrees.
+## The red-dot sight for [param id] (on when the art or this profile says so): `{window, size, brightness, color, on, hip}`, window and size
+## in degrees; `hip` false hides its housing and rim at the hip too (a gun whose top sits well under its sight line, where they float).
 func red_dot_for(id: StringName) -> Dictionary:
 	return {"window": float(value_for(id, "red_dot_window")), "size": float(value_for(id, "red_dot_size")),
 		"brightness": float(value_for(id, "red_dot_brightness")), "color": Color.html(str(value_for(id, "red_dot_color"))),
-		"on": bool(value_for(id, "red_dot"))}
+		"on": bool(value_for(id, "red_dot")), "hip": bool(value_for(id, "red_dot_hip"))}
 
 
 ## Whether a shot leaves along the barrel the wall has pushed (server rule; false keeps it on the crosshair).

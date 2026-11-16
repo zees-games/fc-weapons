@@ -340,7 +340,7 @@ func play_eject(port: Transform3D, id: StringName, speed_scale: float = 1.0, siz
 	else:
 		# Out of pool: the oldest case is the one nobody is looking at.
 		var oldest: Dictionary = _shells.pop_front()
-		node = oldest["node"]
+		node = _node_of(oldest) as MeshInstance3D
 	if node == null or not is_instance_valid(node):
 		return
 
@@ -369,7 +369,7 @@ func _advance_shells(delta: float) -> void:
 	var write := 0
 	for read in _shells.size():
 		var shell: Dictionary = _shells[read]
-		var node: MeshInstance3D = shell["node"]
+		var node := _node_of(shell) as MeshInstance3D
 		if not is_instance_valid(node):
 			continue
 		var wait: float = shell["delay"]
@@ -477,7 +477,7 @@ func advance(delta: float) -> void:
 	var write := 0
 	for read in _live.size():
 		var fx: Dictionary = _live[read]
-		var node: Node3D = fx["node"]
+		var node := _node_of(fx)
 		if not is_instance_valid(node):
 			continue
 
@@ -553,7 +553,7 @@ func _advance_marks(delta: float) -> void:
 		var age := _mark_clock - float(mark["born"])
 		if age < fade_from:
 			break
-		var node: Node3D = mark["node"]
+		var node := _node_of(mark)
 		var through := age / MARK_LIFE
 		if through >= 1.0:
 			_dispose(node)
@@ -705,7 +705,7 @@ func _impact(
 func _mark(at: Vector3, facing: Vector3, hit_scale: float = 1.0) -> void:
 	if _marks.size() >= MAX_MARKS:
 		var oldest: Dictionary = _marks.pop_front()
-		var old: Node3D = oldest["node"]
+		var old := _node_of(oldest)
 		if is_instance_valid(old):
 			_dispose(old)
 

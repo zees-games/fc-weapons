@@ -156,6 +156,7 @@ static func _red_dot(cone: Dictionary, depth: float, red: Dictionary) -> Node3D:
 	root.transform = Transform3D(Basis(Quaternion(Vector3.UP, axis)), centre)
 	root.set_meta(&"axis", axis)
 	root.set_meta(&"window", window)
+	root.set_meta(&"hip", bool(red.get("hip", true)))
 	var lens := MeshInstance3D.new()
 	lens.name = LENS_NAME
 	lens.mesh = _part("lens")
@@ -347,7 +348,8 @@ static func red_of(sight: Node3D) -> Node3D:
 
 
 ## Shows the dot under [param sight] by the aim fraction [param f]: none at the hip, full at the eye. A red dot's
-## reticle and lens show from [constant RED_SHOW_FROM]; its housing and rim stay, as a real sight's do.
+## reticle and lens show from [constant RED_SHOW_FROM]; its housing and rim stay, as a real sight's do, unless its
+## `red_dot_hip` rule is false (aw_ads_rules.gd), when they too show from [constant RED_SHOW_FROM].
 static func fade(sight: Node3D, f: float) -> void:
 	var red := red_of(sight)
 	if red != null:
@@ -360,6 +362,12 @@ static func fade(sight: Node3D, f: float) -> void:
 		var reticle := red.get_node_or_null(RETICLE_NAME) as Node3D
 		if reticle != null and not shown:
 			reticle.visible = false
+		# A red dot over a gun whose top is well under its line (`red_dot_hip` false) floats there at the hip: all of it waits.
+		if not bool(red.get_meta(&"hip", true)):
+			for part: String in [HOUSING_NAME, "Rim"]:
+				var piece := red.get_node_or_null(part) as Node3D
+				if piece != null:
+					piece.visible = shown
 	var dot := sight.get_node_or_null(DOT_NAME) as MeshInstance3D
 	if dot == null:
 		return
