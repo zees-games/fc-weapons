@@ -56,6 +56,13 @@
         "title": "The Free Firearm Sound Library: per-gun reports, cut by tools/make_fire_sounds.py (see CREDITS.md)"
     },
     {
+        "paths": ["addons/arena_weapons/assets/grenade_sounds/frag_blast_0.ogg", "addons/arena_weapons/assets/grenade_sounds/frag_blast_1.ogg", "addons/arena_weapons/assets/grenade_sounds/sticky_blast_0.ogg", "addons/arena_weapons/assets/grenade_sounds/sticky_blast_1.ogg"],
+        "licence": "CC0-1.0",
+        "author": "EZduzziteh",
+        "url": "https://opengameart.org/content/explosions-4",
+        "title": "Explosions (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
+    },
+    {
         "paths": ["addons/arena_weapons/assets/grenade_sounds/flash_bang_0.ogg"],
         "licence": "CC0-1.0",
         "author": "teeeece",

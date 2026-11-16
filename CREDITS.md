@@ -25,6 +25,7 @@ Each gun's own layered report (attack, body, outdoor tail, distant; two takes ea
 | What | Author | Licence | Where |
 | --- | --- | --- | --- |
 | `assets/sounds/` per-gun reports (sniper: Tikka; marksman: Arisaka; battle_rifle: 1917; rifle: AK-47; bullpup: AR-15; carbine: Savage 10 .300 BLK; burst_rifle: SKS; lmg: Mosin Nagant; shotgun: Nova; drum_shotgun: Mossberg; pistol: PPQ; machine_pistol: Bersa; derringer: Single Six; revolver: 642; smg: M45; minigun: PPSh) | Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney (The Free Firearm Sound Library) | CC0 1.0 | https://opengameart.org/content/the-free-firearm-sound-library |
+| `assets/grenade_sounds/frag_blast_*`, `sticky_blast_*` | EZduzziteh | CC0 1.0 | https://opengameart.org/content/explosions-4 |
 | `assets/grenade_sounds/flash_bang_0` | teeeece | CC0 1.0 | https://opengameart.org/content/flash-bang-sound |
 | `assets/grenade_sounds/smoke_hiss_*` (smoke grenade) | bart | CC0 1.0 | https://opengameart.org/content/steam-release-sounds |
 | `assets/grenade_sounds/incendiary_ignite_*` | LEGIT Audio | CC0 1.0 | https://opengameart.org/content/fire-staff-sound-effects |

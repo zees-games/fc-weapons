@@ -1,17 +1,19 @@
 class_name AwGrenadeSound
 extends RefCounted
 
-## The detonation recordings of the utility grenades, which dot-audio's stock has no set for.
+## The detonation recordings of the thrown grenades, which dot-audio's stock has no set for.
 ##
-## Frag and sticky blasts use the host's explosion sound; a flash, a smoke canister and an
-## incendiary each have a sound of their own here, recordings from the credited sources in
-## CREDITS.md (a flash bang, a steam release, a flame whoosh), cut and levelled by hand with
-## ffmpeg to the loudness the stock weapons use.
+## Every grenade of the pack has a sound of its own here, recordings from the credited sources in
+## CREDITS.md (a frag and a sticky blast, a flash bang, a steam release, a flame whoosh), cut and
+## levelled by hand with ffmpeg to the loudness the stock explosion has. A host plays
+## [method stream] where a grenade goes off.
 
 const DIR := "res://addons/arena_weapons/assets/grenade_sounds/"
 
 ## Grenade id -> file stem of its detonation recordings (`<stem>_<n>.ogg`).
 const STEMS := {
+	&"frag": "frag_blast",
+	&"sticky": "sticky_blast",
 	&"flash": "flash_bang",
 	&"smoke": "smoke_hiss",
 	&"incendiary": "incendiary_ignite",
@@ -30,7 +32,7 @@ static func count(id: StringName) -> int:
 	return n
 
 
-## One take of [param id]'s detonation chosen by [param roll], or null when the grenade has no sound of its own.
+## One take of [param id]'s detonation chosen by [param roll], or null when the id is not a grenade of the pack.
 static func stream(id: StringName, roll: int = 0) -> AudioStream:
 	var n := count(id)
 	if n == 0:

@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 477
+const CHECKS := 479
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
 
@@ -302,7 +302,7 @@ func _sound_coverage() -> void:
 		_check("%s has every sound it needs %s" % [id, ", ".join(gaps)], gaps.is_empty())
 	for id: StringName in AwGrenadeSound.STEMS:
 		_check("%s has its own detonation takes (%d)" % [id, AwGrenadeSound.count(id)], AwGrenadeSound.count(id) >= 1 and AwGrenadeSound.stream(id, 1) != null)
-	_check("a grenade without a recording has none here", AwGrenadeSound.stream(&"frag") == null)
+	_check("an id that is not a grenade has none", AwGrenadeSound.stream(&"no_such_grenade") == null)
 	_check("an unknown id has no gaps hidden: it reports missing sounds", not AwSoundCoverage.gaps(&"no_such_weapon").is_empty())
 	_end()
 

@@ -8,10 +8,6 @@ extends RefCounted
 ## throw and detonation). [method weak] lists what exists but is shared or generic, so the next
 ## sound pass knows where to spend effort; it is a report, not a failure.
 
-## Grenades whose detonation is the host's explosion, not a recording of their own.
-const HOST_BLAST := [&"frag", &"sticky"]
-
-
 ## Sounds [param id] lacks altogether: no recording where one is required.
 static func gaps(id: StringName) -> PackedStringArray:
 	var out := PackedStringArray()
@@ -33,7 +29,7 @@ static func gaps(id: StringName) -> PackedStringArray:
 		return out
 	_need(out, id, "throw", DotWeaponSound.pick(&"throw") != null)
 	_need(out, id, "pin pull", DotWeaponSound.pick(&"pin_pull") != null)
-	_need(out, id, "detonation", id in HOST_BLAST and DotWeaponSound.pick(&"explosion") != null or AwGrenadeSound.count(id) > 0)
+	_need(out, id, "detonation", AwGrenadeSound.count(id) > 0)
 	return out
 
 
@@ -41,8 +37,6 @@ static func gaps(id: StringName) -> PackedStringArray:
 static func weak(id: StringName) -> PackedStringArray:
 	var out := PackedStringArray()
 	if not AwWeaponPack.SOUND_CLASSES.has(id):
-		if id in HOST_BLAST:
-			out.append("detonation is the host's shared explosion")
 		return out
 	var sound_class: StringName = AwWeaponPack.SOUND_CLASSES[id]
 	for stage in [&"out", &"in"]:
