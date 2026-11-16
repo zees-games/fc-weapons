@@ -45,5 +45,7 @@ extends RefCounted
 # 22: AwWorldModel.equip_budget_usec: past it, a frame's world-model equips build their models on later frames.
 # 23: AwModelCache.shrink_textures_headless (default on): headless, a loaded model's textures become 4x4 downsamples.
 # 24: AwWeaponRig.simulate_idle(command, tick): the idle tick for a host whose would_idle just answered true, without asking again.
-const LEVEL := 24
+# 25: scope body view. AwViewModel.scope_body / scope_body_relief / scope_body_active() / scope_ocular_points(), a scope style's
+#     `ocular`: the gun stays up through a lens scope and AwScopeOverlay draws the zoomed picture into its ocular.
+const LEVEL := 25
 const OLDEST := 1

@@ -303,8 +303,8 @@ func advance(delta: float) -> void:
 	# a game's own arms (arms_ref) may live anywhere, so they are hidden by name too.
 	var scoped := is_scoped()
 	# The gun goes when the scope's picture is half up, in both scope views: the view model draws over the HUD,
-	# so a gun kept for the lens view covers its glass (owner: "a real scope look-through, not just the gun model").
-	_animated.visible = not (scoped or scope_picture_up())
+	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
+	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
 	if _arms != null:
 		_arms.visible = not (scoped or scope_picture_up() or arms_hidden_by_scope())
 
@@ -357,6 +357,14 @@ const SCOPE_FULL := ScopeView.FULL
 
 ## The scope view the player chose (a game sets it from its cvar, through [method AwAdsRules.resolve_scope_mode]).
 var scope_mode: int = SCOPE_LENS
+
+## The scope drawn as its own body (lens view only): the gun stays up at full aim, grown about the eye until its ocular
+## is the lens circle, and [AwScopeOverlay] draws the zoomed picture into that ocular. Off (the default) keeps the flat lens.
+var scope_body := false
+## How far in front of the eye the ocular sits in the scope body view, in metres; it must be past the camera's near plane.
+var scope_body_relief: float = 0.1
+## The lens circle a scope style without `lens_circle` gets: the shared overlay's own default.
+const SCOPE_BODY_CIRCLE := 0.46
 
 ## How much of the scope's picture goes clear at a walk (0 keeps it solid at any speed), and the speed in m/s that clears all of it.
 var scope_walk_clear: float = 0.55
@@ -422,6 +430,43 @@ func scope_style() -> Dictionary:
 	return _art.scope_style if _art != null else {}
 
 
+## Whether the scope is drawn as its body this frame: [member scope_body] on, the lens view, and an `ocular` in the weapon's scope style.
+func scope_body_active() -> bool:
+	return scope_body and scope_is_lens() and not _scope_ocular().is_empty()
+
+
+## The ocular's centre and a point on its edge, in global space, for [AwScopeOverlay]; empty unless [method scope_body_active] and drawn.
+func scope_ocular_points() -> Dictionary:
+	if not scope_body_active() or _holder == null or not _holder.is_inside_tree() or not _animated.visible:
+		return {}
+	var ocular := _scope_ocular()
+	var held := _holder.global_transform
+	return {"centre": held * (ocular[0] as Vector3), "edge": held * ((ocular[0] as Vector3) + Vector3(float(ocular[1]), 0.0, 0.0))}
+
+
+## The scope style's `ocular` ([x, y, z, radius] in the model's metres, the eye end of the scope's glass) as [centre, radius]; empty without one.
+func _scope_ocular() -> Array:
+	var ocular: Variant = scope_style().get("ocular", null)
+	if not (ocular is Array) or (ocular as Array).size() < 4 or float(ocular[3]) <= 0.0:
+		return []
+	return [Vector3(float(ocular[0]), float(ocular[1]), float(ocular[2])), float(ocular[3])]
+
+
+## How many times larger than its view scale the gun is drawn at full aim in the scope body view, so an ocular of
+## [param radius] at [member scope_body_relief] fills the lens circle. Drawn about the eye, it looks the same, only nearer.
+func _scope_body_growth(radius: float) -> float:
+	var camera := get_parent() as Camera3D
+	var fov := camera.fov if camera != null else 75.0
+	var share := 1.0
+	if is_inside_tree():
+		var rect := get_viewport().get_visible_rect().size
+		share = minf(rect.x, rect.y) / rect.y if rect.y > 0.0 else 1.0
+	var circle := float(scope_style().get("lens_circle", SCOPE_BODY_CIRCLE))
+	var want := scope_body_relief * tan(deg_to_rad(fov) * 0.5) * circle * share
+	var lens := absf(scale.x) if not is_zero_approx(scale.x) else 1.0
+	return maxf(want / (radius * lens * maxf(_art.view_scale, 0.001)), 0.001)
+
+
 ## How visible the scope's surround is, 0 to 1: it fades in over the last of the aim-in, not at the end.
 func scope_fraction() -> float:
 	if not has_scope():
@@ -473,17 +518,36 @@ func _apply_aim(f: float) -> void:
 		_pose.pivot = hip.origin
 		return
 
-	var sight := _aim_target()
+	var ocular := _scope_ocular() if scope_body_active() else []
+	var grow := 1.0 if ocular.is_empty() else _scope_body_growth(float(ocular[1]))
+	# The scope body view: the eye is where the camera is, in this rig's space (DotViewLens pulls the rig along z).
+	var eye := Vector3(0.0, 0.0, -position.z)
+	var sight := _aim_target() if ocular.is_empty() else _scope_body_target(ocular[0], eye, grow)
 	var turn := hip.basis.get_rotation_quaternion().slerp(
 		sight.basis.get_rotation_quaternion(), f
 	)
 	var now := Transform3D(
 		Basis(turn).scaled(Vector3.ONE * _art.view_scale), hip.origin.lerp(sight.origin, f)
 	)
+	if not ocular.is_empty():
+		# Grown about the eye the gun looks the same, only nearer: the ocular ends past the near plane, filling the lens circle.
+		var m := lerpf(1.0, grow, f)
+		now = Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * m), eye - eye * m) * now
 	_aim_node.transform = now * hip.affine_inverse()
-	# Aimed, the kick turns about the rear sight, not the grip, or the sight picture jumps up the screen.
-	_pose.pivot = now.origin.lerp(now * _sight_line.rear, f) if not _sight_line.is_empty() \
-		else now.origin
+	# Aimed, the kick turns about the rear sight (the ocular through a scope body), not the grip, or the sight picture jumps up the screen.
+	if not ocular.is_empty():
+		_pose.pivot = now.origin.lerp(now * (ocular[0] as Vector3), f)
+	elif not _sight_line.is_empty():
+		_pose.pivot = now.origin.lerp(now * _sight_line.rear, f)
+	else:
+		_pose.pivot = now.origin
+
+
+## The holder's transform at full aim in the scope body view, before it is grown [param grow] times about [param eye]:
+## the scope straight down the view with its [param ocular] (model metres) that much nearer than [member scope_body_relief].
+func _scope_body_target(ocular: Vector3, eye: Vector3, grow: float) -> Transform3D:
+	var basis := _art.orientation().scaled(Vector3.ONE * _art.view_scale)
+	return Transform3D(basis, eye + Vector3(0.0, 0.0, -scope_body_relief / grow) - basis * ocular)
 
 
 ## The holder's transform at full aim: down the measured sight line, or the art's written

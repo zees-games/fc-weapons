@@ -142,7 +142,9 @@ func _world_near(space: PhysicsDirectSpaceState3D, eye: Vector3, radius: float) 
 
 ## Pulls the weapon back and up when its muzzle would be inside a wall. The probe is cast against the un-retracted pose, so the answer does not feed back into itself.
 func _advance_wall(delta: float) -> void:
-	var on := feel_rules.wall_retract > 0.0 and _weapon != null and is_inside_tree()
+	# A scope body is grown metres long about the eye: its muzzle is not where the held gun's is, and pulling it back would move the lens.
+	var on: bool = feel_rules.wall_retract > 0.0 and _weapon != null and is_inside_tree() \
+		and not (_aim_fraction > 0.0 and has_method(&"scope_body_active") and bool(call(&"scope_body_active")))
 	var w := _wall_numbers()
 	var target := 0.0
 	if on:

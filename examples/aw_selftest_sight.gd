@@ -34,6 +34,51 @@ func _scope_hides_gun() -> void:
 	_end()
 
 
+## The scope body view (FC's cl_scope_body): the gun stays up and the lens is drawn into its ocular, which sits at the
+## eye relief and is the lens circle's size on screen; off, or in the full-screen view, the gun hides as before.
+func _scope_body() -> void:
+	_begin("scope body: the gun stays up, the lens sits in its ocular")
+	var camera := Camera3D.new()
+	camera.fov = 75.0
+	add_child(camera)
+	var view := AwViewModel.new()
+	view.show_arms = false
+	view.scope_body = true
+	camera.add_child(view)
+	var art := AwWeaponVisual.make(&"sniper")
+	AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[&"sniper"])
+	view.equip(art)
+	view.aim(true)
+	for _i in 80:
+		view._process(0.02)
+	_check("body: active on the sniper through the lens", view.scope_body_active() and view.is_scoped())
+	_check("body: the gun is drawn at full aim", view._animated.visible)
+	var points := view.scope_ocular_points()
+	var eye_space: Vector3 = camera.global_transform.affine_inverse() * (points.get("centre", Vector3.ZERO) as Vector3)
+	_check("body: the ocular is centred at the eye relief", Vector2(eye_space.x, eye_space.y).length() < 0.01 and absf(eye_space.z + view.scope_body_relief) < 0.01)
+	var overlay := AwScopeOverlay.new()
+	add_child(overlay)
+	overlay.bind_camera(camera)
+	overlay.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	overlay.size = get_viewport().get_visible_rect().size
+	overlay.follow(view)
+	var lens := overlay._body_lens()
+	var want := minf(overlay.size.x, overlay.size.y) * 0.62 * 0.5
+	_check("body: the ocular is the lens circle's size on screen", not lens.is_empty() and absf(float(lens.get("radius", 0.0)) / want - 1.0) < 0.05)
+	_check("body: the lens sits on the ocular, not shifted by the drawn motion", overlay.motion == Vector2.ZERO and (lens.get("centre", Vector2.ZERO) as Vector2).distance_to(overlay.size * 0.5) < want * 0.1)
+	view.scope_mode = AwViewModel.SCOPE_FULL
+	view._process(0.02)
+	_check("body: the full-screen view still hides the gun", not view.scope_body_active() and not view._animated.visible)
+	view.scope_mode = AwViewModel.SCOPE_LENS
+	view.scope_body = false
+	view._process(0.02)
+	overlay.follow(view)
+	_check("body off: the flat lens as before", not view._animated.visible and overlay._body_lens().is_empty())
+	overlay.queue_free()
+	camera.queue_free()
+	_end()
+
+
 func _scope_modes() -> void:
 	_begin("scope views: lens on screen, full screen, server pin, see-through on the move")
 	var view := AwViewModel.new()
