@@ -62,8 +62,10 @@ var rail_charge := 0.0
 ## Eject spent cases from the gun's port. Presentation only: no physics body; the landing is a stock sound.
 @export var eject_shells: bool = true
 
-## Multiplier on a case's size. Above 1 because a true-size case was a speck nobody saw (renders 2026-11).
-@export_range(0.2, 4.0, 0.05) var shell_scale: float = 1.5
+## Multiplier on a case's size, on top of the gun's drawn scale ([method AwViewModel.eject_scale]). Below 1: a first-person
+## case already grows with the gun drawn twice life size and flies at the eye, and at 1.5 it read as a brass slab the
+## size of the magazine (video review 2026-11-16).
+@export_range(0.2, 4.0, 0.05) var shell_scale: float = 0.7
 
 ## Most cases in the air at once, per carrier; the pool is this big and no bigger, and the
 ## oldest is reused. Each is one draw call.

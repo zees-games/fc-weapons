@@ -97,7 +97,7 @@ static func _brass_mat() -> StandardMaterial3D:
 		_brass_material.roughness = 0.35
 		_brass_material.emission_enabled = true
 		_brass_material.emission = Color(0.5, 0.33, 0.1)
-		_brass_material.emission_energy_multiplier = 0.6
+		_brass_material.emission_energy_multiplier = 0.25
 	return _brass_material
 
 
