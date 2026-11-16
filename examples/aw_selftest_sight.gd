@@ -140,6 +140,14 @@ func _scope_modes() -> void:
 	view.equip(plain)
 	overlay.follow(view)
 	_check("the next gun does not keep the last gun's lens", is_equal_approx(overlay.lens_circle, 0.46))
+	_red_dot_parts()
+	camera.queue_free()
+	overlay.queue_free()
+	view.queue_free()
+	_end()
+
+
+func _red_dot_parts() -> void:
 	# A red dot's housing fills the hole its window cuts in the gun at every aim; its reticle and lens come with the aim.
 	var sight := Node3D.new()
 	var red: Node3D = AwViewModel.SightFit._red_dot({"axis": Vector3.FORWARD, "eye": Vector3.ZERO, "tan": tan(deg_to_rad(4.0))},
@@ -156,10 +164,6 @@ func _scope_modes() -> void:
 	AwViewModel.SightFit.track(sight, Vector3.ZERO)
 	_check("and shown at the eye", reticle.visible)
 	sight.free()
-	camera.queue_free()
-	overlay.queue_free()
-	view.queue_free()
-	_end()
 
 
 func _own_sights() -> void:

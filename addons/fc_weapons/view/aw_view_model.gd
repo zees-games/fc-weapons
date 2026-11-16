@@ -5,6 +5,7 @@ extends "aw_view_model_reload.gd"
 const ReloadParts := preload("aw_reload_parts.gd")
 const Dress := preload("aw_attachment_dress.gd")
 const HipHold := preload("aw_hip_hold.gd")
+const Describe := preload("aw_view_describe.gd")
 
 ## The weapon you see in your own hands. Parent it to the camera; it is told what happened (on_used, on_reload_started)
 ## and never reads a device, a clock or the arsenal, so it draws a remote player's gun the same way.
@@ -453,24 +454,16 @@ func scope_style() -> Dictionary:
 
 ## Whether the scope is drawn as its body this frame: [member scope_body] on, the lens view, and an `ocular` in the weapon's scope style.
 func scope_body_active() -> bool:
-	return scope_body and scope_is_lens() and not _scope_ocular().is_empty()
+	return scope_body and scope_is_lens() and not Describe.scope_ocular(scope_style()).is_empty()
 
 
 ## The ocular's centre and a point on its edge, in global space, for [AwScopeOverlay]; empty unless [method scope_body_active] and drawn.
 func scope_ocular_points() -> Dictionary:
 	if not scope_body_active() or _holder == null or not _holder.is_inside_tree() or not _animated.visible:
 		return {}
-	var ocular := _scope_ocular()
+	var ocular := Describe.scope_ocular(scope_style())
 	var held := _holder.global_transform
 	return {"centre": held * (ocular[0] as Vector3), "edge": held * ((ocular[0] as Vector3) + Vector3(float(ocular[1]), 0.0, 0.0))}
-
-
-## The scope style's `ocular` ([x, y, z, radius] in the model's metres, the eye end of the scope's glass) as [centre, radius]; empty without one.
-func _scope_ocular() -> Array:
-	var ocular: Variant = scope_style().get("ocular", null)
-	if not (ocular is Array) or (ocular as Array).size() < 4 or float(ocular[3]) <= 0.0:
-		return []
-	return [Vector3(float(ocular[0]), float(ocular[1]), float(ocular[2])), float(ocular[3])]
 
 
 ## How many times larger than its view scale the gun is drawn at full aim in the scope body view, so an ocular of
@@ -542,7 +535,7 @@ func _apply_aim(f: float) -> void:
 		_pose.pivot = hip.origin
 		return
 
-	var ocular := _scope_ocular() if scope_body_active() else []
+	var ocular := Describe.scope_ocular(scope_style()) if scope_body_active() else []
 	var grow := 1.0 if ocular.is_empty() else _scope_body_growth(float(ocular[1]))
 	# The scope body view: the eye is where the camera is, in this rig's space (DotViewLens pulls the rig along z).
 	var eye := Vector3(0.0, 0.0, -position.z)
@@ -593,7 +586,7 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 	for ring in _rear_rings:
 		if is_instance_valid(ring):
 			ring.visible = true
-	_rear_rings = _find_rear_rings(_weapon)
+	_rear_rings = Describe.find_rear_rings(_weapon)
 	var camera := get_parent() as Camera3D
 	var near := (camera.near if camera != null else 0.05) + NEAR_MARGIN
 	var dot := ads_rules.sight_dot_for(art.id) if ads_rules != null else float(AwAdsRules.SPECS["sight_dot"]["default"])
@@ -796,38 +789,9 @@ func _warm_part(part: StringName) -> void:
 
 
 func describe() -> Dictionary:
-	return {
-		"equipped": String(_id),
-		"has_model": _weapon != null,
-		"magazine": _magazine != null,
-		"attachments": _attachments.size(),
-		"arms": _arms.describe() if _arms != null else {},
-		"reload": _seq.describe() if _seq != null else {},
-		"pose": _pose.describe(),
-		"muzzle": _muzzle,
-		"aim": "%.2f%s%s" % [_aim_fraction, " held" if _aim_held else "", " scoped" if is_scoped() else ""],
-	}
+	return Describe.describe(self)
 
 
 func describe_lines() -> PackedStringArray:
-	var out := PackedStringArray()
-	out.append("view model: %s%s" % [
-		String(_id) if _id != &"" else "(nothing)",
-		"" if _weapon != null else " (no mesh)",
-	])
-	out.append("  muzzle %.3f m out, %d attachment(s)" % [
-		_muzzle.length(), _attachments.size()
-	])
-	out.append("  %s" % str(_pose.describe()))
-	return out
+	return Describe.describe_lines(self)
 
-
-## The visible `rear_ring` nodes under [param root].
-static func _find_rear_rings(root: Node) -> Array[Node3D]:
-	var out: Array[Node3D] = []
-	if root == null:
-		return out
-	for node in root.find_children("rear_ring*", "Node3D", true, false):
-		if (node as Node3D).visible:
-			out.append(node)
-	return out
