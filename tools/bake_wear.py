@@ -29,7 +29,7 @@ def emission_material(kind, scale):
         bv.samples = 8
         g = t.nodes.new('ShaderNodeNewGeometry')
         d = t.nodes.new('ShaderNodeVectorMath')
-        d.operation = 'DOT_PRODUCT'
+        d.operation = 'GS_PRODUCT'
         t.links.new(bv.outputs['Normal'], d.inputs[0])
         t.links.new(g.outputs['Normal'], d.inputs[1])
         inv = t.nodes.new('ShaderNodeMath')

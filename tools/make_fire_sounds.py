@@ -20,21 +20,21 @@ import urllib.request
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DOT_AUDIO = os.environ.get("DOT_AUDIO", os.path.join(HERE, "..", "..", "dot-audio"))
-if not os.path.isdir(os.path.join(DOT_AUDIO, "tools")):
-    DOT_AUDIO = "/home/gamedev/godot/dot-audio"
-LIB = os.path.join(DOT_AUDIO, "source-candidates", "free-firearm-sound-library", "raw", "Prepared SFX Library")
+GS_AUDIO = os.environ.get("GS_AUDIO", os.environ.get("DOT_AUDIO", os.path.join(HERE, "..", "..", "dot-audio")))
+if not os.path.isdir(os.path.join(GS_AUDIO, "tools")):
+    GS_AUDIO = "/home/gamedev/godot/dot-audio"
+LIB = os.path.join(GS_AUDIO, "source-candidates", "free-firearm-sound-library", "raw", "Prepared SFX Library")
 OUT = os.path.join(HERE, "..", "addons", "arena_weapons", "assets", "sounds")
 
 # Its helpers in their own namespace, so its OUT (dot-audio's stock folder) can never be where this writes; a checkout
 # older than its main guard ends in a bare main() call, cut off here.
-_src = open(os.path.join(DOT_AUDIO, "tools", "make_shot_layers.py")).read()
+_src = open(os.path.join(GS_AUDIO, "tools", "make_shot_layers.py")).read()
 if _src.rstrip().endswith("\nmain()"):
     _src = _src[: _src.rindex("\nmain()")]
-L = {"__name__": "make_shot_layers", "__file__": os.path.join(DOT_AUDIO, "tools", "make_shot_layers.py")}
+L = {"__name__": "make_shot_layers", "__file__": os.path.join(GS_AUDIO, "tools", "make_shot_layers.py")}
 exec(compile(_src, "make_shot_layers.py", "exec"), L)
 RATE = L["RATE"]
-sys.path.insert(0, os.path.join(DOT_AUDIO, "tools"))
+sys.path.insert(0, os.path.join(GS_AUDIO, "tools"))
 import audit_weapon_audio  # noqa: E402  (dot-audio's loudness meter, the one its audit reports in)
 from scipy import signal  # noqa: E402
 

@@ -210,7 +210,7 @@ def edge_build(nt, e):
     bev.samples = 12
     geo = nt.nodes.new('ShaderNodeNewGeometry')
     dot = nt.nodes.new('ShaderNodeVectorMath')
-    dot.operation = 'DOT_PRODUCT'
+    dot.operation = 'GS_PRODUCT'
     nt.links.new(bev.outputs[0], dot.inputs[0])
     nt.links.new(geo.outputs['Normal'], dot.inputs[1])
     inv_ = nt.nodes.new('ShaderNodeMath')

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Publishes this pack with addons/arena_weapons, the code a host mounts from it as an overlay, as gamemann/fc-weapons:
 # the site keeps gamemann/arena-weapons retired (moved to fc-weapons) and refuses a publish under it.
-#   DOT_SITE=https://tmcdev.net tools/publish.sh VERSION --lock /tmp/aw-lock.json --token-file ~/.config/dot/creator-token-dev [--dry-run]
+#   GS_SITE=https://tmcdev.net tools/publish.sh VERSION --lock /tmp/aw-lock.json --token-file ~/.config/dot/creator-token-dev [--dry-run]
 # Give --lock a file outside the repo: content.lock.json here pins the art store, not this pack.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
