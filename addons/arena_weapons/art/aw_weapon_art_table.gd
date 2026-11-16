@@ -30,8 +30,10 @@ static func pose_offset(pose: StringName) -> Vector3:
 			return Vector3(0.21, -0.27, -0.42)
 		POSE_MELEE:
 			return Vector3(0.22, -0.25, -0.40)
+		# A grenade sits higher than a gun: at -0.19 the hand closed round it was below the frame's edge (FC's
+		# flashbang held by nothing), and a throwable is small enough not to cover the crosshair from here.
 		POSE_THROWN:
-			return Vector3(0.17, -0.19, -0.36)
+			return Vector3(0.17, -0.14, -0.36)
 		_:
 			return Vector3(0.21, -0.26, -0.40)
 
