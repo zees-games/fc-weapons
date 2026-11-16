@@ -243,10 +243,13 @@ func _build_belt(art: AwWeaponVisual) -> void:
 	if box.size == Vector3.ZERO:
 		return
 	var tray := Vector3(box.position.x * 0.8, box.position.y + box.size.y * 0.62, box.position.z + box.size.z * 0.5) + art.belt_offset
+	# The run comes up from under the receiver (where the box hangs) to the tray on its left side: started out past the
+	# side instead, it is a row of rounds hanging in the air beside the gun.
+	var from := Vector3(box.position.x * 0.35, box.position.y + box.size.y * 0.2, tray.z) + art.belt_offset
 	_belt = BeltFeed.new()
 	_belt.name = "BeltFeed"
 	_weapon.add_child(_belt)
-	_belt.build(tray + Vector3(-0.07, -0.10, 0.0), tray)
+	_belt.build(from, tray)
 
 
 ## True when the weapon in hand throws a spent case ([member AwWeaponVisual.ejects]).
