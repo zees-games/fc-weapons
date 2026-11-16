@@ -53,5 +53,7 @@ extends RefCounted
 #     AwGrenade.bounce_velocity / settles / damp_factor and sv_grenade_damping / _rest_speed / _max_bounces.
 # 28: AwViewModel.on_windup(charge): a throw's hand draws back by the meter and releases from there; a blade pumps on a
 #     sprint, and AwViewModel.run_amount() / run_phase() hand the stride to arms that pump the free hand.
-const LEVEL := 28
+# 29: a narrow hands lens at hands_depth_comp 0 keeps the authored place: AwViewModel.lens_move_share(), AwWeaponPose.lens_share /
+#     lens_turn(angle, share), and AwWallSlam.offset's lens_share; the wall's closing is eased (CLOSING_RATE).
+const LEVEL := 29
 const OLDEST := 1

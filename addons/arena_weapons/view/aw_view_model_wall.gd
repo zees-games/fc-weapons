@@ -166,7 +166,7 @@ func _advance_wall(delta: float) -> void:
 	_wall.step(target, delta, w["stiffness"], w["damping"], w["lean_rate"])
 	if _wall.amount > 0.0:
 		var rest := _animated.global_position
-		_animated.transform = _wall.offset(feel_rules.wall_retract, feel_rules.wall_tilt, w["push"], w["nudge"], aim_fraction(), w["impulse"]) * _animated.transform
+		_animated.transform = _wall.offset(feel_rules.wall_retract, feel_rules.wall_tilt, w["push"], w["nudge"], aim_fraction(), w["impulse"], lens_move_share()) * _animated.transform
 		_keep_off_near_plane(rest)
 
 ## Slides the view model away from the eye until no part of the hands is nearer than the camera's near plane plus a margin, and

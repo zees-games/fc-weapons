@@ -119,6 +119,19 @@ var _aim_fraction: float = 0.0
 const REFERENCE_FOV := DotViewLens.REFERENCE_FOV
 ## The depth the gun's middle sits at under the reference lens, in metres.
 const REFERENCE_DEPTH := DotViewLens.REFERENCE_DEPTH
+
+## The share of a pose's sideways and upward move kept so it lands where it was authored under [constant REFERENCE_FOV]:
+## a narrow [member hands_fov] drawn near ([member hands_depth_comp] 0) magnifies the gun and each move with it, and a
+## sprint or wall move sent the gun off the screen and pulled the arms out straight. 1 with full depth compensation.
+func lens_move_share() -> float:
+	if not get_parent() is Camera3D:
+		return 1.0
+	var size := DotViewLens.lens_scale(REFERENCE_FOV, hands_fov)
+	if size == 1.0:
+		return 1.0
+	var depth := REFERENCE_DEPTH + maxf((size - 1.0) * REFERENCE_DEPTH * hands_depth_comp, -DotViewLens.MAX_PULL_IN)
+	return depth / (REFERENCE_DEPTH * size)
+
 ## The most the hands are drawn closer than authored, in metres.
 const MAX_PULL_IN := DotViewLens.MAX_PULL_IN
 

@@ -84,6 +84,10 @@ var rules := AwViewFeel.new()
 ## up the screen. That was what every shot did before this existed.
 var pivot := Vector3.ZERO
 
+## The share of each move that is kept, so a move keeps its authored place on screen under a hands lens that draws the
+## gun bigger ([method AwViewModel.lens_move_share]); depth too, or a sprint carry pulled the grip onto the shoulder. Pitch and yaw: [method lens_turn].
+var lens_share: float = 1.0
+
 # --- State ------------------------------------------------------------------
 
 ## Sway, in metres, x right and y up. Lags the look direction.
@@ -525,7 +529,7 @@ func offset() -> Transform3D:
 	# Forward and up together, back and down: the running arm's arc.
 	position += Vector3(0.0, sin(stride), -sin(stride)) * tunables.sprint_pump * run_amount()
 	var hand := Basis.from_euler(Vector3(
-		deg_to_rad(acted.x), deg_to_rad(acted.y), deg_to_rad(acted.z)
+		lens_turn(deg_to_rad(acted.x), lens_share), lens_turn(deg_to_rad(acted.y), lens_share), deg_to_rad(acted.z)
 	))
 
 	# The kick turns about the grip, inside everything else: sway and bob carry the
@@ -541,7 +545,15 @@ func offset() -> Transform3D:
 		* Transform3D(hand * kick, Vector3.ZERO) \
 		* Transform3D(Basis.IDENTITY, -pivot)
 
-	return Transform3D(basis, position) * about_grip
+	return Transform3D(basis, position * lens_share) * about_grip
+
+
+## [param angle] (radians) turned so the muzzle swings as far on screen under a lens magnifying [code]1 / share[/code] as the angle did
+## unmagnified: a pitch or yaw tips the barrel out of the screen's plane, and the lens magnified a sprint's tip off the screen.
+static func lens_turn(angle: float, share: float) -> float:
+	if share >= 1.0:
+		return angle
+	return asin(clampf(sin(angle) * share, -1.0, 1.0))
 
 
 ## Where a scope's lens and reticle sit off the screen's centre, in lens radii (x right, y down):

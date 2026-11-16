@@ -13,6 +13,9 @@ const TILT_DEG_PER_M := 120.0
 const FAST_SPEED := 5.0
 ## A floor-like surface this near below the eye (metres) is a step, crate or stair the gun can run into, so it counts at any look angle; the floor underfoot is further than any gun reaches.
 const FLOOR_NEAR := 0.8
+## How fast (per second) the approach speed the response reads follows the body's: a body stopped by what it ran into
+## drops to 0 m/s in one tick, which swapped push-back for the upward nudge in one frame (fc-sprint-exit-pop-1).
+const CLOSING_RATE := 10.0
 
 ## Strafe speed (m/s, view space, right positive) of the last frame: a sideways approach shoves the gun round the wall.
 var lateral: float = 0.0
@@ -23,6 +26,8 @@ var velocity: float = 0.0
 var normal_local := Vector3.ZERO
 var facing: float = 1.0
 var closing: float = 0.0
+var _closing_target: float = 0.0
+var _lateral_target: float = 0.0
 ## Eased lean: x is positive when the barrel turns left, y positive when it tips up; each is -1 to 1 (0,1 until set_lean is called).
 var lean := Vector2(0.0, 1.0)
 var _lean_target := Vector2(0.0, 1.0)
@@ -44,6 +49,9 @@ static func reach_of(muzzle_distance: float, view_scale: float, reach_share: flo
 ## Spring toward [param target] (damped, frame-rate independent via sub-steps).
 func step(target: float, delta: float, stiffness: float = 160.0, damping: float = 20.0, lean_rate: float = 10.0) -> void:
 	lean = lean.lerp(_lean_target, 1.0 - exp(-maxf(lean_rate, 0.0) * clampf(delta, 0.0, 0.25)))
+	var follow := 1.0 - exp(-CLOSING_RATE * clampf(delta, 0.0, 0.25))
+	closing = lerpf(closing, _closing_target, follow)
+	lateral = lerpf(lateral, _lateral_target, follow)
 	var left := clampf(delta, 0.0, 0.25)
 	while left > 0.0:
 		var h := minf(left, 1.0 / 120.0)
@@ -221,15 +229,15 @@ static func _sweep(space: PhysicsDirectSpaceState3D, from: Vector3, dir: Vector3
 
 ## Fills [member facing] and the response from the probe's normal, the approach [param speed] and the look direction.
 func aim_at(normal: Vector3, speed: float, strafe: float = 0.0) -> void:
-	lateral = strafe
+	_lateral_target = strafe
 	normal_local = normal
 	facing = clampf(normal.z, 0.0, 1.0) if normal != Vector3.ZERO else 1.0
-	closing = speed * facing
+	_closing_target = speed * facing
 
 
 ## The pose offset: back by the depth (more when approaching fast), nudged up and sideways when slow or angled, pitched up.
 ## [param guard] (0 to 1) fades everything out while aiming down sights so the gun stays on the sight line.
-func offset(retract_scale: float, tilt_scale: float, push: float = 1.0, nudge: float = 0.6, guard: float = 0.0, impulse: float = 1.0) -> Transform3D:
+func offset(retract_scale: float, tilt_scale: float, push: float = 1.0, nudge: float = 0.6, guard: float = 0.0, impulse: float = 1.0, lens_share: float = 1.0) -> Transform3D:
 	var keep := 1.0 - clampf(guard, 0.0, 1.0)
 	var fast := clampf(closing / FAST_SPEED, 0.0, 1.0)
 	var depth := amount * maxf(retract_scale, 0.0) * keep
@@ -242,7 +250,9 @@ func offset(retract_scale: float, tilt_scale: float, push: float = 1.0, nudge: f
 	var side := -signf(normal_local.x) * depth * nudge * (1.0 - facing) * 0.8 - turn * depth * nudge * 0.5 - shove * depth * 0.3
 	var pitch := clampf(deg_to_rad(depth * TILT_DEG_PER_M * maxf(tilt_scale, 0.0) * lerpf(1.0, 0.5, fast) * tip), -deg_to_rad(MAX_TILT_DEG), deg_to_rad(MAX_TILT_DEG))
 	var yaw := clampf(deg_to_rad(depth * TILT_DEG_PER_M * maxf(tilt_scale, 0.0) * 0.5 * (turn + shove * 0.6)), -deg_to_rad(MAX_TILT_DEG), deg_to_rad(MAX_TILT_DEG))
-	return Transform3D(Basis(Vector3.UP, yaw) * Basis(Vector3.RIGHT, pitch), Vector3(side, up, back))
+	# Under a magnifying hands lens the sideways and upward move and the tip are kept to their authored place on screen.
+	return Transform3D(Basis(Vector3.UP, AwWeaponPose.lens_turn(yaw, lens_share)) * Basis(Vector3.RIGHT, AwWeaponPose.lens_turn(pitch, lens_share)),
+		Vector3(side * lens_share, up * lens_share, back))
 
 
 func reset() -> void:
@@ -251,6 +261,8 @@ func reset() -> void:
 	facing = 1.0
 	closing = 0.0
 	lateral = 0.0
+	_closing_target = 0.0
+	_lateral_target = 0.0
 	lean = Vector2(0.0, 1.0)
 	_lean_target = lean
 	_lean_gain = 1.0

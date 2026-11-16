@@ -304,6 +304,7 @@ func advance(delta: float) -> void:
 	_sprint = move_toward(_sprint, 1.0 if _sprinting and sprint_pose else 0.0, delta / SPRINT_SECONDS)
 	_pose.set_sprint(_ease(_sprint))
 	_advance_aim(delta)
+	_pose.lens_share = lens_move_share()
 	_animated.transform = _pose.offset()
 	_advance_wall(delta)
 	if _overlay != null:
