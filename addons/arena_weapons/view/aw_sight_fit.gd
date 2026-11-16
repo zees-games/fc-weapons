@@ -12,6 +12,9 @@ const DOT_COLOR := Color(0.75, 1.0, 0.35)
 const DOT_NAME := "SightDot"
 const DOT_FADE_FROM := 0.6
 const RED_DOT_NAME := "RedDot"
+## A red dot's rim and lens float on the sight line with no housing round them, a ring hanging over the gun at the hip:
+## they show from this aim fraction on, as the sight comes to the eye.
+const RED_SHOW_FROM := 0.35
 const RETICLE_NAME := "Reticle"
 ## The red dot's lens: a faint tint, and the thin rim round it as a share of the window's radius.
 const LENS_COLOR := Color(0.55, 0.85, 1.0, 0.035)
@@ -250,8 +253,12 @@ static func red_of(sight: Node3D) -> Node3D:
 	return null
 
 
-## Shows the dot under [param sight] by the aim fraction [param f]: none at the hip, full at the eye.
+## Shows the dot under [param sight] by the aim fraction [param f]: none at the hip, full at the eye. A red dot's
+## rim and lens show from [constant RED_SHOW_FROM].
 static func fade(sight: Node3D, f: float) -> void:
+	var red := red_of(sight)
+	if red != null:
+		red.visible = f >= RED_SHOW_FROM
 	var dot := sight.get_node_or_null(DOT_NAME) as MeshInstance3D
 	if dot == null:
 		return
