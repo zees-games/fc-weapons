@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 445
+const CHECKS := 477
 const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
 
@@ -16,6 +16,7 @@ func _ready() -> void:
 	_spans()
 	_provider()
 	_sound_classes()
+	_sound_coverage()
 	_defs()
 	_fire_feel()
 	_dress()
@@ -291,6 +292,18 @@ func _sound_classes() -> void:
 	_check("lmg has its own sound class, not the rifle's", plain[&"lmg"] == &"lmg")
 	_check("a prefix is applied to the ids", AwWeaponPack.sound_classes("aw_").has(&"aw_quad_launcher"))
 	_check("the prefixed class is the same", AwWeaponPack.sound_classes("aw_")[&"aw_quad_launcher"] == &"launcher")
+	_end()
+
+
+func _sound_coverage() -> void:
+	_begin("sound coverage")
+	for id: StringName in AwWeaponPack.IDS:
+		var gaps := AwSoundCoverage.gaps(id)
+		_check("%s has every sound it needs %s" % [id, ", ".join(gaps)], gaps.is_empty())
+	for id: StringName in AwGrenadeSound.STEMS:
+		_check("%s has its own detonation takes (%d)" % [id, AwGrenadeSound.count(id)], AwGrenadeSound.count(id) >= 1 and AwGrenadeSound.stream(id, 1) != null)
+	_check("a grenade without a recording has none here", AwGrenadeSound.stream(&"frag") == null)
+	_check("an unknown id has no gaps hidden: it reports missing sounds", not AwSoundCoverage.gaps(&"no_such_weapon").is_empty())
 	_end()
 
 

@@ -56,6 +56,27 @@
         "title": "The Free Firearm Sound Library: per-gun reports, cut by tools/make_fire_sounds.py (see CREDITS.md)"
     },
     {
+        "paths": ["addons/arena_weapons/assets/grenade_sounds/flash_bang_0.ogg"],
+        "licence": "CC0-1.0",
+        "author": "teeeece",
+        "url": "https://opengameart.org/content/flash-bang-sound",
+        "title": "Flash bang sound (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
+    },
+    {
+        "paths": ["addons/arena_weapons/assets/grenade_sounds/smoke_hiss_0.ogg", "addons/arena_weapons/assets/grenade_sounds/smoke_hiss_1.ogg"],
+        "licence": "CC0-1.0",
+        "author": "bart",
+        "url": "https://opengameart.org/content/steam-release-sounds",
+        "title": "Steam release sounds (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
+    },
+    {
+        "paths": ["addons/arena_weapons/assets/grenade_sounds/incendiary_ignite_0.ogg", "addons/arena_weapons/assets/grenade_sounds/incendiary_ignite_1.ogg"],
+        "licence": "CC0-1.0",
+        "author": "LEGIT Audio",
+        "url": "https://opengameart.org/content/fire-staff-sound-effects",
+        "title": "Fire staff sound effects (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
+    },
+    {
         "paths": ["addons/arena_weapons/assets/attachments/", "tools/make_attachments.gd"],
         "licence": "CC0-1.0",
         "author": "TMC",
