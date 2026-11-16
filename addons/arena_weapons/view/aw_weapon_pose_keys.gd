@@ -59,6 +59,22 @@ const THROW_KEYS := [
 	[1.0, Vector3.ZERO, Vector3.ZERO],
 ]
 
+## A throw's windup at a full meter: the hand drawn back past the right ear, the point tipped back over the
+## shoulder. Sampled from [member AwWeaponPoseTunables.windup_start] at an empty meter to 1 at a full one.
+const WINDUP_KEYS := [
+	[0.0, Vector3.ZERO, Vector3.ZERO],
+	[1.0, Vector3(0.11, 0.14, 0.1), Vector3(40.0, -20.0, -30.0)],
+]
+
+## A throw released from a windup: these keys follow the cocked pose (key 0, filled in from where the windup
+## was), whipping forward and down past the middle of the screen and back into the hand.
+const THROW_RELEASE_KEYS := [
+	[0.2, Vector3(-0.04, -0.02, -0.20), Vector3(-35.0, 10.0, 6.0)],
+	[0.45, Vector3(-0.08, -0.15, -0.08), Vector3(-50.0, 16.0, 10.0)],
+	[0.8, Vector3(0.0, -0.08, 0.0), Vector3(-10.0, 4.0, 0.0)],
+	[1.0, Vector3.ZERO, Vector3.ZERO],
+]
+
 ## A long gun is lifted and rolled so the well is in sight as the magazine drops, then jolts as it seats and racks.
 ## Lifted, because at the hip the well is below the bottom of the screen and the reload plays out of frame.
 const RELOAD_KEYS_RIFLE := [

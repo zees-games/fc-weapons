@@ -191,6 +191,20 @@ func build() -> DotResult:
 ## True while the support hand is sent somewhere ([method reach]'s `fore`) even though the pose
 ## would cup it on the grip: set by the view model through a pistol's magazine change.
 var support_free := false
+
+## A one-handed hold's free arm while sprinting: how much it shows, 0 to 1 ([method AwWeaponPose.run_amount]),
+## and where in the stride it is, 0 to 1 ([method AwWeaponPose.run_phase]). It runs as a fist, pumping against
+## the knife hand; still, it stays out of sight.
+var run := 0.0
+var run_phase := 0.0
+## The running fist's middle, and how far it pumps up and forward (y, z) each way, in the view model's space.
+const RUN_FIST := Vector3(-0.2, -0.3, -0.36)
+const RUN_PUMP := Vector3(0.0, 0.07, 0.07)
+## Where the fist rises from as the sprint blends in: below the bottom of the screen.
+const RUN_FIST_LOW := Vector3(-0.2, -0.62, -0.3)
+## How far a knife's windup is drawn, 0 to 1 ([method AwWeaponPose.windup_fraction]): the fingers open to a throw grip.
+var throw_grip := 0.0
+const THROW_OPEN := 0.45
 ## Where each shoulder and hand was put last ([method _hands_for]'s keys), in this node's space, for a check.
 var last_hands: Dictionary = {}
 
@@ -234,6 +248,11 @@ func reach(
 		return
 
 	var hands := _hands_for(pose, grip, fore)
+	if _runs_free(pose):
+		var s := sin(TAU * run_phase)
+		var fist := RUN_FIST + Vector3(0.0, -s * RUN_PUMP.y, s * RUN_PUMP.z)
+		hands["left"] = RUN_FIST_LOW.lerp(fist, clampf(run, 0.0, 1.0))
+		hands["left_shoulder"] = Vector3(-0.24, -0.5, minf((hands["left"] as Vector3).z + 0.26, -0.09))
 	if support_free and pose == &"pistol":
 		# A pistol's support hand cups the grip and ignores [param fore]; through a magazine
 		# change it must go to the well and fetch, or the magazine travels alone, a hand's
@@ -260,7 +279,7 @@ func reach(
 		# The left hand on a pistol cups the right one, holding what it holds.
 		var left_axis := grip_axis if pose == &"pistol" else fore_axis
 		_glove(_left, hands["left_shoulder"], hands["left"], left_axis, true, size, square)
-		_left.visible = not (pose in [&"melee", &"thrown"])
+		_left.visible = _left_shown(pose)
 		return
 
 	if _right != null:
@@ -268,9 +287,7 @@ func reach(
 
 	if _left != null:
 		_left.transform = _span(_left, hands["left_shoulder"], hands["left"])
-		# One hand on a knife or a grenade: the other has nothing to hold, and a forearm
-		# raised at nothing in the corner of the screen read as a loose box in every render.
-		_left.visible = not (pose in [&"melee", &"thrown"])
+		_left.visible = _left_shown(pose)
 
 
 ## Where each shoulder is and where each hand goes, for a weapon held at [param grip].
@@ -438,16 +455,23 @@ func _reach_rigged(
 	var size := clampf(grip_radius / GRIP_RADIUS, 0.6, 1.2) if grip_radius > 0.0 else 1.0
 	var square := pose in [&"thrown", &"fists"]
 	var open: float = OPEN_BY_POSE.get(pose, 0.0)
+	if pose in [&"melee", &"thrown"]:
+		# Wound up to throw, the blade lies along straighter fingers under the thumb rather than in a fist.
+		open = lerpf(open, THROW_OPEN, clampf(throw_grip, 0.0, 1.0))
 	# A hand with nothing in it closes on nothing: the radius a fist makes.
 	var radius := grip_radius if grip_radius > 0.0 and pose != &"fists" else FIST_RADIUS
 	_rigged_arm(
 		_right, hands["right_shoulder"], hands["right"], grip_axis, false, size, square, radius, open
 	)
 	var left_axis := grip_axis if pose == &"pistol" else fore_axis
-	_rigged_arm(
-		_left, hands["left_shoulder"], hands["left"], left_axis, true, size, square, radius, open
-	)
-	_left.visible = not (pose in [&"melee", &"thrown"])
+	if _runs_free(pose):
+		# Nothing in the running hand: a shut fist, thumb up.
+		_rigged_arm(_left, hands["left_shoulder"], hands["left"], Vector3.UP, true, size, true, FIST_RADIUS, 0.0)
+	else:
+		_rigged_arm(
+			_left, hands["left_shoulder"], hands["left"], left_axis, true, size, square, radius, open
+		)
+	_left.visible = _left_shown(pose)
 
 
 func _rigged_arm(
@@ -745,3 +769,14 @@ func describe() -> Dictionary:
 		"model": model_path,
 		"skin": skin,
 	}
+
+
+## Whether the free arm of a one-handed hold is running in sight this frame.
+func _runs_free(pose: StringName) -> bool:
+	return pose in [&"melee", &"thrown"] and run > 0.01
+
+
+## A knife or a grenade has one hand on it: the other shows only while it runs (a forearm raised at nothing in the
+## corner of the screen read as a loose box in every render).
+func _left_shown(pose: StringName) -> bool:
+	return not (pose in [&"melee", &"thrown"]) or _runs_free(pose)

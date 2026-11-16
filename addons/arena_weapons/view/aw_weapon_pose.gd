@@ -150,6 +150,13 @@ var _aim: float = 0.0
 ## How far the sprint carry is blended in, 0 to 1 (see [method set_sprint]).
 var _sprint: float = 0.0
 
+## A throw's windup: the meter as handed in (below 0 when not winding), the meter drawn, its blend, and the
+## seconds it holds after the meter stops (see [method set_windup]).
+var _windup_target: float = -1.0
+var _windup_f: float = 0.0
+var _windup_w: float = 0.0
+var _windup_hold: float = 0.0
+
 ## Where full aim moves the weapon to, relative to where it rests. Set by the view model
 ## from the art, because the resting place is the art's and so is the sight line.
 var aim_shift := Vector3.ZERO
@@ -208,6 +215,7 @@ func advance(
 	if _action < 1.0:
 		_action = minf(1.0, _action + step / maxf(0.05, _action_seconds))
 	_advance_inspect(step)
+	_advance_windup(step)
 
 
 ## Adds recoil. [param recoil] is the pitch and yaw in degrees a behaviour asked for.
@@ -261,9 +269,44 @@ func swing() -> void:
 	_start_action(tunables.swing_keys, tunables.swing_seconds)
 
 
-## Plays a throw ([member Tunables.throw_keys]).
+## Plays a throw ([member Tunables.throw_keys]). From a windup it starts where the windup has the hand and
+## plays [member Tunables.throw_release_keys], so the release never jumps back to rest first.
 func throw() -> void:
+	var cocked := _windup_sample()
+	var shown := _windup_shown()
+	_windup_target = -1.0
+	_windup_w = 0.0
+	_windup_f = 0.0
+	_windup_hold = 0.0
+	if shown > 0.05 and tunables.throw_release_keys.size() >= 1:
+		var keys: Array = [[0.0, cocked[0], cocked[1]]]
+		keys.append_array(tunables.throw_release_keys)
+		_start_action(keys, tunables.throw_release_seconds)
+		return
 	_start_action(tunables.throw_keys, tunables.throw_seconds)
+
+
+## A throw's meter, 0 to 1 while it winds up and below 0 when not: the hand draws back past the ear, further
+## the fuller the meter ([member Tunables.windup_keys]).
+func set_windup(fraction: float) -> void:
+	_windup_target = clampf(fraction, 0.0, 1.0) if is_finite(fraction) and fraction >= 0.0 else -1.0
+	if _windup_target >= 0.0 and _action < 1.0:
+		_action = 1.0
+
+
+## How far the windup is drawn as shown, 0 to 1 (its blend times the meter's share).
+func windup_fraction() -> float:
+	return _windup_shown() * lerpf(tunables.windup_start, 1.0, clampf(_windup_f, 0.0, 1.0))
+
+
+## Where in the running stride the hand is, 0 to 1 a stride (two steps), for an empty hand to pump against.
+func run_phase() -> float:
+	return fposmod(_bob_distance * tunables.bob_per_metre * 0.5, 1.0)
+
+
+## How much of the running stride shows: the sprint blend times the bob's.
+func run_amount() -> float:
+	return clampf(_sprint * _bob_amount, 0.0, 1.0)
 
 
 ## How far through the swing or throw playing, 0 to 1; 1 when none is.
@@ -410,6 +453,10 @@ func reset() -> void:
 	_action = 1.0
 	_inspect = 1.0
 	_inspect_weight = 0.0
+	_windup_target = -1.0
+	_windup_f = 0.0
+	_windup_w = 0.0
+	_windup_hold = 0.0
 
 
 # --- The result -------------------------------------------------------------
@@ -466,13 +513,17 @@ func offset() -> Transform3D:
 	var looked := sample_keys(tunables.inspect_keys, _inspect) if _inspect < 1.0 else [Vector3.ZERO, Vector3.ZERO]
 	var shown := clampf(_inspect_weight, 0.0, 1.0)
 	shown = shown * shown * (3.0 - 2.0 * shown)
+	var wound := _windup_sample()
 	var acted: Vector3 = (drawn[1] as Vector3) + (reloaded[1] as Vector3) + (swung[1] as Vector3) \
-		+ (looked[1] as Vector3) * shown + tunables.sprint_rotation * _sprint
+		+ (looked[1] as Vector3) * shown + tunables.sprint_rotation * _sprint + (wound[1] as Vector3)
 	# A strafe right drags the muzzle left (positive yaw, about the grip).
 	acted.y += _strafe * tunables.strafe_yaw * carried * _strafe_rule(&"tilt", rules.strafe_tilt) * _strafe_rule(&"yaw", rules.strafe_yaw) * strafe_hold
 	acted.z += sin(_bob_distance * tunables.bob_per_metre * PI) * tunables.sprint_bob_roll * _sprint * _bob_amount
 	position += (drawn[0] as Vector3) + (reloaded[0] as Vector3) + (swung[0] as Vector3) \
-		+ (looked[0] as Vector3) * shown + tunables.sprint_offset * _sprint
+		+ (looked[0] as Vector3) * shown + tunables.sprint_offset * _sprint + (wound[0] as Vector3)
+	var stride := TAU * run_phase()
+	# Forward and up together, back and down: the running arm's arc.
+	position += Vector3(0.0, sin(stride), -sin(stride)) * tunables.sprint_pump * run_amount()
 	var hand := Basis.from_euler(Vector3(
 		deg_to_rad(acted.x), deg_to_rad(acted.y), deg_to_rad(acted.z)
 	))
@@ -699,6 +750,7 @@ func describe() -> Dictionary:
 		"deploy": _deploy,
 		"reload": _reload,
 		"charge": _charge,
+		"windup": windup_fraction(),
 		"landing": _landing,
 		"action": _action,
 		"inspect": _inspect,
@@ -706,3 +758,30 @@ func describe() -> Dictionary:
 		"weight": weight,
 		"feel": feel,
 	}
+
+
+func _advance_windup(step: float) -> void:
+	if _windup_target >= 0.0:
+		_windup_w = move_toward(_windup_w, 1.0, step / maxf(0.01, tunables.windup_in_seconds))
+		_windup_f = lerpf(_windup_f, _windup_target, _smoothing(step, 20.0))
+		_windup_hold = tunables.windup_hold_seconds
+	elif _windup_hold > 0.0:
+		_windup_hold -= step
+	else:
+		_windup_w = move_toward(_windup_w, 0.0, step / maxf(0.01, tunables.windup_out_seconds))
+		if _windup_w <= 0.0:
+			_windup_f = 0.0
+
+
+func _windup_shown() -> float:
+	var w := clampf(_windup_w, 0.0, 1.0)
+	return w * w * (3.0 - 2.0 * w)
+
+
+## The windup's [offset, degrees] as drawn this frame, zero when none is.
+func _windup_sample() -> Array:
+	var shown := _windup_shown()
+	if shown <= 0.0:
+		return [Vector3.ZERO, Vector3.ZERO]
+	var s := sample_keys(tunables.windup_keys, lerpf(tunables.windup_start, 1.0, clampf(_windup_f, 0.0, 1.0)))
+	return [(s[0] as Vector3) * shown, (s[1] as Vector3) * shown]

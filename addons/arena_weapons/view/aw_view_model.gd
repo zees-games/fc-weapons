@@ -94,6 +94,7 @@ func _equip_head(art: AwWeaponVisual) -> DotResult:
 	var bob := AwWeaponArtTable.sprint_bob(art.pose)
 	_pose.tunables.sprint_bob = bob.x
 	_pose.tunables.sprint_bob_roll = bob.y
+	_pose.tunables.sprint_pump = AwWeaponArtTable.sprint_pump(art.pose)
 	_reload_fraction = 0.0
 
 	_holder.transform = art.view_transform()
@@ -234,6 +235,21 @@ func on_charge(fraction: float) -> void:
 		add_child(_charge_fx)
 	if _charge_fx != null:
 		_charge_fx.set_charge(fraction)
+
+
+## A throw's meter (dot-weapon's `charge_of`): 0 to 1 while it winds up, below 0 when not. The hand draws back past
+## the ear, further the fuller it is; the throw outcome then releases from there.
+func on_windup(fraction: float) -> void:
+	_pose.set_windup(fraction)
+
+
+## The sprint stride for arms that pump the free hand: how much shows (0 to 1) and where in it, 0 to 1 a stride.
+func run_amount() -> float:
+	return _pose.run_amount()
+
+
+func run_phase() -> float:
+	return _pose.run_phase()
 
 
 ## The weapon fired this frame, for the charge ball to tell a shot from a fizzle.

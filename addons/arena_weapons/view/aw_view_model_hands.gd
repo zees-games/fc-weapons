@@ -69,6 +69,11 @@ func _place_hands() -> void:
 	aim = into * aim
 	grip = into * grip
 	fore = into * fore
+	if "run" in _arms:
+		_arms.set("run", _pose.run_amount())
+		_arms.set("run_phase", _pose.run_phase())
+	if "throw_grip" in _arms:
+		_arms.set("throw_grip", _pose.windup_fraction())
 	if "support_free" in _arms:
 		_arms.set("support_free", in_seq or (_has_well and not _feeds and _reload_fraction > 0.0 and _reload_fraction < 1.0))
 	# A game's own arms may answer the older three-argument reach; they get no axes.

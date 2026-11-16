@@ -144,6 +144,21 @@ var throw_keys: Array = _Keys.THROW_KEYS
 
 var throw_seconds: float = 0.45
 
+## A throw's windup ([method AwWeaponPose.set_windup]): keys over the meter, the share of them shown at an empty
+## meter, and seconds easing in, holding once the meter stops (the release usually lands then) and easing out.
+var windup_keys: Array = _Keys.WINDUP_KEYS
+var windup_start: float = 0.25
+var windup_in_seconds: float = 0.1
+var windup_hold_seconds: float = 0.15
+var windup_out_seconds: float = 0.2
+## A throw from a windup: keys after the cocked pose, over [member throw_release_seconds].
+var throw_release_keys: Array = _Keys.THROW_RELEASE_KEYS
+var throw_release_seconds: float = 0.4
+
+## While sprinting, metres the hand pumps forward and back (z) and up and down (y) with each stride, at full blend.
+## Zero for a gun, which is carried; a one-handed blade swings with the running arm.
+var sprint_pump := Vector3.ZERO
+
 ## Metres it is pulled back at full charge.
 var charge_pull: float = 0.06
 

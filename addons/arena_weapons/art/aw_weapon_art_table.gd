@@ -83,7 +83,7 @@ static func sprint_view(pose: StringName) -> Array:
 		POSE_PISTOL:
 			return [Vector3(-0.04, -0.02, 0.05), Vector3(28.0, 18.0, -14.0)]
 		POSE_MELEE:
-			return [Vector3(0.0, -0.17, 0.03), Vector3(-18.0, 0.0, 20.0)]
+			return [Vector3(0.05, -0.19, 0.03), Vector3(-22.0, -8.0, -5.0)]
 		POSE_THROWN:
 			return [Vector3(0.0, -0.14, 0.02), Vector3(-10.0, 0.0, 10.0)]
 		POSE_HEAVY:
@@ -103,6 +103,16 @@ static func sprint_bob(pose: StringName) -> Vector2:
 			return Vector2(2.6, 5.0)
 		_:
 			return Vector2(2.6, 4.0)
+
+
+## The sprint's pump in first person, metres up (y) and forward (z) each way with the stride: a one-handed blade or
+## throwable swings with the running arm; a gun is carried still.
+static func sprint_pump(pose: StringName) -> Vector3:
+	match pose:
+		POSE_MELEE, POSE_THROWN:
+			return Vector3(0.0, 0.03, 0.06)
+		_:
+			return Vector3.ZERO
 
 
 ## The sprint carry in a person's hand (third person), same units, in the hand's frame (-Z the way the person faces).

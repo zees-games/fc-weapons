@@ -51,5 +51,7 @@ extends RefCounted
 # 27: rockets and bounce. AwRocketRules (sv_rocket_*: single launcher's tube and blast, Rocketjump launch), AwRocketJump
 #     (launch_velocity, self_damage_scale), the `warhead` mount and its Rocketjump, AwMissileArt.build(weapon_id);
 #     AwGrenade.bounce_velocity / settles / damp_factor and sv_grenade_damping / _rest_speed / _max_bounces.
-const LEVEL := 27
+# 28: AwViewModel.on_windup(charge): a throw's hand draws back by the meter and releases from there; a blade pumps on a
+#     sprint, and AwViewModel.run_amount() / run_phase() hand the stride to arms that pump the free hand.
+const LEVEL := 28
 const OLDEST := 1
