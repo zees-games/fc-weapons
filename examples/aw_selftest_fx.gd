@@ -456,7 +456,7 @@ func _idle_sleep() -> void:
 	shots._process(AwShotFx.MARK_LIFE + 1.0)
 	_check("once the mark has faded it sleeps again", not shots.is_processing() and shots.is_idle())
 
-	var charge := preload("res://addons/arena_weapons/view/aw_charge_fx.gd").new()
+	var charge := preload("res://addons/fc_weapons/view/aw_charge_fx.gd").new()
 	holder.add_child(charge)
 	charge._process(0.1)
 	_check("a hidden charge ball stops processing", not charge.is_processing())
@@ -500,7 +500,7 @@ func _dressed(id: StringName) -> AwWeaponVisual:
 
 func _charge_fizzle() -> void:
 	_begin("charge ball fizzle")
-	var fx := preload("res://addons/arena_weapons/view/aw_charge_fx.gd").new()
+	var fx := preload("res://addons/fc_weapons/view/aw_charge_fx.gd").new()
 	fx.set_charge(0.6)
 	fx.advance(0.5)
 	fx.set_charge(0.0)
@@ -589,7 +589,7 @@ func _shared_catalogue() -> void:
 
 func _mag_carve() -> void:
 	_begin("a magazine carved out of a welded mesh")
-	var carve: Script = load("res://addons/arena_weapons/view/aw_mag_carve.gd")
+	var carve: Script = load("res://addons/fc_weapons/view/aw_mag_carve.gd")
 	# One mesh: a body (triangles near y=0) and a magazine (triangles near y=-1) in a single surface.
 	var verts := PackedVector3Array()
 	for y in [0.0, -1.0]:
@@ -626,7 +626,7 @@ func _mag_carve() -> void:
 ## The pack is built here with PCKPacker: one box scene, under a synthetic dot-cloud mount; no CDN.
 func _assets_pack() -> void:
 	_begin("models come from a mounted pack when the build lacks them")
-	const ROOT := "res://dot_cloud/aw_synth/1/arena_weapons/assets"
+	const ROOT := "res://dot_cloud/aw_synth/1/fc_weapons/assets"
 	var path := AwModelCache.ASSETS_BASE + "models/selftest_pack_gun.tscn"
 	var outside := "res://aw_selftest_elsewhere/models/selftest_pack_gun.tscn"
 	AwModelCache.clear()

@@ -7,7 +7,7 @@ const FRAMES := 120
 
 func _paths() -> Array[String]:
 	var out: Array[String] = []
-	var dir := "res://addons/arena_weapons/assets/models"
+	var dir := "res://addons/fc_weapons/assets/models"
 	for f in DirAccess.get_files_at(dir):
 		if f.ends_with(".glb"):
 			out.append(dir + "/" + f)

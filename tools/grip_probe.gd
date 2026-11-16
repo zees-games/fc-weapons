@@ -5,7 +5,7 @@ extends SceneTree
 
 func _initialize() -> void:
 	for name: String in OS.get_cmdline_user_args():
-		var scene: Node = (load("res://addons/arena_weapons/assets/models/%s.glb" % name) as PackedScene).instantiate()
+		var scene: Node = (load("res://addons/fc_weapons/assets/models/%s.glb" % name) as PackedScene).instantiate()
 		root.add_child(scene)
 		print("MODEL %s" % name)
 		var all := AABB()

@@ -6,8 +6,8 @@ extends "aw_selftest_sight.gd"
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
 const CHECKS := 522
-const ReloadSequence := preload("../addons/arena_weapons/view/aw_reload_sequence.gd")
-const ReloadCues := preload("../addons/arena_weapons/view/aw_reload_cues.gd")
+const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
+const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
 func _ready() -> void:
 	print("fc-weapons self-test")
@@ -392,7 +392,7 @@ func _download_groups() -> void:
 		if not groups.has(name):
 			stray.append(name)
 	_check("every group the code names is in groups.json", stray.is_empty())
-	_check("the sniper's textures are extracted, so its model is a few hundred KB, not 4.8 MB", FileAccess.file_exists("res://addons/arena_weapons/assets/models/sniper_ph_0.jpg"))
+	_check("the sniper's textures are extracted, so its model is a few hundred KB, not 4.8 MB", FileAccess.file_exists("res://addons/fc_weapons/assets/models/sniper_ph_0.jpg"))
 	_end()
 
 

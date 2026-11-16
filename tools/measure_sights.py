@@ -1,4 +1,4 @@
-"""Prints each gun model's muzzle distance, sight point and rear (how far the stock reaches behind the grip) (the highest vertex behind the barrel's front half), in the baked frame (origin at the grip, muzzle toward -Z). Run: python3 -I tools/measure_sights.py addons/arena_weapons/assets/models"""
+"""Prints each gun model's muzzle distance, sight point and rear (how far the stock reaches behind the grip) (the highest vertex behind the barrel's front half), in the baked frame (origin at the grip, muzzle toward -Z). Run: python3 -I tools/measure_sights.py addons/fc_weapons/assets/models"""
 import glob, os, sys
 import numpy as np
 import trimesh

@@ -1,5 +1,5 @@
 extends SceneTree
-## Writes cfg/addons/arena_weapons/weapon/<id>.yml from AwWeaponPack's builders: every stat of every weapon, for an
+## Writes cfg/addons/fc_weapons/weapon/<id>.yml from AwWeaponPack's builders: every stat of every weapon, for an
 ## operator to copy into a game's cfg/ and tune. `godot --headless --path . --script res://tools/export_cfg.gd`
 
 
@@ -14,7 +14,7 @@ func _initialize() -> void:
 			printerr("cannot write %s" % def.id)
 			quit(1)
 			return
-		f.store_string(DotWeaponProfiles.to_yaml(def, "Arena Weapons"))
+		f.store_string(DotWeaponProfiles.to_yaml(def, "FC Weapons"))
 		n += 1
 
 	print("wrote %d weapon profiles" % n)

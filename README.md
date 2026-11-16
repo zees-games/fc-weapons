@@ -2,13 +2,13 @@ The weapon set for [Fatal Contact](https://github.com/zees-games/game-fatal-cont
 
 Models come from CC0 packs, baked to one contract: origin at the grip, muzzle toward -Z, metres. The code is MIT. See [CREDITS.md](CREDITS.md) for every asset.
 
-Pack id: `gamemann/fc-weapons` (it was `gamemann/arena-weapons` up to v1.3.x). The addon directory is still `addons/arena_weapons` and its classes still start with `Aw`, because every game loads it by that path.
+Pack id: `gamemann/fc-weapons` (it was `gamemann/arena-weapons` up to v1.3.x). The addon directory is `addons/fc_weapons` (it was `addons/arena_weapons` up to API level 31) and its classes still start with `Aw`.
 
 ## Using it
 
 FC requires this pack. It registers the weapons under plain ids (`rifle`) and runs them on this pack's runtime. A game that mixes several weapon packs (zombie-zone, Playlot) calls `weapon_defs()`, `art_rows()` and `spawn_entries()` on `AwSpawnProvider` and gets ids with an `aw_` prefix. `role_art()` dresses a game's own weapons by role.
 
-Link `addons/arena_weapons` into your project, or let `dot-bootstrap` do it. The current API level is 31 (see `addons/arena_weapons/arena_weapons_api.gd`, which also lists what each level added). It needs dot-weapon API 42 or newer (`AwWeaponRig.setup()` fails with a message on an older one); dot-sim from 1a28540 is optional and moves the hitscan spread tick to native code (`AwWeaponRig.native_spread`, on by default, bit-exact with the GDScript tick).
+Link `addons/fc_weapons` into your project, or let `dot-bootstrap` do it. The current API level is 31 (see `addons/fc_weapons/fc_weapons_api.gd`, which also lists what each level added). It needs dot-weapon API 42 or newer (`AwWeaponRig.setup()` fails with a message on an older one); dot-sim from 1a28540 is optional and moves the hitscan spread tick to native code (`AwWeaponRig.native_spread`, on by default, bit-exact with the GDScript tick).
 
 ## Weapons
 
@@ -24,7 +24,7 @@ Models for ammo boxes, extra grenades and rounds also ship, for a game's pickups
 
 ## Settings
 
-Every stat of every weapon is tunable in `cfg/addons/arena_weapons/weapon/<id>.yml` (through dot-weapon's `DotWeaponProfiles`). Nothing is fixed in code: set a value in the file to change it.
+Every stat of every weapon is tunable in `cfg/addons/fc_weapons/weapon/<id>.yml` (through dot-weapon's `DotWeaponProfiles`). Nothing is fixed in code: set a value in the file to change it.
 
 | Setting | What it does |
 | --- | --- |
@@ -37,10 +37,10 @@ The host binds `DotWeaponCommand.BUTTON_FIRE_MODE` to switch modes.
 
 | Path | Contents |
 | --- | --- |
-| `addons/arena_weapons/aw_weapon_pack.gd` | `AwWeaponPack`, the weapon definitions |
-| `addons/arena_weapons/aw_weapon_art.gd` | `AwWeaponArt`, the only file that names a model |
-| `addons/arena_weapons/spawn_provider.gd` | `AwSpawnProvider`, the contract a game uses |
-| `addons/arena_weapons/assets/` | Models (`models/`), attachment models, per-gun sounds |
+| `addons/fc_weapons/aw_weapon_pack.gd` | `AwWeaponPack`, the weapon definitions |
+| `addons/fc_weapons/aw_weapon_art.gd` | `AwWeaponArt`, the only file that names a model |
+| `addons/fc_weapons/spawn_provider.gd` | `AwSpawnProvider`, the contract a game uses |
+| `addons/fc_weapons/assets/` | Models (`models/`), attachment models, per-gun sounds |
 | `weapons/*.tres` | Weapon resources |
 | `groups.json` | Download groups, one per weapon (`weapon-<id>`) |
 | `tools/` | Baking and measuring scripts (Blender models, sight points, attachments) |

@@ -47,4 +47,4 @@ static func provides(defs: Array[DotWeaponDef]) -> Dictionary:
 			"tags": Array(def.tags).map(func(t: StringName) -> String: return String(t)), "meta": {"asset_root": "."},
 		})
 
-	return {"schema": 1, "title": "Arena Weapons", "kinds": ["weapon"], "games": "*", "categories": cats, "entries": entries}
+	return {"schema": 1, "title": "FC Weapons", "kinds": ["weapon"], "games": "*", "categories": cats, "entries": entries}

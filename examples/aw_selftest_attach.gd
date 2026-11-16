@@ -2,7 +2,7 @@ extends Node
 
 ## Attachment section of the self-test, with the counters and `_begin` / `_end` / `_check` every section uses.
 
-const Dress := preload("res://addons/arena_weapons/view/aw_attachment_dress.gd")
+const Dress := preload("res://addons/fc_weapons/view/aw_attachment_dress.gd")
 
 var _entered := 0
 var _finished := 0

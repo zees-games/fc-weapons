@@ -1,5 +1,5 @@
 """Takes the rifle furniture off the baked rail_rifle (stock, pistol grip, trigger guard) so it reads as a railgun: receiver, twin coil rails, scope.
-Run after bake_models.py: blender -b -P tools/trim_rail_rifle.py -- <addons/arena_weapons/assets/models>
+Run after bake_models.py: blender -b -P tools/trim_rail_rifle.py -- <addons/fc_weapons/assets/models>
 Cuts are by face centre in the baked frame (origin at the grip, muzzle toward -Z, glTF); a second run finds nothing left to cut."""
 import bpy, bmesh, sys, os
 

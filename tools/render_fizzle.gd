@@ -15,7 +15,7 @@ func _initialize() -> void:
 	root.add_child(cam)
 	cam.position = Vector3(0, 0, 0.5)
 	cam.current = true
-	var fx := preload("res://addons/arena_weapons/view/aw_charge_fx.gd").new()
+	var fx := preload("res://addons/fc_weapons/view/aw_charge_fx.gd").new()
 	root.add_child(fx)
 	fx.process_mode = Node.PROCESS_MODE_DISABLED
 	fx.set_charge(0.6)

@@ -15,7 +15,7 @@ func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(out)
 	var dir := OS.get_environment("RENDER_DIR")
 	if dir == "":
-		dir = "res://addons/arena_weapons/assets/models"
+		dir = "res://addons/fc_weapons/assets/models"
 	var env := WorldEnvironment.new()
 	env.environment = _environment()
 	root.add_child(env)

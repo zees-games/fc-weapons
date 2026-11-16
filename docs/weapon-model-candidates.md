@@ -28,13 +28,13 @@ Nothing with an unclear licence was committed.
 (origin at the grip, muzzle toward -Z, metres): one weapon state is kept, the rest dropped, the frame change is baked into
 the vertices (Godot's importer discards a lone root node's transform), and the 2K JPEGs are embedded untouched. The
 `pistol` and `sniper` rows of `AwWeaponArt.WEAPONS` point at them. Run it with
-`python3 -I tools/bake_polyhaven.py <dir with service_pistol/ and bolt_action_rifle_7_62/> addons/arena_weapons/assets/models`.
+`python3 -I tools/bake_polyhaven.py <dir with service_pistol/ and bolt_action_rifle_7_62/> addons/fc_weapons/assets/models`.
 
 ## Size pipeline
 
 `tools/bake_polyhaven.py` writes the 2K glbs (opt-in, gitignored as `*_2k.glb`); `tools/shrink_glb.py` (Blender, headless; it needs
 numpy for the glTF importer) scales the maps to 1K, re-encodes JPEG q82, merges the rifle's duplicate map and decimates to 50 %:
-`blender -b -P tools/shrink_glb.py -- <baked>.glb addons/arena_weapons/assets/models/<name>.glb`. The shipped glbs embed their
+`blender -b -P tools/shrink_glb.py -- <baked>.glb addons/fc_weapons/assets/models/<name>.glb`. The shipped glbs embed their
 maps (`gltf/embedded_image_handling=2`), so no extracted jpg tree is committed.
 
 | glb | 2K baked | shipped 1K | polys |

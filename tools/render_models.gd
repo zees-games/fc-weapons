@@ -22,7 +22,7 @@ func _initialize() -> void:
 	await process_frame
 	for i in range(1, a.size()):
 		var n := a[i]
-		var ps := load("res://addons/arena_weapons/assets/models/%s.glb" % n) as PackedScene
+		var ps := load("res://addons/fc_weapons/assets/models/%s.glb" % n) as PackedScene
 		var m := ps.instantiate() as Node3D
 		root.add_child(m)
 		m.rotation_degrees.y = 90

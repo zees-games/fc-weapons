@@ -1,5 +1,5 @@
 """Bakes the source models into this pack: generic names, muzzle toward -Z, scaled to hand size, origin at the grip.
-Run: blender -b -P tools/bake_models.py -- <source dir>... <addons/arena_weapons/assets/models>
+Run: blender -b -P tools/bake_models.py -- <source dir>... <addons/fc_weapons/assets/models>
 Each source file is looked up by name in every source dir (Styloo's zEmission GLB folder, the Polyy packs' models, the knife's folder); a missing one is skipped."""
 import bpy, sys, os, math, mathutils
 args = sys.argv[sys.argv.index('--') + 1:]

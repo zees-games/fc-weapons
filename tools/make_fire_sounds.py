@@ -24,7 +24,7 @@ GS_AUDIO = os.environ.get("GS_AUDIO", os.environ.get("DOT_AUDIO", os.path.join(H
 if not os.path.isdir(os.path.join(GS_AUDIO, "tools")):
     GS_AUDIO = "/home/gamedev/godot/dot-audio"
 LIB = os.path.join(GS_AUDIO, "source-candidates", "free-firearm-sound-library", "raw", "Prepared SFX Library")
-OUT = os.path.join(HERE, "..", "addons", "arena_weapons", "assets", "sounds")
+OUT = os.path.join(HERE, "..", "addons", "fc_weapons", "assets", "sounds")
 
 # Its helpers in their own namespace, so its OUT (dot-audio's stock folder) can never be where this writes; a checkout
 # older than its main guard ends in a bare main() call, cut off here.

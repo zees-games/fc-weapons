@@ -7,14 +7,14 @@
         "title": "fc-weapons (original content)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models"],
+        "paths": ["addons/fc_weapons/assets/models"],
         "licence": "CC0-1.0",
         "author": "Styloo, Polyy, Vinrax",
         "url": "https://styloo.itch.io/guns-asset-pack",
-        "title": "Arena weapon models (see CREDITS.md)"
+        "title": "FC weapon models (see CREDITS.md)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models/rifle.glb"],
+        "paths": ["addons/fc_weapons/assets/models/rifle.glb"],
         "licence": "CC0-1.0",
         "author": "Lamoot",
         "url": "https://opengameart.org/content/high-poly-ak-47",
@@ -28,77 +28,77 @@
         "title": "Metal038 and Metal027 (ambientCG), baked into the gun maps by tools/detail_models.py"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models/pistol_ph.glb", "addons/arena_weapons/assets/models/pistol_ph_0.jpg", "addons/arena_weapons/assets/models/pistol_ph_1.jpg", "addons/arena_weapons/assets/models/pistol_ph_2.jpg", "addons/arena_weapons/assets/models/sniper_ph.glb", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff-bolt_action_rifle_7_62_accesories_alpha.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_metal-bolt_action_rifle_7_62_accesories_rough.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_nor_gl.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_diff.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_metal-bolt_action_rifle_7_62_rough.jpg", "addons/arena_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg"],
+        "paths": ["addons/fc_weapons/assets/models/pistol_ph.glb", "addons/fc_weapons/assets/models/pistol_ph_0.jpg", "addons/fc_weapons/assets/models/pistol_ph_1.jpg", "addons/fc_weapons/assets/models/pistol_ph_2.jpg", "addons/fc_weapons/assets/models/sniper_ph.glb", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff-bolt_action_rifle_7_62_accesories_alpha.jpg", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_diff.jpg", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_metal-bolt_action_rifle_7_62_accesories_rough.jpg", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_accesories_nor_gl.jpg", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_diff.jpg", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_metal-bolt_action_rifle_7_62_rough.jpg", "addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg"],
         "licence": "CC0-1.0",
         "author": "Mateusz Sadek",
         "url": "https://polyhaven.com/a/service_pistol",
         "title": "Service Pistol and Bolt Action Rifle 7.62 (Poly Haven, CC0; 2K PBR)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models/stick_grenade.glb"],
+        "paths": ["addons/fc_weapons/assets/models/stick_grenade.glb"],
         "licence": "CC0-1.0",
         "author": "singaii",
         "url": "https://polyhaven.com/a/stick_grenade",
         "title": "Stick Grenade (Poly Haven, CC0; baked to 1K by tools/bake_polyhaven_small.py)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/models/knife_ph.glb", "addons/arena_weapons/assets/models/knife_ph_0.jpg", "addons/arena_weapons/assets/models/knife_ph_1.jpg", "addons/arena_weapons/assets/models/knife_ph_2.jpg"],
+        "paths": ["addons/fc_weapons/assets/models/knife_ph.glb", "addons/fc_weapons/assets/models/knife_ph_0.jpg", "addons/fc_weapons/assets/models/knife_ph_1.jpg", "addons/fc_weapons/assets/models/knife_ph_2.jpg"],
         "licence": "CC0-1.0",
         "author": "Mateusz Sadek",
         "url": "https://polyhaven.com/a/fish_knife",
         "title": "Fish Knife (Poly Haven, CC0; 2K PBR maps, mesh from tools/bake_polyhaven_small.py)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/sounds/"],
+        "paths": ["addons/fc_weapons/assets/sounds/"],
         "licence": "CC0-1.0",
         "author": "Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney (freefirearmsfx.com)",
         "url": "https://opengameart.org/content/the-free-firearm-sound-library",
         "title": "The Free Firearm Sound Library: per-gun reports, cut by tools/make_fire_sounds.py (see CREDITS.md)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/sounds/launcher/", "addons/arena_weapons/assets/sounds/quad_launcher/"],
+        "paths": ["addons/fc_weapons/assets/sounds/launcher/", "addons/fc_weapons/assets/sounds/quad_launcher/"],
         "licence": "CC0-1.0",
         "author": "qubodup",
         "url": "https://opengameart.org/content/rocket-launch",
         "title": "Rocket launch (OpenGameArt, CC0): the motor roar under both rocket launchers, by tools/make_fire_sounds.py"
     },
     {
-        "paths": ["addons/arena_weapons/assets/sounds/quad_launcher/"],
+        "paths": ["addons/fc_weapons/assets/sounds/quad_launcher/"],
         "licence": "CC0-1.0",
         "author": "mikeask",
         "url": "https://opengameart.org/content/missile-sound",
         "title": "Missile sound (OpenGameArt, CC0): the quad launcher's missile whoosh, by tools/make_fire_sounds.py"
     },
     {
-        "paths": ["addons/arena_weapons/assets/grenade_sounds/frag_blast_0.ogg", "addons/arena_weapons/assets/grenade_sounds/frag_blast_1.ogg", "addons/arena_weapons/assets/grenade_sounds/sticky_blast_0.ogg", "addons/arena_weapons/assets/grenade_sounds/sticky_blast_1.ogg"],
+        "paths": ["addons/fc_weapons/assets/grenade_sounds/frag_blast_0.ogg", "addons/fc_weapons/assets/grenade_sounds/frag_blast_1.ogg", "addons/fc_weapons/assets/grenade_sounds/sticky_blast_0.ogg", "addons/fc_weapons/assets/grenade_sounds/sticky_blast_1.ogg"],
         "licence": "CC0-1.0",
         "author": "EZduzziteh",
         "url": "https://opengameart.org/content/explosions-4",
         "title": "Explosions (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/grenade_sounds/flash_bang_0.ogg"],
+        "paths": ["addons/fc_weapons/assets/grenade_sounds/flash_bang_0.ogg"],
         "licence": "CC0-1.0",
         "author": "teeeece",
         "url": "https://opengameart.org/content/flash-bang-sound",
         "title": "Flash bang sound (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/grenade_sounds/smoke_hiss_0.ogg", "addons/arena_weapons/assets/grenade_sounds/smoke_hiss_1.ogg"],
+        "paths": ["addons/fc_weapons/assets/grenade_sounds/smoke_hiss_0.ogg", "addons/fc_weapons/assets/grenade_sounds/smoke_hiss_1.ogg"],
         "licence": "CC0-1.0",
         "author": "bart",
         "url": "https://opengameart.org/content/steam-release-sounds",
         "title": "Steam release sounds (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/grenade_sounds/incendiary_ignite_0.ogg", "addons/arena_weapons/assets/grenade_sounds/incendiary_ignite_1.ogg"],
+        "paths": ["addons/fc_weapons/assets/grenade_sounds/incendiary_ignite_0.ogg", "addons/fc_weapons/assets/grenade_sounds/incendiary_ignite_1.ogg"],
         "licence": "CC0-1.0",
         "author": "LEGIT Audio",
         "url": "https://opengameart.org/content/fire-staff-sound-effects",
         "title": "Fire staff sound effects (OpenGameArt, CC0); cut and levelled with ffmpeg (see CREDITS.md)"
     },
     {
-        "paths": ["addons/arena_weapons/assets/attachments/", "tools/make_attachments.gd"],
+        "paths": ["addons/fc_weapons/assets/attachments/", "tools/make_attachments.gd"],
         "licence": "CC0-1.0",
         "author": "TMC",
         "url": "https://github.com/zees-games/fc-weapons",
