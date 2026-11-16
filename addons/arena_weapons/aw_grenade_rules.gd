@@ -9,6 +9,9 @@ var flash_seconds: float = 4.0
 var smoke_seconds: float = 14.0
 var fire_seconds: float = 6.0
 var fire_dps: float = 12.0
+var damping: float = 0.0
+var rest_speed: float = 0.5
+var max_bounces: float = 0.0
 
 
 func fields() -> Dictionary:
@@ -19,6 +22,9 @@ func fields() -> Dictionary:
 		&"smoke_seconds": [14.0, 1.0, 120.0, "How long a smoke cloud lasts"],
 		&"fire_seconds": [6.0, 1.0, 60.0, "How long an incendiary burns"],
 		&"fire_dps": [12.0, 0.0, 500.0, "Damage per second standing in the fire"],
+		&"damping": [0.0, 0.0, 100.0, "Share of its speed a flying grenade loses per second (air drag)"],
+		&"rest_speed": [0.5, 0.0, 1000.0, "Below this speed after a bounce a grenade stops"],
+		&"max_bounces": [0.0, 0.0, 1000000.0, "Bounces before a grenade stops dead; 0 = unlimited"],
 	}
 
 

@@ -48,6 +48,7 @@ func step(trace: Callable, tick_rate: int) -> bool:
 
 	if not stuck:
 		velocity.y -= gravity * dt
+		velocity *= damp_factor(rules, dt)
 		var to := position + velocity * dt
 		var hit: Dictionary = trace.call(position, to)
 		if hit.is_empty():
@@ -67,8 +68,24 @@ func step(trace: Callable, tick_rate: int) -> bool:
 
 
 func _bounce(normal: Vector3) -> void:
-	var along := normal * velocity.dot(normal)
-	velocity = (velocity - along) * rules.friction - along * rules.bounce
+	velocity = bounce_velocity(velocity, normal, rules)
 	position += normal * 0.02
-	if velocity.length() < 0.5:
+	if settles(velocity, bounces, rules):
 		velocity = Vector3.ZERO
+
+
+## The velocity off a surface with [param normal]: [member AwGrenadeRules.bounce] of the speed into it comes back,
+## [member AwGrenadeRules.friction] of the speed along it stays. A host flying grenades itself shares this.
+static func bounce_velocity(v: Vector3, normal: Vector3, r: AwGrenadeRules) -> Vector3:
+	var into := normal * v.dot(normal)
+	return (v - into) * r.friction - into * r.bounce
+
+
+## Whether a grenade that bounced [param count] times and now moves at [param v] should stop dead.
+static func settles(v: Vector3, count: int, r: AwGrenadeRules) -> bool:
+	return v.length() < r.rest_speed or (r.max_bounces >= 1.0 and count >= int(r.max_bounces))
+
+
+## Velocity multiplier for [param dt] seconds of air drag at [member AwGrenadeRules.damping].
+static func damp_factor(r: AwGrenadeRules, dt: float) -> float:
+	return exp(-r.damping * dt)
