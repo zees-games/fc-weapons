@@ -653,3 +653,52 @@ func _holster_and_inspect() -> void:
 	_check("a shot cancels inspect, easing back within 0.2 s (largest frame %.4f m)" % biggest,
 		pose.inspect_fraction() >= 1.0 and _pose_step(rest, pose.offset()) < 0.0001 and biggest < 0.045)
 	_end()
+
+
+## The scope body's ring, lens and reticle sit on the screen's middle at any window size, aspect and canvas stretch: the
+## camera's viewport is each size in turn and the overlay is drawn in a canvas scaled to it (a window under the base size
+## draws a 1280-wide canvas scaled down), as the client does. The ring must be the lens circle's size and on the middle.
+func _scope_align() -> void:
+	_begin("scope body: ring centred and sized at every window size and canvas scale")
+	var sizes := [Vector2i(1036, 648), Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2366, 1022), Vector2i(1024, 768),
+		Vector2i(1440, 900), Vector2i(854, 480), Vector2i(3440, 1440), Vector2i(640, 960)]
+	var worst := 0.0
+	var worst_size := 0.0
+	for roleid in [&"sniper", &"marksman", &"charge_rifle"]:
+		for win: Vector2i in sizes:
+			# The canvas the overlay draws in: the window itself, or the base width (1280) scaled down to it.
+			for canvas_scale in [1.0, maxf(1.0, 1280.0 / float(win.x)), 1.5]:
+				var port := SubViewport.new()
+				port.size = win
+				add_child(port)
+				var camera := Camera3D.new()
+				camera.fov = 75.0
+				port.add_child(camera)
+				var view := AwViewModel.new()
+				view.show_arms = false
+				view.scope_body = true
+				camera.add_child(view)
+				var art := AwWeaponVisual.make(roleid)
+				AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[roleid])
+				view.equip(art)
+				view.aim(true)
+				for _i in 80:
+					view._process(0.02)
+				var overlay := AwScopeOverlay.new()
+				port.add_child(overlay)
+				overlay.bind_camera(camera)
+				overlay.set_anchors_preset(Control.PRESET_TOP_LEFT)
+				overlay.size = Vector2(win) * canvas_scale
+				overlay.follow(view)
+				var lens := overlay._body_lens()
+				var want := minf(overlay.size.x, overlay.size.y) * float(view.scope_style().get("lens_circle", 0.46)) * 0.5
+				var centre_error := ((lens.get("centre", Vector2(-9999, -9999)) as Vector2) - overlay.size * 0.5).length() / overlay.size.y
+				var radius_error := absf(float(lens.get("radius", 0.0)) / want - 1.0)
+				if centre_error + radius_error > worst:
+					worst = centre_error + radius_error
+					worst_size = canvas_scale
+				if lens.is_empty() or centre_error > 0.002 or radius_error > 0.03:
+					_check("ring at %s %dx%d canvas x%.2f: off %.4f of the height, radius off %.3f" % [roleid, win.x, win.y, canvas_scale, centre_error, radius_error], false)
+				port.queue_free()
+	_check("ring centred and sized in every window and canvas (worst %.4f)" % worst, worst < 0.03)
+	_end()

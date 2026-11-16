@@ -78,9 +78,19 @@ func _body_lens() -> Dictionary:
 	var points: Dictionary = _body_view.scope_ocular_points()
 	if points.is_empty() or _source.is_position_behind(points["centre"]):
 		return {}
-	var centre := _source.unproject_position(points["centre"])
-	var radius := centre.distance_to(_source.unproject_position(points["edge"]))
+	var centre := _to_overlay(_source.unproject_position(points["centre"]))
+	var radius := centre.distance_to(_to_overlay(_source.unproject_position(points["edge"])))
 	return {"centre": centre, "radius": radius} if radius > 0.5 else {}
+
+
+## A point of the camera's viewport (what unproject_position gives, in window pixels) in this overlay's own units. They differ
+## when the canvas is stretched (a window under the base size draws a 1280-wide canvas scaled down), so the point goes by its
+## share of the viewport, which holds at any window size, DPI scale or live resize.
+func _to_overlay(viewport_point: Vector2) -> Vector2:
+	var view := _source.get_viewport().get_visible_rect().size
+	if view.x <= 0.0 or view.y <= 0.0:
+		return viewport_point
+	return viewport_point / view * size
 
 
 ## The lens view's drawing (dot-weapon's _draw_lens) at [param centre] with [param radius] pixels: the scope body's ocular.

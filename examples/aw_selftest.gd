@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 522
+const CHECKS := 523
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -25,6 +25,7 @@ func _ready() -> void:
 	_scope_hides_gun()
 	_scope_modes()
 	_scope_body()
+	_scope_align()
 	_reload_cues()
 	_reload_drop_charge()
 	await _floor_clip()
