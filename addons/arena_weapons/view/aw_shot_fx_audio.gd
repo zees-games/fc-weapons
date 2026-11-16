@@ -227,6 +227,26 @@ func _too_far(at: Vector3, limit: float) -> bool:
 	return camera != null and camera.global_position.distance_to(at) > limit
 
 
+## Other shooters' shots drawn in the frame [member _crowd_at], across every AwShotFx ([member AwShotFxRules.crowd_frame]).
+static var _crowd_at := -1
+static var _crowd_drawn := 0
+
+
+## True when this is somebody else's gun and the crowd has drawn [member AwShotFxRules.crowd_frame] shots this frame;
+## otherwise counts this one. The report is played before it is asked: only the sight of the shot is dropped.
+func _crowd_full() -> bool:
+	if first_person or rules.crowd_frame <= 0:
+		return false
+	var frame := Engine.get_process_frames()
+	if frame != _crowd_at:
+		_crowd_at = frame
+		_crowd_drawn = 0
+	if _crowd_drawn >= rules.crowd_frame:
+		return true
+	_crowd_drawn += 1
+	return false
+
+
 ## Voices this shooter may hold at once.
 func _voice_cap() -> int:
 	return MAX_VOICES if first_person else mini(MAX_VOICES, rules.remote_voices)

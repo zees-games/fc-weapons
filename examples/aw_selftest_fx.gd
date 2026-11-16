@@ -174,6 +174,13 @@ func _shot_fx_limits(holder: Node3D) -> void:
 	holder.add_child(deaf)
 	deaf.play_remote(AwWeaponNet.KIND_SHOT, far_at, aim, &"rifle")
 	_check("a report beyond cl_shotfx_voice_distance makes no voice", int(deaf.describe()["voices"]) == 0)
+	lone.advance(5.0)
+	rules.crowd_frame = 1
+	lone.play_remote(AwWeaponNet.KIND_SHOT, near_at, aim, &"rifle")
+	deaf.play_remote(AwWeaponNet.KIND_SHOT, near_at, aim, &"rifle")
+	_check("cl_shotfx_crowd_frame 1: the frame's first other shooter draws its shot", lone.live_count() > 0)
+	_check("cl_shotfx_crowd_frame 1: a second one that frame draws nothing", deaf.live_count() == 0)
+	rules.crowd_frame = 0
 	_shot_fx_sky(holder)
 	_shot_fx_rounds(holder)
 	_shot_fx_unfade(holder)

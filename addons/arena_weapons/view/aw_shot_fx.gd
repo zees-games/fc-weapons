@@ -174,7 +174,7 @@ func play_use(outcome: DotWeaponOutcome, muzzle: Transform3D, id: StringName) ->
 	var kind := outcome.kind
 	_report(id, kind, muzzle.origin)
 
-	if not visuals or _too_far(muzzle.origin, rules.fx_distance):
+	if not visuals or _too_far(muzzle.origin, rules.fx_distance) or _crowd_full():
 		return
 
 	match kind:
@@ -213,7 +213,7 @@ func play_remote(
 
 	_report(id, AwWeaponNet.kind_name(kind), muzzle.origin)
 
-	if not visuals or _too_far(muzzle.origin, rules.fx_distance):
+	if not visuals or _too_far(muzzle.origin, rules.fx_distance) or _crowd_full():
 		return
 
 	match kind:

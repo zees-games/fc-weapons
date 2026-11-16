@@ -16,6 +16,9 @@ var fx_distance: float = 120.0
 var remote_voices: int = 2
 ## Another shooter's sounds are not played when the camera is farther than this many metres; 0 never culls.
 var voice_distance: float = 200.0
+## Most other shooters' shots drawn (flash, tracer, impacts) in one frame across every shooter; a shot past it this frame
+## only sounds. 0 never limits.
+var crowd_frame: int = 0
 
 
 func fields() -> Dictionary:
@@ -26,6 +29,7 @@ func fields() -> Dictionary:
 		&"fx_distance": [120.0, 0.0, 1000.0, "Another shooter's flash, tracer and impacts are not drawn beyond this many metres; 0 never"],
 		&"remote_voices": [2, 1, 6, "Most report voices one other shooter holds at once"],
 		&"voice_distance": [200.0, 0.0, 1000.0, "Another shooter's sounds are not played beyond this many metres; 0 never"],
+		&"crowd_frame": [0, 0, 1000000, "Most other shooters' shots drawn in one frame across the crowd (the rest only sound); 0 never"],
 	}
 
 
