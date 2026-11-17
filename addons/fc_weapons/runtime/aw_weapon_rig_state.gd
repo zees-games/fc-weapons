@@ -63,6 +63,10 @@ enum Role {
 ## On by default: a game with its own effects turns it off and listens to [signal used].
 @export var effects: bool = true
 
+## Whether a hand left empty while the carrier still carries weapons (a boomerang knife out, waiting for the catch)
+## shows bare hands in first person rather than nothing. The catch then plays [method AwViewModel.on_catch] instead of a draw.
+@export var empty_hand_view: bool = true
+
 @export_group("Aiming")
 
 ## The aim button in the command (a `DotWeaponCommand.BUTTON_USER_*` bit set while the aim key is held), so the server sees aiming
@@ -124,6 +128,9 @@ var _fx_origin_known: bool = false
 var _switch_started: int = -1
 var _switch_ticks: int = 0
 var _switch_deploying: bool = false
+
+## True after a switch to the empty slot (0) while weapons are still carried: the next draw of a thrown weapon is a catch.
+var _bare_after_throw: bool = false
 
 ## Tick a charged weapon's draw started on. -1 when the button is up.
 var _charge_started: int = -1

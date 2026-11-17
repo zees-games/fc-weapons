@@ -62,7 +62,10 @@ extends RefCounted
 #     this file is fc_weapons_api.gd. Nothing a game calls changed meaning, so OLDEST stays.
 # 33: AwWeaponRig.simulate_idle_row(command, tick, row, still): simulate_idle with the idle posture as a packed row and the
 #     carrier's stillness as a bool, one native call per idle weapon on dot-weapon API 44 (else simulate_idle). Additive.
-const LEVEL := 33
+# 34: a boomerang's empty hand and its catch. AwWeaponRig.empty_hand_view (bare hands while a thrown weapon is out, and the
+#     draw back from the empty hand plays as a catch), AwViewModel.on_throw() / on_catch(), AwWeaponPose.catch() and
+#     its tunables catch_keys / catch_seconds. Additive.
+const LEVEL := 34
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. dot-weapon is checked by AwWeaponRig.setup(); dot-sim is optional (without it,

@@ -155,6 +155,10 @@ var windup_out_seconds: float = 0.2
 var throw_release_keys: Array = _Keys.THROW_RELEASE_KEYS
 var throw_release_seconds: float = 0.4
 
+## A thrown weapon caught back into the hand, as keys over [member catch_seconds].
+var catch_keys: Array = _Keys.CATCH_KEYS
+var catch_seconds: float = 0.4
+
 ## While sprinting, metres the hand pumps forward and back (z) and up and down (y) with each stride, at full blend.
 ## Zero for a gun, which is carried; a one-handed blade swings with the running arm.
 var sprint_pump := Vector3.ZERO

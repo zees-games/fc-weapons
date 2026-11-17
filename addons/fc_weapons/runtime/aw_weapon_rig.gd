@@ -470,12 +470,15 @@ func _update_presentation(tick: int) -> void:
 		# A profile's `extra: art:` overrides the table's art, as a figure's held gun does.
 		if art != null and def != null and def.params.get("art") is Dictionary:
 			art = art.with_overrides(def.params["art"])
+		var view_art := art
+		if view_art == null and _empty_hand_shown():
+			view_art = _empty_hand_art()
 
 		if def != null and ads_rules != null:
 			ads_rules.set_def_row(def.id, def.params.get("ads"))
 
 		if _view != null:
-			_view.equip(art)
+			_view.equip(view_art)
 			_view.set_kick_params(def.params if def != null else {})
 
 		if _world != null:
@@ -544,6 +547,7 @@ func on_landed(impact: float) -> void:
 
 ## Everything back to rest: a respawn, a teleport, a correction that moved the carrier.
 func on_reset() -> void:
+	_bare_after_throw = false
 	if _fx != null:
 		_fx.stop_flashes()
 	if _view != null:

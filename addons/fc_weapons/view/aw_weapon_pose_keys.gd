@@ -75,6 +75,14 @@ const THROW_RELEASE_KEYS := [
 	[1.0, Vector3.ZERO, Vector3.ZERO],
 ]
 
+## A catch: the hand reaches forward and opens to meet a returning blade, gives back with its weight, then settles.
+const CATCH_KEYS := [
+	[0.0, Vector3(-0.02, 0.05, -0.14), Vector3(18.0, 6.0, -8.0)],
+	[0.18, Vector3(0.0, -0.04, 0.03), Vector3(-14.0, -4.0, 6.0)],
+	[0.45, Vector3(0.0, 0.01, -0.01), Vector3(4.0, 0.0, -2.0)],
+	[1.0, Vector3.ZERO, Vector3.ZERO],
+]
+
 ## A long gun is lifted and rolled so the well is in sight as the magazine drops, then jolts as it seats and racks.
 ## Lifted, because at the hip the well is below the bottom of the screen and the reload plays out of frame.
 const RELOAD_KEYS_RIFLE := [

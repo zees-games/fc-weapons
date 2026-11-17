@@ -112,6 +112,21 @@ func _reload_sound(stage: StringName, weapon_id: StringName = &"") -> void:
 		_fx.play_reload(stage, at, weapon_id)
 
 
+## Whether an empty hand shows bare hands: [member empty_hand_view] and weapons still carried (a thrown boomerang out).
+## A carrier with nothing at all (dead, stripped) still shows nothing.
+func _empty_hand_shown() -> bool:
+	return empty_hand_view and arsenal != null and not arsenal.slots().is_empty()
+
+
+## Bare hands with nothing in them, for a hand left empty while a thrown weapon is out.
+func _empty_hand_art() -> AwWeaponVisual:
+	var art := AwWeaponVisual.new()
+	art.id = AwWeaponIds.FISTS
+	art.pose = &"fists"
+	art.aim_enabled = false
+	return art
+
+
 ## The holster half finished and the deploy half began.
 ## The arsenal emits this mid-switch, not at its end; treating it as the end leaves the weapon at the screen bottom.
 func _on_switched(_from: int, to: int) -> void:
@@ -122,3 +137,13 @@ func _on_switched(_from: int, to: int) -> void:
 	_switch_started = _last_tick
 	_switch_deploying = true
 	_switch_ticks = maxi(1, arsenal.ticks_for(carried.def, carried.def.deploy_ticks) if carried != null else 1)
+
+	# A thrown weapon coming back to an empty hand is caught, not drawn: the catch keys, and no deploy dip.
+	var caught := _bare_after_throw and carried != null and carried.def != null \
+			and AwWeaponIds.TAG_THROWN in carried.def.tags
+	_bare_after_throw = to == 0 and _empty_hand_shown()
+	if caught:
+		_switch_ticks = 1
+		_switch_started = _last_tick - 1
+		if _view != null and not _replaying and role != Role.SERVER:
+			_view.on_catch()

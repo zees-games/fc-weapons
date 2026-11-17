@@ -211,6 +211,18 @@ func on_swing() -> void:
 	_pose.swing()
 
 
+## A throw with no outcome to hand (the owner's knife leaves on the server): the release keys, from the windup
+## if one is showing. Skipped while an action already plays, so a throw seen both ways plays once.
+func on_throw() -> void:
+	if _pose.action_fraction() >= 1.0:
+		_pose.throw()
+
+
+## A thrown weapon caught back into an empty hand: the catch keys instead of a draw.
+func on_catch() -> void:
+	_pose.catch()
+
+
 ## Looks the weapon over (the inspect keys). False when it is not resting in the hand; a shot, an aim, a reload,
 ## a sprint, a swing or a switch cancels it.
 func inspect() -> bool:

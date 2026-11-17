@@ -60,6 +60,26 @@ func run() -> void:
 	pose.set_windup(NAN)
 	_frames(pose, 0.1, 0.0)
 	suite._check("a meter that is not a number draws nothing", finite and pose.windup_fraction() == 0.0 and pose.offset().origin.is_finite())
+
+	var catcher := AwWeaponPose.make()
+	_frames(catcher, 0.3, 0.0)
+	var at_rest := catcher.offset().origin
+	catcher.catch()
+	var reach := catcher.offset().origin
+	var give := -INF
+	for i in int(0.2 / STEP):
+		catcher.advance(STEP, Vector2.ZERO, 0.0, true)
+		give = maxf(give, catcher.offset().origin.z)
+	suite._check("a catch meets the blade forward of rest and gives back with it (%.3f m out, %.3f m back)" % [at_rest.z - reach.z, give - at_rest.z],
+		reach.z < at_rest.z - 0.08 and give > at_rest.z + 0.01)
+	_frames(catcher, 0.6, 0.0)
+	suite._check("and settles at rest (%.3f m)" % catcher.offset().origin.distance_to(at_rest), catcher.offset().origin.distance_to(at_rest) < 0.01)
+
+	var rig := AwWeaponRig.new()
+	var bare: AwWeaponVisual = rig._empty_hand_art()
+	suite._check("an empty hand while a boomerang is out is bare fists, no model", bare.id == AwWeaponIds.FISTS and not bare.has_model()
+		and bare.pose == &"fists" and rig.empty_hand_view and not rig._empty_hand_shown())
+	rig.free()
 	suite._end()
 
 

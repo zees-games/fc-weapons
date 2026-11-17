@@ -290,6 +290,15 @@ func throw() -> void:
 	_start_action(tunables.throw_keys, tunables.throw_seconds)
 
 
+## Plays a catch ([member Tunables.catch_keys]): the hand snaps forward to meet a returning weapon and gives with it.
+func catch() -> void:
+	_windup_target = -1.0
+	_windup_w = 0.0
+	_windup_f = 0.0
+	_windup_hold = 0.0
+	_start_action(tunables.catch_keys, tunables.catch_seconds)
+
+
 ## A throw's meter, 0 to 1 while it winds up and below 0 when not: the hand draws back past the ear, further
 ## the fuller the meter ([member Tunables.windup_keys]).
 func set_windup(fraction: float) -> void:
