@@ -663,7 +663,7 @@ func _add_built(part: Node3D, at: Transform3D) -> Node3D:
 
 
 ## The stages the tail of [method equip] runs in, after the model is in the holder; [method prewarm_step] runs them one a call.
-## The belt and the two halves of the sight fit are separate stages: together they were a 50-234 ms frame per weapon at game-arena startup.
+## The belt and the two halves of the sight fit are separate stages: together they were a 50-234 ms frame per weapon at game-fatal-contact startup.
 const EQUIP_STAGES := 8
 
 

@@ -2,7 +2,7 @@ extends "aw_selftest_sight.gd"
 
 ## Headless suite: models load with the muzzle where the table says and the stock clear of the eye at the sights,
 ## the provider's contract, the pack's own weapon definitions, and a base art dressed by role.
-## What it cannot see is how they look: tools/screenshot.sh in game-arena renders the hands.
+## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
 const CHECKS := 526
