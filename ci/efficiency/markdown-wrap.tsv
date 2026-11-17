@@ -1,3 +1,2 @@
 # markdown-wrap
 # Baselines only shrink: scripts/<gate> --update lowers or drops entries and refuses to add.
-docs/weapon-model-candidates.md::hard_wrap	5

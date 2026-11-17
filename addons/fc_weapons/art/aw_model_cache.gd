@@ -259,9 +259,8 @@ static func instantiate(path: String) -> Node3D:
 
 
 ## The merged bounding box of every mesh in the model, in the model's own space.
-##
-## Measured once per path. An empty box for a model that could not be loaded, which is
-## the right answer: no mesh, no bounds, and a muzzle at the origin.
+## Measured once per path.
+## An empty box for a model that could not be loaded, which is the right answer: no mesh, no bounds, and a muzzle at the origin.
 static func bounds(path: String) -> AABB:
 	if _bounds.has(path):
 		return _bounds[path]

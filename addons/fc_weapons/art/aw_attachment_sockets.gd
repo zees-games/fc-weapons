@@ -1,10 +1,9 @@
 class_name AwAttachmentSockets
 extends RefCounted
 
-## Where each gun model takes its attachments: model name -> mount -> position in the model's space (origin at the grip, muzzle
-## toward -Z), measured by tools/measure_sockets.gd. A mount a gun lacks is left out: a built-in sight or scope has no optic
-## mount, a pump or a tube no underbarrel, a launcher none but
-## the single-missile launcher's `warhead`, on its missile's nose. `mag` names the model's magazine, which the magazine socket rides on.
+## Where each gun model takes its attachments:
+## model name -> mount -> position in the model's space (origin at the grip, muzzle toward -Z), measured by tools/measure_sockets.gd. A mount a gun lacks is left out:
+## a built-in sight or scope has no optic mount, a pump or a tube no underbarrel, a launcher none but the single-missile launcher's `warhead`, on its missile's nose. `mag` names the model's magazine, which the magazine socket rides on.
 const SOCKETS := {
 	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.060, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
 	&"revolver": {"optic": Vector3(0.0, 0.132, -0.045), "side": Vector3(0.018, 0.106, -0.135)},

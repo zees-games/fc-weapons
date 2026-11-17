@@ -64,7 +64,7 @@ var rail_charge := 0.0
 
 ## Multiplier on a case's size, on top of the gun's drawn scale ([method AwViewModel.eject_scale]). Below 1: a first-person
 ## case already grows with the gun drawn twice life size and flies at the eye, and at 1.5 it read as a brass slab the
-## size of the magazine (video review 2026-11-16).
+## size of the magazine.
 @export_range(0.2, 4.0, 0.05) var shell_scale: float = 0.7
 
 ## Most cases in the air at once, per carrier; the pool is this big and no bigger, and the

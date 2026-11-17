@@ -1,10 +1,9 @@
 class_name AwRocketJump
 extends RefCounted
 
-## The Rocketjump warhead: a weaker missile whose blast throws its own shooter. When a blast reaches the one who fired it,
-## the server asks [method launch_velocity] for their new velocity and scales the hurt by [method self_damage_scale].
-## Like the classic rocket jump: shoot at your feet as you jump, the blast adds speed away from it, bent toward where you jump,
-## stronger in the air than on the floor, weaker the farther the body is from the blast.
+## The Rocketjump warhead: a weaker missile whose blast throws its own shooter.
+## When a blast reaches the one who fired it, the server asks [method launch_velocity] for their new velocity and scales the hurt by [method self_damage_scale].
+## Like the classic rocket jump: shoot at your feet as you jump, the blast adds speed away from it, bent toward where you jump, stronger in the air than on the floor, weaker the farther the body is from the blast.
 
 ## The def param the warhead sets.
 const PARAM := &"rocketjump"

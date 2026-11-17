@@ -245,7 +245,7 @@ func _live_cap() -> int:
 
 
 ## An effect's, mark's or shell's node, or null once it is freed: a typed read of a freed instance
-## errors ("previously freed instance"), as a map change or a pooled clear frees nodes the lists still hold.
+## errors ("freed instance"), as a map change or a pooled clear frees nodes the lists still hold.
 static func _node_of(entry: Dictionary) -> Node3D:
 	var held: Variant = entry.get("node")
 	return held as Node3D if is_instance_valid(held) else null

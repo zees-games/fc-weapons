@@ -637,43 +637,6 @@ func sight_points() -> Dictionary:
 		return {}
 	var to_view := _animated.transform * _aim_node.transform * _holder.transform
 	return {"rear": to_view * (_sight_line.rear as Vector3), "front": to_view * (_sight_line.front as Vector3)}
-
-
-## Sideways speed this frame, m/s, to the right of the view. Measured as the camera's world
-## movement across its own right axis when the game did not say; a teleport (a jump of more
-## than 30 m/s) is no strafe, and the first frame has nothing to compare with.
-func _strafe_speed(delta: float) -> float:
-	if not is_nan(_strafe_given):
-		return _strafe_given
-	if not is_inside_tree():
-		return 0.0
-	var origin := global_position
-	var moved := origin - _last_origin
-	var seen := _origin_seen
-	_last_origin = origin
-	_origin_seen = true
-	if not seen or delta <= 0.0:
-		return 0.0
-	var side := moved.dot(global_transform.basis.x.normalized()) / delta
-	return side if absf(side) < 30.0 else 0.0
-
-
-func _look_delta() -> Vector2:
-	if not _look_seen:
-		_look_seen = true
-		_last_look = _look
-		return Vector2.ZERO
-
-	# Yaw wraps, and the wrap is the bug: turning from 179 to -179 degrees is two
-	# degrees of movement and reads as 358 without this, which throws the weapon clear
-	# off the screen once per full turn.
-	var delta := Vector2(
-		wrapf(_look.x - _last_look.x, -180.0, 180.0), _look.y - _last_look.y
-	)
-	_last_look = _look
-	return delta
-
-
 # --- Internals --------------------------------------------------------------
 
 

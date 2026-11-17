@@ -1,7 +1,6 @@
 extends SceneTree
 ## Builds the attachment models (own work, primitives only) into addons/fc_weapons/assets/attachments/<id>.tscn, each drawn on its gun's `socket_<mount>` with no offset:
-## muzzle parts run toward -Z, optics sit on +Y (their `<id>_glass` mesh is what the sight line runs through), underbarrel parts hang toward -Y, side parts sit toward +X,
-## magazine extensions hang below the magazine, a warhead sits on the missile's nose (its tip at the socket).
+## muzzle parts run toward -Z, optics sit on +Y (their `<id>_glass` mesh is what the sight line runs through), underbarrel parts hang toward -Y, side parts sit toward +X, magazine extensions hang below the magazine, a warhead sits on the missile's nose (its tip at the socket).
 ## godot --headless --path . --script res://tools/make_attachments.gd [-- <id>...] (ids: only those, so the rest keep their files)
 
 const OUT := "res://addons/fc_weapons/assets/attachments/"

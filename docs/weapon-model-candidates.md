@@ -1,8 +1,6 @@
 # Weapon model candidates (arena-3d-weapon-models-1)
 
-Why: the current weapon art is 1024 px upstream art (Styloo, Polyy); the texture-import quality change made no visible
-difference, so the art is the limit. Wanted: free models with PBR maps at 2K or better. Only CC0, or CC-BY with credit,
-may be committed. Researched 2026-11-07 from dev02 (web access works; poly.pizza answers 403 to curl).
+Why: the current weapon art is 1024 px upstream art (Styloo, Polyy); the texture-import quality change made no visible difference, so the art is the limit. Wanted: free models with PBR maps at 2K or better. Only CC0, or CC-BY with credit, may be committed. Researched 2026-11-07 from dev02 (web access works; poly.pizza answers 403 to curl).
 
 | Candidate | URL | Licence (page statement) | What | Textures | Verdict |
 | --- | --- | --- | --- | --- | --- |
@@ -24,38 +22,24 @@ Nothing with an unclear licence was committed.
 
 ## What the branch does
 
-`tools/bake_polyhaven.py` turns the two Poly Haven downloads into `pistol_ph.glb` and `sniper_ph.glb` in the pack's frame
-(origin at the grip, muzzle toward -Z, metres): one weapon state is kept, the rest dropped, the frame change is baked into
-the vertices (Godot's importer discards a lone root node's transform), and the 2K JPEGs are embedded untouched. The
-`pistol` and `sniper` rows of `AwWeaponArt.WEAPONS` point at them. Run it with
-`python3 -I tools/bake_polyhaven.py <dir with service_pistol/ and bolt_action_rifle_7_62/> addons/fc_weapons/assets/models`.
+`tools/bake_polyhaven.py` turns the two Poly Haven downloads into `pistol_ph.glb` and `sniper_ph.glb` in the pack's frame (origin at the grip, muzzle toward -Z, metres): one weapon state is kept, the rest dropped, the frame change is baked into the vertices (Godot's importer discards a lone root node's transform), and the 2K JPEGs are embedded untouched. The `pistol` and `sniper` rows of `AwWeaponArt.WEAPONS` point at them. Run it with `python3 -I tools/bake_polyhaven.py <dir with service_pistol/ and bolt_action_rifle_7_62/> addons/fc_weapons/assets/models`.
 
 ## Size pipeline
 
-`tools/bake_polyhaven.py` writes the 2K glbs (opt-in, gitignored as `*_2k.glb`); `tools/shrink_glb.py` (Blender, headless; it needs
-numpy for the glTF importer) scales the maps to 1K, re-encodes JPEG q82, merges the rifle's duplicate map and decimates to 50 %:
-`blender -b -P tools/shrink_glb.py -- <baked>.glb addons/fc_weapons/assets/models/<name>.glb`. The shipped glbs embed their
-maps (`gltf/embedded_image_handling=2`), so no extracted jpg tree is committed.
+`tools/bake_polyhaven.py` writes the 2K glbs (opt-in, gitignored as `*_2k.glb`); `tools/shrink_glb.py` (Blender, headless; it needs numpy for the glTF importer) scales the maps to 1K, re-encodes JPEG q82, merges the rifle's duplicate map and decimates to 50 %: `blender -b -P tools/shrink_glb.py -- <baked>.glb addons/fc_weapons/assets/models/<name>.glb`. The shipped glbs embed their maps (`gltf/embedded_image_handling=2`), so no extracted jpg tree is committed.
 
 | glb | 2K baked | shipped 1K | polys |
 | --- | --- | --- | --- |
 | pistol_ph | 9.4 MB | 0.87 MB | 8.3k |
 | sniper_ph | 24.9 MB | 3.4 MB | 9.1k |
 
-The pack has no web size budget file and `ci/efficiency/size.tsv` gates code lines only, so no gate trips either way; 1K is the
-default because the web download is the limit. For 2K, bake, copy the glb in as `<name>_2k.glb`, and point the row's `model` at it.
+The pack has no web size budget file and `ci/efficiency/size.tsv` gates code lines only, so no gate trips either way; 1K is the default because the web download is the limit. For 2K, bake, copy the glb in as `<name>_2k.glb`, and point the row's `model` at it.
 
-Since fc-weapons-textures-hires-1 the guns held closest to the eye ship at 2K: `pistol_ph` (2.6 MB) and `knife_ph` (3.0 MB) from
-the Poly Haven 2K bake, `revolver` and `derringer` (3.7 MB each) from `tools/tex_pipeline.sh` at 2048. The grenades and ammo can ship
-at 1K (0.7-1.0 MB), the bullpup and burst rifle at 1K welded and smart-unwrapped (1.5-1.7 MB); every normal map is JPEG q92, not PNG.
-The web export re-encodes each map as lossy WebP at import quality 0.7, so its download grows less than the glb bytes do.
+Since fc-weapons-textures-hires-1 the guns held closest to the eye ship at 2K: `pistol_ph` (2.6 MB) and `knife_ph` (3.0 MB) from the Poly Haven 2K bake, `revolver` and `derringer` (3.7 MB each) from `tools/tex_pipeline.sh` at 2048. The grenades and ammo can ship at 1K (0.7-1.0 MB), the bullpup and burst rifle at 1K welded and smart-unwrapped (1.5-1.7 MB); every normal map is JPEG q92, not PNG. The web export re-encodes each map as lossy WebP at import quality 0.7, so its download grows less than the glb bytes do.
 
 ## Placement (three render rounds, frames in ~/wt/.3dm-shots/r2..r6)
 
-Pistol: `hold (0.12, -0.06, -0.36)`, view `scale 1.4`, `support_grip` as the old row; the real 0.18 m gun read as a sliver
-at 0.8 and hid behind the forearm at -0.10. Sniper: `hold (0.15, -0.14, -0.42)`, roll 14 (was 24), aim unchanged at `(0, -0.116, -0.392)`: the selftest's sight measurement
-fails (2.3 degrees) with the scope-axis aim `(0.006, -0.094, ...)`. Caveat: the render harness's aim frame is captured before the ADS blend converges (the Styloo
-frames behave the same), so the scope alignment is untuned beyond the selftest's sight check.
+Pistol: `hold (0.12, -0.06, -0.36)`, view `scale 1.4`, `support_grip` as the old row; the real 0.18 m gun read as a sliver at 0.8 and hid behind the forearm at -0.10. Sniper: `hold (0.15, -0.14, -0.42)`, roll 14 (was 24), aim unchanged at `(0, -0.116, -0.392)`: the selftest's sight measurement fails (2.3 degrees) with the scope-axis aim `(0.006, -0.094, ...)`. Caveat: the render harness's aim frame is captured before the ADS blend converges (the Styloo frames behave the same), so the scope alignment is untuned beyond the selftest's sight check.
 
 ## Open
 

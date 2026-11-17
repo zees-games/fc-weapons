@@ -1,12 +1,9 @@
 class_name AwSoundCoverage
 extends RefCounted
 
-## Which sounds each weapon of the pack has as a recording, and which it only borrows or synthesises.
-##
-## [method gaps] is what a suite asserts empty: a weapon missing a sound a player should hear
-## (fire, reload out and in, equip, dry, impact; a melee weapon's swing and bash; a grenade's
-## throw and detonation). [method weak] lists what exists but is shared or generic, so the next
-## sound pass knows where to spend effort; it is a report, not a failure.
+## Which sounds each weapon of the pack has as a recording, and which it only borrows or synthesises. [method gaps] is what a suite asserts empty:
+## a weapon missing a sound a player should hear (fire, reload out and in, equip, dry, impact; a melee weapon's swing and bash; a grenade's throw and detonation).
+## [method weak] lists what exists but is shared or generic, so the next sound pass knows where to spend effort; it is a report, not a failure.
 
 ## Sounds [param id] lacks altogether: no recording where one is required.
 static func gaps(id: StringName) -> PackedStringArray:

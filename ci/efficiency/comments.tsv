@@ -1,6 +1,5 @@
 # comments
 # Baselines only shrink: scripts/<gate> --update lowers or drops entries and refuses to add.
-addons/fc_weapons/fc_weapons_api.gd::long_block	2
 addons/fc_weapons/art/aw_model_cache.gd::long_block	6
 addons/fc_weapons/art/aw_weapon_art_table.gd::banner	8
 addons/fc_weapons/art/aw_weapon_art_table.gd::long_block	10
@@ -12,6 +11,7 @@ addons/fc_weapons/content/aw_weapon_catalogue.gd::long_block	1
 addons/fc_weapons/content/aw_weapon_damage.gd::long_block	5
 addons/fc_weapons/content/aw_weapon_ids.gd::banner	5
 addons/fc_weapons/content/aw_weapon_ids.gd::long_block	5
+addons/fc_weapons/fc_weapons_api.gd::long_block	2
 addons/fc_weapons/net/aw_weapon_net.gd::banner	2
 addons/fc_weapons/net/aw_weapon_net.gd::long_block	7
 addons/fc_weapons/runtime/aw_weapon_input.gd::banner	3

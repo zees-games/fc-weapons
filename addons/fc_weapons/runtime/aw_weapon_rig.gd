@@ -66,9 +66,8 @@ func current_art() -> AwWeaponVisual:
 	return AwWeaponArtTable.table().get(def.id, null) if def != null else null
 
 
-## The spread tick of every rig's hitscan weapons in native code (dot-sim's DotSimWeaponSpread, through dot-weapon 42's
-## [member DotWeaponHitscan.native_tick]) or in GDScript. Both leave the same state and cone bit for bit, so this is a
-## speed switch, for an A/B or a box without dot-sim; a missing native class falls back to GDScript on its own.
+## The spread tick of every rig's hitscan weapons in native code (dot-sim's DotSimWeaponSpread, through dot-weapon 42's [member DotWeaponHitscan.native_tick]) or in GDScript.
+## Both leave the same state and cone bit for bit, so this is a speed switch, for an A/B or a box without dot-sim; a missing native class falls back to GDScript on its own.
 ## Process-wide: it is dot-weapon's one static, so it reads back whatever was set last on either side.
 static var native_spread: bool:
 	set(v):
@@ -243,9 +242,7 @@ func simulate_idle(command: DotWeaponCommand, tick: int) -> DotWeaponOutcome:
 	return _idle_tick(command, tick, prof)
 
 
-## [method simulate_idle] with the arsenal's [member DotWeaponArsenal.idle_posture] context handed in as a row and its
-## [member DotWeaponArsenal.idle_still] answer as [param still] (both what those callables would say this tick), so a
-## native weapon takes the whole idle tick in one call (dot-weapon API 44, [method DotWeaponArsenal.idle_tick_row]).
+## [method simulate_idle] with the arsenal's [member DotWeaponArsenal.idle_posture] context handed in as a row and its [member DotWeaponArsenal.idle_still] answer as [param still] (both what those callables would say this tick), so a native weapon takes the whole idle tick in one call (dot-weapon API 44, [method DotWeaponArsenal.idle_tick_row]).
 ## With an older dot-weapon it is [method simulate_idle]. Same result either way.
 func simulate_idle_row(command: DotWeaponCommand, tick: int, row: PackedFloat64Array, still: bool) -> DotWeaponOutcome:
 	_last_tick = tick

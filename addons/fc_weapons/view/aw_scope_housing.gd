@@ -1,16 +1,8 @@
 extends RefCounted
 
-## A clean scope tube built in code around a model's baked one: a smooth dark anodised body turned from a profile,
-## with a bright lip round the glass and fine machining rings on the eyecup. The baked scopes are low-poly (twelve
-## sides) with mottled texture, and the scope body view (aw_view_model.gd) brings the eyepiece up to fill the screen,
-## so their facets and blotches were the whole picture round the lens.
-##
-## A scope style opts in with `housing`: `true` for [constant PROFILE], or an array of `[along, radius]` (or
-## `[along, radius, 1]` for the bright lip) in the ocular's radii. `along` runs from the ocular toward the eye (+Z in
-## the model's space, the muzzle is -Z), from the glass's lip round the eyecup and forward to the objective's face.
-## `housing_sides` sets the sides (default [constant SIDES]). The ocular comes from the style's `ocular` ([x, y, z, radius]).
-##
-## Preloaded by path (no `class_name`), as aw_reload_parts.gd is.
+## A clean scope tube built in code around a model's baked one: a smooth dark anodised body turned from a profile, with a bright lip round the glass and fine machining rings on the eyecup.
+## The baked scopes are low-poly (twelve sides) with mottled texture, and the scope body view (aw_view_model.gd) brings the eyepiece up to fill the screen, so their facets and blotches were the whole picture round the lens. A scope style opts in with `housing`:
+## `true` for [constant PROFILE], or an array of `[along, radius]` (or `[along, radius, 1]` for the bright lip) in the ocular's radii. `along` runs from the ocular toward the eye (+Z in the model's space, the muzzle is -Z), from the glass's lip round the eyecup and forward to the objective's face. `housing_sides` sets the sides (default [constant SIDES]). The ocular comes from the style's `ocular` ([x, y, z, radius]). Preloaded by path (no `class_name`), as aw_reload_parts.gd is.
 
 ## The marksman's scope measured off its model (tools in the commit message), in ocular radii: lip, eyecup,
 ## eyepiece, taper, tube, objective bell and its face. It sits a few millimetres outside the baked surfaces so they never poke through.
