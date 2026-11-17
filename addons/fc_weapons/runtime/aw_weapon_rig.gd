@@ -243,9 +243,27 @@ func simulate_idle(command: DotWeaponCommand, tick: int) -> DotWeaponOutcome:
 	return _idle_tick(command, tick, prof)
 
 
+## [method simulate_idle] with the arsenal's [member DotWeaponArsenal.idle_posture] context handed in as a row and its
+## [member DotWeaponArsenal.idle_still] answer as [param still] (both what those callables would say this tick), so a
+## native weapon takes the whole idle tick in one call (dot-weapon API 44, [method DotWeaponArsenal.idle_tick_row]).
+## With an older dot-weapon it is [method simulate_idle]. Same result either way.
+func simulate_idle_row(command: DotWeaponCommand, tick: int, row: PackedFloat64Array, still: bool) -> DotWeaponOutcome:
+	_last_tick = tick
+	var prof := phase_timers
+	if prof:
+		_lap_at = Time.get_ticks_usec()
+		phase_calls[0] += 1
+	return _idle_tick(command, tick, prof, row, still)
+
+
+## Whether this dot-weapon has [method DotWeaponArsenal.idle_tick_row] (API 44); named through call(), so this parses on older ones.
+const _ROW_LEVEL := 44
+static var _row_arsenal: bool = DotWeaponApi.LEVEL >= _ROW_LEVEL
+
+
 ## What [method simulate_tick] does when [method DotWeaponArsenal.is_idle_for] holds: with no button
 ## down there is no aim, bash or use, so only the bookkeeping that every tick does is left.
-func _idle_tick(command: DotWeaponCommand, tick: int, prof: bool = false) -> DotWeaponOutcome:
+func _idle_tick(command: DotWeaponCommand, tick: int, prof: bool = false, row := PackedFloat64Array(), still := false) -> DotWeaponOutcome:
 	# Sprinting is just movement: no button is down, so this is the path a sprint usually takes.
 	if _view != null and _player != null:
 		_view.set_sprinting(DotWeaponPlayerBridge.posture_for(_player, tick).sprinting)
@@ -255,7 +273,11 @@ func _idle_tick(command: DotWeaponCommand, tick: int, prof: bool = false) -> Dot
 	_aim_ticks = 0
 	if prof:
 		_lap(PH_IDLE_PRE)
-	var outcome := arsenal.idle_tick()
+	var outcome: DotWeaponOutcome
+	if _row_arsenal and not row.is_empty():
+		outcome = arsenal.call(&"idle_tick_row", row, still)
+	else:
+		outcome = arsenal.idle_tick()
 	if prof:
 		_lap(PH_IDLE_ARSENAL)
 	_notice_switch_end()

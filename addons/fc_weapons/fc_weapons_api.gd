@@ -60,7 +60,9 @@ extends RefCounted
 #     GDScript, bit-exact either way; DOT_WEAPON_MIN, which AwWeaponRig.setup() checks and fails on.
 # 32: the addon directory is addons/fc_weapons (was addons/arena_weapons) and its cfg cfg/addons/fc_weapons;
 #     this file is fc_weapons_api.gd. Nothing a game calls changed meaning, so OLDEST stays.
-const LEVEL := 32
+# 33: AwWeaponRig.simulate_idle_row(command, tick, row, still): simulate_idle with the idle posture as a packed row and the
+#     carrier's stillness as a bool, one native call per idle weapon on dot-weapon API 44 (else simulate_idle). Additive.
+const LEVEL := 33
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. dot-weapon is checked by AwWeaponRig.setup(); dot-sim is optional (without it,
