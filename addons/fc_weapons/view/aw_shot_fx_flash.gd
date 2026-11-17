@@ -208,7 +208,7 @@ func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id:
 		return false
 	var def: DotWeaponDef = catalogue.get_def(id) if catalogue != null and catalogue.has(id) else null
 	var category: String = CLASS_CATEGORY.get(weapon_class, "rifle")
-	var shared: Node3D = null if first_person else AwFxPool.shared_flash(category, def, weapon_class == AwWeaponSound.SUPPRESSED)
+	var shared: Node3D = null if first_person else _fx_pool().shared_flash(category, def, weapon_class == AwWeaponSound.SUPPRESSED)
 	if shared != null:
 		# Not this node's child, so this node's being hidden has to be asked.
 		if is_visible_in_tree():

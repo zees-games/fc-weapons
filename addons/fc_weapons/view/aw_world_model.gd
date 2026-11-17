@@ -751,7 +751,8 @@ func _walk_for_carrier_fx() -> bool:
 
 	while node != null and depth < 8:
 		for child in node.get_children():
-			if child is AwWeaponRig and (child as AwWeaponRig).shot_fx() != null:
+			# By method, not by class: the rig names this script, so naming the rig here closed a parser cycle.
+			if child.has_method(&"shot_fx") and child.call(&"shot_fx") != null:
 				return true
 		node = node.get_parent()
 		depth += 1

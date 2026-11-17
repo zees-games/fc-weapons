@@ -177,7 +177,7 @@ func prewarm_layers() -> bool:
 		return false
 	_layers_shared = false
 	if not first_person:
-		var shared := AwFxPool.shared_layers(self, bus)
+		var shared: AwShotLayers = _fx_pool().shared_layers(self, bus)
 		if shared != null:
 			_layers = shared
 			_layers_shared = true

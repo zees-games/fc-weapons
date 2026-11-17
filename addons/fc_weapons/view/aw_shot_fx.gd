@@ -134,7 +134,7 @@ func prewarm_pools() -> void:
 ## shooter owning only its voices), anything else, or with no pool in the tree, builds its own.
 func _bind_pools() -> void:
 	if not first_person and not _pools_shared:
-		var shared := AwFxPool.shared_pools(self)
+		var shared: Array = _fx_pool().shared_pools(self)
 		if not shared.is_empty():
 			_lights = shared[0]
 			_meshes = shared[1]

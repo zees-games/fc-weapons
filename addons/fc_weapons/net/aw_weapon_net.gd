@@ -177,7 +177,7 @@ static func uses_between(previous: int, now: int) -> int:
 ##
 ## Returns `{"seq": int, "fired": int, "kind": int}`.
 static func apply(
-	source: Object, world_model: AwWorldModel, previous_seq: int
+	source: Object, world_model: Node3D, previous_seq: int
 ) -> Dictionary:
 	if source == null:
 		return {"seq": previous_seq, "fired": 0, "kind": KIND_NONE}

@@ -78,7 +78,8 @@ static func add_fallback_root(root: String) -> void:
 	_fallback_roots.append(r)
 	_drop_misses()
 	# The table dressed its rows only where a model was readable; redress them now that more are.
-	AwWeaponArtTable.drop_cache()
+	# Loaded, not named: the table names this cache (a parser cycle Godot 4.7 never frees).
+	load("uid://c70ct6i6udqgm").drop_cache()
 
 
 ## Undoes [method add_fallback_root], for a shell leaving the game that mounted the pack.
@@ -88,7 +89,7 @@ static func remove_fallback_root(root: String) -> void:
 		return
 	_fallback_roots.remove_at(i)
 	clear()
-	AwWeaponArtTable.drop_cache()
+	load("uid://c70ct6i6udqgm").drop_cache()
 
 
 ## The folders [method add_fallback_root] listed, in the order they are tried.

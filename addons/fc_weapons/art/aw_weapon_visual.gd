@@ -24,6 +24,13 @@ extends Resource
 ## 90-degree field of view, and using one transform for both gives you either a
 ## world model the size of a car or a view model nobody can see.
 
+## The art table's and the attachment dress's scripts, loaded at first use instead of named: both
+## name this resource, so naming them here closed a parser reference cycle Godot 4.7 never frees.
+const _TABLE_UID := "uid://c70ct6i6udqgm"
+const _DRESS_UID := "uid://dlyerjhn7g1wp"
+static var _dress_script: Script = null
+
+
 @export_group("Identity")
 
 ## The weapon id this art belongs to. Must match a [member DotWeaponDef.id].
@@ -343,7 +350,7 @@ func with_overrides(row: Variant) -> AwWeaponVisual:
 			"belt_feed":
 				out.belt_feed = bool(value)
 			"reload_class":
-				var table := AwWeaponArtTable.named_reload_keys(String(value))
+				var table: Array = load(_TABLE_UID).named_reload_keys(String(value))
 				if not table.is_empty():
 					out.reload_keys = table
 			"reload":
@@ -381,7 +388,9 @@ func hip_muzzle(fitting: DotWeaponFitting = null) -> Vector3:
 		local = muzzle_socket
 	else:
 		var d := muzzle_distance if muzzle_distance > 0.0 else AwModelCache.muzzle_distance(model_path, model_forward)
-		d = maxf(d, preload("../view/aw_attachment_dress.gd").muzzle_reach(self, fitting))
+		if _dress_script == null:
+			_dress_script = load(_DRESS_UID)
+		d = maxf(d, _dress_script.muzzle_reach(self, fitting))
 		local = model_forward.normalized() * d + muzzle_offset
 	return view_transform() * local
 

@@ -18,6 +18,16 @@ static var _shell_mesh: CylinderMesh = null
 static var _streak: BoxMesh = null
 static var _quad: QuadMesh = null
 static var _soft: GradientTexture2D = null
+## The pool's script (aw_fx_pool.gd), loaded at first use instead of named: the pool makes these
+## effects, so naming it here closed a parser reference cycle Godot 4.7 never frees.
+static var _pool_script: Script = null
+
+
+## The pool's script, for its static functions.
+static func _fx_pool() -> Script:
+	if _pool_script == null:
+		_pool_script = load("uid://bl68erp31si6r")
+	return _pool_script
 
 
 static func _streak_mesh() -> BoxMesh:
