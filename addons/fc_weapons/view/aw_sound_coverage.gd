@@ -41,7 +41,7 @@ static func weak(id: StringName) -> PackedStringArray:
 			out.append("reload %s is the generic set" % stage)
 	if not ResourceLoader.exists("%s%s/attack_0.ogg" % [AwShotLayers.GUN_SOUNDS, id]):
 		out.append("fire is the class stock (%s), shared with other guns" % sound_class)
-	if DotWeaponSound.pick_far(sound_class) == null:
+	if not ResourceLoader.exists("%s%s/far_0.ogg" % [AwShotLayers.GUN_SOUNDS, id]) and DotWeaponSound.pick_far(sound_class) == null:
 		out.append("no distant report")
 	return out
 
