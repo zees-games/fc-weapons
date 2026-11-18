@@ -26,7 +26,7 @@ static var _pool_script: Script = null
 ## The pool's script, for its static functions.
 static func _fx_pool() -> Script:
 	if _pool_script == null:
-		_pool_script = load("uid://bl68erp31si6r")
+		_pool_script = load("res://addons/fc_weapons/view/aw_fx_pool.gd")
 	return _pool_script
 
 

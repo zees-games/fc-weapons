@@ -45,6 +45,8 @@ static var _asset_root: String = "res://"
 
 ## Where this addon's own models are in a full build.
 const ASSETS_BASE := "res://addons/fc_weapons/assets/"
+## The art table's script, loaded by path (a mounted pack overlay does not register uids).
+const _TABLE_PATH := "res://addons/fc_weapons/art/aw_weapon_art_table.gd"
 
 ## Folders laid out like [constant ASSETS_BASE], tried in order for a model the build lacks.
 ## The web shell leaves the models out to stay small and mounts them as a pack on join.
@@ -79,7 +81,7 @@ static func add_fallback_root(root: String) -> void:
 	_drop_misses()
 	# The table dressed its rows only where a model was readable; redress them now that more are.
 	# Loaded, not named: the table names this cache (a parser cycle Godot 4.7 never frees).
-	load("uid://c70ct6i6udqgm").drop_cache()
+	load(_TABLE_PATH).drop_cache()
 
 
 ## Undoes [method add_fallback_root], for a shell leaving the game that mounted the pack.
@@ -89,7 +91,7 @@ static func remove_fallback_root(root: String) -> void:
 		return
 	_fallback_roots.remove_at(i)
 	clear()
-	load("uid://c70ct6i6udqgm").drop_cache()
+	load(_TABLE_PATH).drop_cache()
 
 
 ## The folders [method add_fallback_root] listed, in the order they are tried.
@@ -121,6 +123,12 @@ static func scene(path: String) -> DotResult:
 			DotError.CODE_IO,
 			"No model at %s. A weapon delivered in a content pack needs that pack " % real
 			+ "mounted before it can be drawn."
+		)
+
+	if not _imported(real):
+		return DotResult.fail(
+			DotError.CODE_IO,
+			"%s has an import marker but no imported scene; the project was not (fully) imported." % real
 		)
 
 	var loaded: Variant = load(real)
@@ -194,16 +202,32 @@ static func _shrink_material(mat: Material, small: Dictionary) -> void:
 
 ## True when [method scene] would find a file for [param path], here or under a fallback root.
 static func exists(path: String) -> bool:
-	return path != "" and ResourceLoader.exists(_locate(resolve(path)))
+	if path == "":
+		return false
+	var real := _locate(resolve(path))
+	return ResourceLoader.exists(real) and _imported(real)
+
+
+## False when [param real]'s .import marker names an imported scene that is not on disk (an import cut
+## short), which the loader counts as existing and then fails with engine errors. No marker, or no
+## single [code]path[/code] in it, is left to the loader.
+static func _imported(real: String) -> bool:
+	if not FileAccess.file_exists(real + ".import"):
+		return true
+	var marker := ConfigFile.new()
+	if marker.load(real + ".import") != OK:
+		return true
+	var out := str(marker.get_value("remap", "path", ""))
+	return out == "" or FileAccess.file_exists(out)
 
 
 ## [param real], or the same file under a fallback root when the build lacks it.
 static func _locate(real: String) -> String:
-	if _fallback_roots.is_empty() or not real.begins_with(ASSETS_BASE) or ResourceLoader.exists(real):
+	if _fallback_roots.is_empty() or not real.begins_with(ASSETS_BASE) or (ResourceLoader.exists(real) and _imported(real)):
 		return real
 	var rel := real.substr(ASSETS_BASE.length())
 	for root in _fallback_roots:
-		if ResourceLoader.exists(root + "/" + rel):
+		if ResourceLoader.exists(root + "/" + rel) and _imported(root + "/" + rel):
 			return root + "/" + rel
 	return real
 

@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 526
+const CHECKS := 529
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -13,6 +13,8 @@ func _ready() -> void:
 	print("fc-weapons self-test")
 	_models()
 	_download_groups()
+	_no_uid_loads()
+	_import_markers()
 	_spans()
 	_provider()
 	_sound_classes()
@@ -395,6 +397,42 @@ func _download_groups() -> void:
 	_check("every group the code names is in groups.json", stray.is_empty())
 	_check("the sniper's textures are extracted, so its model is a few hundred KB, not 4.8 MB", FileAccess.file_exists("res://addons/fc_weapons/assets/models/sniper_ph_0.jpg"))
 	_end()
+
+
+## A pack mounted as an overlay does not register its uids ("Unrecognized UID" on the web), so a
+## shipped script names other files by path. Any "uid:// string in a .gd under the addon fails this.
+func _no_uid_loads() -> void:
+	_begin("no uid loads")
+	var hits: Array[String] = []
+	_scan_uid_strings("res://addons/fc_weapons", hits)
+	_check("no shipped script names a file by uid (%s)" % ", ".join(hits), hits.is_empty())
+	_end()
+
+
+## A marker whose imported scene is missing (an import cut short on a server) is no model, said once,
+## instead of a load that fails with engine errors; a shipped model's marker still counts.
+func _import_markers() -> void:
+	_begin("import markers")
+	var shipped := "res://addons/fc_weapons/assets/models/%s.glb" % String(AwWeaponArt.WEAPONS[&"pistol"]["model"])
+	_check("a shipped model's marker has its output", AwModelCache._imported(shipped))
+	var fake := "user://aw_selftest_marker.glb"
+	var f := FileAccess.open(fake + ".import", FileAccess.WRITE)
+	f.store_string('[remap]\nimporter="scene"\ntype="PackedScene"\npath="res://.godot/imported/aw_selftest_missing.scn"\n')
+	f.close()
+	_check("a marker naming a missing output is not imported", not AwModelCache._imported(fake))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(fake + ".import"))
+	_end()
+
+
+func _scan_uid_strings(dir: String, hits: Array[String]) -> void:
+	for sub: String in DirAccess.get_directories_at(dir):
+		_scan_uid_strings(dir.path_join(sub), hits)
+	for file: String in DirAccess.get_files_at(dir):
+		if file.get_extension() != "gd":
+			continue
+		var path := dir.path_join(file)
+		if FileAccess.get_file_as_string(path).contains("\"uid://"):
+			hits.append(path)
 
 
 func _provider() -> void:

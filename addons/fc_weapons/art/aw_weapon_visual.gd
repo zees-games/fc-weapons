@@ -26,8 +26,9 @@ extends Resource
 
 ## The art table's and the attachment dress's scripts, loaded at first use instead of named: both
 ## name this resource, so naming them here closed a parser reference cycle Godot 4.7 never frees.
-const _TABLE_UID := "uid://c70ct6i6udqgm"
-const _DRESS_UID := "uid://dlyerjhn7g1wp"
+## By path, not uid: a mounted pack overlay does not register its uids, so a uid load fails there.
+const _TABLE_PATH := "res://addons/fc_weapons/art/aw_weapon_art_table.gd"
+const _DRESS_PATH := "res://addons/fc_weapons/view/aw_attachment_dress.gd"
 static var _dress_script: Script = null
 
 
@@ -350,7 +351,7 @@ func with_overrides(row: Variant) -> AwWeaponVisual:
 			"belt_feed":
 				out.belt_feed = bool(value)
 			"reload_class":
-				var table: Array = load(_TABLE_UID).named_reload_keys(String(value))
+				var table: Array = load(_TABLE_PATH).named_reload_keys(String(value))
 				if not table.is_empty():
 					out.reload_keys = table
 			"reload":
@@ -389,7 +390,7 @@ func hip_muzzle(fitting: DotWeaponFitting = null) -> Vector3:
 	else:
 		var d := muzzle_distance if muzzle_distance > 0.0 else AwModelCache.muzzle_distance(model_path, model_forward)
 		if _dress_script == null:
-			_dress_script = load(_DRESS_UID)
+			_dress_script = load(_DRESS_PATH)
 		d = maxf(d, _dress_script.muzzle_reach(self, fitting))
 		local = model_forward.normalized() * d + muzzle_offset
 	return view_transform() * local
