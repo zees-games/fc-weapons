@@ -6,6 +6,8 @@ const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.g
 
 ## How far above the body's underside a hand's centre may sit, as a fraction of the gun's length.
 const REACH := 0.06
+## How much of the fore-end raise the support hand keeps at full aim (0 = the unraised point).
+const AIM_RAISE := 0.25
 
 # The two ray-cast spans cost a triangle walk of the whole mesh each; a weapon's art does not change, so a re-equip reuses them.
 static var _span_cache: Dictionary = {}
@@ -69,6 +71,7 @@ static func measure(art: AwWeaponVisual, weapon: Node3D, holder: Node3D) -> Dict
 						fore_aimed.y = minf(fore_aimed.y, cap)
 						if art.pose != &"pistol" and fore.y < float(under.low):
 							fore.y = (float(under.low) + float(under.high)) * 0.5
+							fore_aimed.y = lerpf(fore_aimed.y, minf(fore.y, cap), AIM_RAISE)
 						fore.y = minf(fore.y, cap)
 					var rear: Dictionary = spans[1]
 					if not rear.is_empty():
