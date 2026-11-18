@@ -113,6 +113,11 @@ func _scope() -> void:
 	var _r := _run(strafing, 1.5, 0.0, 6.0)
 	var side := strafing.scope_offset()
 	_check("a strafe right shifts the scope left", side.x < -0.03 and side.x > -0.1, "%.3f radii" % side.x)
+	var turning := _pose(1.0)
+	for i in int(0.5 / STEP):
+		turning.advance(STEP, Vector2(-2.0, 0.0), 0.0, true)
+	var lag := turning.scope_offset()
+	_check("a turn right drifts the scope left", lag.x < -0.01 and lag.x > -0.2, "%.3f radii" % lag.x)
 	var walking := _pose(1.0)
 	var low := INF
 	var high := -INF

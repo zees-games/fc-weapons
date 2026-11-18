@@ -128,6 +128,8 @@ var aim_shift := Vector3.ZERO
 const SCOPE_STRAFE_REACH := 0.06
 const SCOPE_BOB_REACH := 0.05
 const SCOPE_KICK_PER_DEGREE := 0.025
+## How far a full-rate turn drags the lens behind it, in lens radii: the glass drifts against the aim as the tube lags the hands.
+const SCOPE_LOOK_REACH := 0.08
 
 ## What is left of the sway and bob at full aim, on top of the feel rules' steadiness (1 leaves them).
 var aim_sway_scale: float = 1.0
@@ -526,13 +528,19 @@ static func lens_turn(angle: float, share: float) -> float:
 
 
 ## Where a scope's lens and reticle sit off the screen's centre, in lens radii (x right, y down):
-## a strafe shifts them against the move, the walk bob and each shot's climb shake them. Scaled by
+## a turn or a strafe drags them against the motion, the walk bob and each shot's climb shake them. Scaled by
 ## mp_vm_scope_sway and mp_vm_scope_shake; zero at rest.
 func scope_offset() -> Vector2:
 	var carried := maxf(0.1, weight) * maxf(0.0, feel)
 	var x := -_strafe * SCOPE_STRAFE_REACH * carried * maxf(0.0, rules.scope_sway)
 	var shake := maxf(0.0, rules.scope_shake)
 	var y := 0.0
+	# The look's lag (_advance_sway): turning right leaves the lens on the left, looking up leaves it low.
+	var full := tunables.sway_amount * maxf(0.1, weight) * maxf(0.0, feel)
+	if full > 0.0:
+		var lag := _sway / full * SCOPE_LOOK_REACH * maxf(0.0, rules.scope_sway) * maxf(0.0, rules.sway)
+		x += lag.x
+		y -= lag.y
 	if tunables.bob_amount > 0.0:
 		var bob := _bob_offset() / tunables.bob_amount
 		x += bob.x * SCOPE_BOB_REACH * 0.5 * shake * maxf(0.0, rules.bob)
