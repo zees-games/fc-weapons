@@ -270,9 +270,11 @@ func _tube_timed(count: int, start_share: float) -> void:
 	var tail := 0.35 if count == 1 else clampf(0.6 * round_share, 0.06, 0.3)
 	var squeeze := 1.0 - tail
 	var first := start_share * squeeze
-	_add(&"roll", first * 0.4, &"roll", &"under", Vector3(0.0, -0.04, 0.02))
-	_add(&"fetch_0", first * 0.3, &"roll", &"pouch")
-	_add(&"push_0", first * 0.3, &"roll", &"under", Vector3(0.0, -0.01, -0.03))
+	# The first round lands early (a shotgun's by half a second): the roll is a small turn, the hand's two long runs get the time,
+	# or it crosses the pouch to the tube in three frames.
+	_add(&"roll", first * 0.2, &"roll", &"under", Vector3(0.0, -0.04, 0.02))
+	_add(&"fetch_0", first * 0.4, &"roll", &"pouch")
+	_add(&"push_0", first * 0.4, &"roll", &"under", Vector3(0.0, -0.01, -0.03))
 	for i in range(1, count):
 		_add(StringName("fetch_%d" % i), round_share * squeeze * 0.5, &"roll", &"near")
 		_add(StringName("push_%d" % i), round_share * squeeze * 0.5, &"roll", &"under", Vector3(0.0, -0.01, -0.03))
