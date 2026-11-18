@@ -3,8 +3,7 @@
   "addons/fc_weapons/assets/models/revolver.*",
   "addons/fc_weapons/assets/models/revolver_?.*",
   "_imported/revolver.glb-*",
-  "_imported/revolver_?.jpg-*",
-  "_imported/revolver_?.png-*"
+  "_imported/revolver_?.jpg-*"
  ],
  "weapon-machine_pistol": [
   "addons/fc_weapons/assets/models/machine_pistol.*",
@@ -17,8 +16,7 @@
   "addons/fc_weapons/assets/models/derringer.*",
   "addons/fc_weapons/assets/models/derringer_?.*",
   "_imported/derringer.glb-*",
-  "_imported/derringer_?.jpg-*",
-  "_imported/derringer_?.png-*"
+  "_imported/derringer_?.jpg-*"
  ],
  "weapon-smg": [
   "addons/fc_weapons/assets/models/smg.*",
@@ -45,8 +43,7 @@
   "addons/fc_weapons/assets/models/bullpup.*",
   "addons/fc_weapons/assets/models/bullpup_?.*",
   "_imported/bullpup.glb-*",
-  "_imported/bullpup_?.jpg-*",
-  "_imported/bullpup_?.png-*"
+  "_imported/bullpup_?.jpg-*"
  ],
  "weapon-battle_rifle": [
   "addons/fc_weapons/assets/models/battle_rifle.*",
@@ -59,8 +56,7 @@
   "addons/fc_weapons/assets/models/burst_rifle.*",
   "addons/fc_weapons/assets/models/burst_rifle_?.*",
   "_imported/burst_rifle.glb-*",
-  "_imported/burst_rifle_?.jpg-*",
-  "_imported/burst_rifle_?.png-*"
+  "_imported/burst_rifle_?.jpg-*"
  ],
  "weapon-shotgun": [
   "addons/fc_weapons/assets/models/pump_shotgun.*",
@@ -147,28 +143,24 @@
   "addons/fc_weapons/assets/models/frag_grenade_alt.*",
   "addons/fc_weapons/assets/models/frag_grenade_alt_?.*",
   "_imported/frag_grenade_alt.glb-*",
-  "_imported/frag_grenade_alt_?.jpg-*",
-  "_imported/frag_grenade_alt_?.png-*"
+  "_imported/frag_grenade_alt_?.jpg-*"
  ],
  "weapon-flash": [
   "addons/fc_weapons/assets/models/flash_grenade.*",
   "addons/fc_weapons/assets/models/flash_grenade_?.*",
   "_imported/flash_grenade.glb-*",
-  "_imported/flash_grenade_?.jpg-*",
-  "_imported/flash_grenade_?.png-*"
+  "_imported/flash_grenade_?.jpg-*"
  ],
  "weapon-smoke": [
   "addons/fc_weapons/assets/models/smoke_grenade.*",
   "addons/fc_weapons/assets/models/smoke_grenade_?.*",
   "_imported/smoke_grenade.glb-*",
-  "_imported/smoke_grenade_?.jpg-*",
-  "_imported/smoke_grenade_?.png-*"
+  "_imported/smoke_grenade_?.jpg-*"
  ],
  "weapon-incendiary": [
   "addons/fc_weapons/assets/models/incendiary_grenade.*",
   "addons/fc_weapons/assets/models/incendiary_grenade_?.*",
   "_imported/incendiary_grenade.glb-*",
-  "_imported/incendiary_grenade_?.jpg-*",
-  "_imported/incendiary_grenade_?.png-*"
+  "_imported/incendiary_grenade_?.jpg-*"
  ]
 }
