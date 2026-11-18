@@ -35,22 +35,73 @@ func _notification(what: int) -> void:
 func _drawn_live() -> bool:
 	return is_inside_tree() and is_visible_in_tree() and can_process() and get_parent() is Camera3D
 
-## Whether the gun as it is drawn reaches into the world, held for [constant CLIP_HOLD] after the last contact.
+## Whether the gun as it is drawn is still in the world after [method _pull_out_of_world], held for [constant CLIP_HOLD] after the last contact.
 ## The lens draws the gun larger and farther from the eye than its real size, and [method _advance_wall] probes the real size, so looking steeply down puts the drawn barrel through a floor the probe never reaches (and a wall or crate likewise).
-## The wall-free pass hides that, so it must run whenever the drawn gun is in the world, not only while the wall response is pulling the gun back.
+## The wall-free pass hides what the pull cannot, so it must run whenever the drawn gun is in the world, and only then: it draws the gun over the hands.
 func _drawn_gun_in_world(delta: float) -> bool:
-	if _animated != null and _animated.visible and is_inside_tree() and get_world_3d() != null and _drawn_gun_touches_world():
+	if _pull_out_of_world(delta):
 		_clip_left = CLIP_HOLD
 	else:
 		_clip_left = maxf(_clip_left - delta, 0.0)
 	return _clip_left > 0.0
 
 
-## A ray from the eye to each corner of the box round the drawn gun's meshes, and to the muzzle, stopped short of the point: a hit means the world is in front of part of the gun.
+## When on, a drawn gun the world is in front of is drawn nearer the eye, scaled about it so every point keeps its pixel, but never nearer
+## than life size (where the hands are drawn). Off, only the wall-free pass shows it, which on the web draws it without a depth test:
+## inside out and over the hands, the gun "in the ground" when looking down (Fatal Contact web, 2026-11-18).
+@export var world_pull: bool = true
+
+## How fast a pull lets go once the world is clear, as a share of the drawn distance per second (0 = at once).
+@export var world_pull_release: float = 1.5
+
+## Share of the way to the world the pulled gun stops at, so it stays a little in front of it.
+const PULL_MARGIN := 0.92
+
+## The drawn gun's distance from the eye now, as a share of where the pose puts it (1 = not pulled).
+var _pull: float = 1.0
+
+
+## The drawn gun's pull toward the eye now (1 = not pulled).
+func world_pull_share() -> float:
+	return _pull
+
+
+## Probes the drawn gun as posed and pulls it toward the eye out of the world it reaches into. True while it is still in the world after the pull.
+func _pull_out_of_world(delta: float) -> bool:
+	var share := 1.0
+	if _animated != null and _animated.visible and is_inside_tree() and get_world_3d() != null and get_parent() is Camera3D:
+		share = _drawn_gun_world_share()
+	var nearest := _life_share() if world_pull else 1.0
+	var target := clampf(share * PULL_MARGIN, nearest, 1.0) if share < 1.0 else 1.0
+	if target < _pull or world_pull_release <= 0.0:
+		_pull = target
+	else:
+		_pull = move_toward(_pull, target, world_pull_release * delta)
+	if _pull < 1.0 and _animated != null:
+		var about_eye := Transform3D(Basis.from_scale(Vector3.ONE * _pull), Vector3.ZERO)
+		_animated.transform = transform.affine_inverse() * about_eye * transform * _animated.transform
+	return share < 1.0 and _pull > share * 0.995
+
+
+## The drawn gun's life size as a share of its drawn size: the nearest the pull may bring it, so it never comes in front of the hands. 1 when unknown.
+func _life_share() -> float:
+	if _art == null or _aim_node == null or _holder == null or _animated == null:
+		return 1.0
+	var life := AwHandsFrame.life_scale(transform * _animated.transform * _aim_node.transform * _holder.transform, _art) / maxf(hands_scale, 0.01)
+	return clampf(1.0 / life, 0.0, 1.0) if life > 0.0 and is_finite(life) else 1.0
+
+
+## Whether the world is in front of any part of the drawn gun as it stands now.
 func _drawn_gun_touches_world() -> bool:
+	return _drawn_gun_world_share() < 1.0
+
+
+## A ray from the eye to each corner of the box round the drawn gun's meshes, and to the muzzle, stopped short of the point: the nearest
+## hit as a share of its ray's length (1 = the world is in front of no part of the gun). Scaled about the eye by less than this, the gun is clear.
+func _drawn_gun_world_share() -> float:
 	var camera := get_parent() as Node3D
 	if camera == null:
-		return false
+		return 1.0
 	var box := AABB()
 	var first := true
 	for mesh in _drawn_meshes(_animated):
@@ -60,7 +111,7 @@ func _drawn_gun_touches_world() -> bool:
 		box = bounds if first else box.merge(bounds)
 		first = false
 	if first:
-		return false
+		return 1.0
 	var space := get_world_3d().direct_space_state
 	var eye := camera.global_position
 	var points: Array[Vector3] = [muzzle_transform().origin]
@@ -71,7 +122,8 @@ func _drawn_gun_touches_world() -> bool:
 		reach = maxf(reach, eye.distance_to(point))
 	# In the open nothing is within the gun's reach of the eye: one sphere query answers for the nine rays.
 	if not _world_near(space, eye, reach):
-		return false
+		return 1.0
+	var share := 1.0
 	for point in points:
 		var gap := point - eye
 		var length := gap.length()
@@ -86,8 +138,9 @@ func _drawn_gun_touches_world() -> bool:
 			if wall_ignore_characters and found["collider"] is CharacterBody3D:
 				query.exclude.append(found["rid"])
 				continue
-			return true
-	return false
+			share = minf(share, eye.distance_to(found["position"]) / length)
+			break
+	return share
 
 var _near_query: PhysicsShapeQueryParameters3D = null
 

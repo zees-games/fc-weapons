@@ -302,28 +302,31 @@ func _floor_clip() -> void:
 	var floor_y := -eye_height
 	for pitch: float in [0.0, -45.0, -70.0, -89.0]:
 		camera.rotation_degrees = Vector3(pitch, 0.0, 0.0)
-		for _i in 60:
-			await get_tree().physics_frame
-			view.advance(0.02)
-		var lowest := INF
-		for mesh in AwViewModel.HandReach.meshes(view._animated):
-			if mesh.mesh == null or not mesh.is_visible_in_tree():
-				continue
-			for surface in mesh.mesh.get_surface_count():
-				var vertices: Variant = mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
-				if vertices == null:
-					continue
-				for v: Vector3 in vertices:
-					lowest = minf(lowest, (mesh.global_transform * v).y)
-		var covered: bool = view._overlay != null and view._overlay.is_active()
+		# Without the pull the drawn gun goes through the floor and only the wall-free pass hides it; with it, the gun is drawn nearer the eye on the same pixels.
+		var seen := {}
+		for pull: bool in [false, true]:
+			view.world_pull = pull
+			view.world_pull_release = 0.0
+			for _i in 60:
+				await get_tree().physics_frame
+				view.advance(0.02)
+			seen[pull] = [_lowest_vertex(view), view._overlay != null and view._overlay.is_active(), camera.unproject_position(view.muzzle_transform().origin), view.world_pull_share()]
+		var lowest: float = seen[true][0]
+		var covered: bool = seen[true][1]
 		if pitch < -40.0:
-			_check("pitch %d: the gun's lowest vertex is %.2f m from the floor plane, or the wall-free pass draws it (pass %s)" % [pitch, lowest - floor_y, covered], lowest >= floor_y or covered)
+			_check("pitch %d, no pull: the gun's lowest vertex is %.2f m from the floor plane, or the wall-free pass draws it (pass %s)" % [pitch, seen[false][0] - floor_y, seen[false][1]], seen[false][0] >= floor_y or seen[false][1])
+			_check("pitch %d: pulled to %.2f of its distance, the gun's lowest vertex is %.2f m above the floor plane" % [pitch, seen[true][3], lowest - floor_y], lowest >= floor_y)
+			# The pass draws the gun without a depth test and over the hands (inside out, the hands gone): it must not be on for a gun the pull got out.
+			_check("pitch %d: pulled out of the floor, the wall-free pass is off (%s)" % [pitch, covered], not covered)
+			var moved: float = (seen[true][2] as Vector2).distance_to(seen[false][2])
+			_check("pitch %d: the pulled muzzle is on the same pixel (%.2f px off)" % [pitch, moved], moved < 1.0)
 		else:
-			_check("pitch %d: looking level the gun is not pulled back or tipped (wall %.3f)" % [pitch, view.wall_amount()], view.wall_amount() < 0.05)
+			_check("pitch %d: looking level the gun is not pulled back or tipped (wall %.3f, pull %.2f)" % [pitch, view.wall_amount(), seen[true][3]], view.wall_amount() < 0.05 and is_equal_approx(seen[true][3], 1.0))
 			# Standing in the open the drawn gun is clear of the floor, so the extra pass must stay off: it costs a frame's view layer.
 			_check("pitch %d: standing in the open the wall-free pass stays off (lowest vertex %.2f m above the floor)" % [pitch, lowest - floor_y],
-				view._overlay != null and not view._overlay.is_active() and not view._drawn_gun_touches_world() and lowest >= floor_y)
+				view._overlay != null and not covered and not view._drawn_gun_touches_world() and lowest >= floor_y)
 	var space := view.get_world_3d().direct_space_state
+	view.world_pull_release = 1.5
 	_check("the sphere before the drawn-gun rays misses a floor out of reach", not view._world_near(space, camera.global_position, eye_height * 0.5))
 	_check("and finds it within reach", view._world_near(space, camera.global_position, eye_height + 0.1))
 	await _overlay_follows_view(view, camera)
@@ -332,6 +335,21 @@ func _floor_clip() -> void:
 	camera.queue_free()
 	floor_body.queue_free()
 	_end()
+
+
+## The lowest point, in world height, of any drawn mesh under [param view]'s weapon.
+func _lowest_vertex(view: AwViewModel) -> float:
+	var lowest := INF
+	for mesh in AwViewModel.HandReach.meshes(view._animated):
+		if mesh.mesh == null or not mesh.is_visible_in_tree():
+			continue
+		for surface in mesh.mesh.get_surface_count():
+			var vertices: Variant = mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			if vertices == null:
+				continue
+			for v: Vector3 in vertices:
+				lowest = minf(lowest, (mesh.global_transform * v).y)
+	return lowest
 
 
 ## The web half of [method _floor_clip]: no wall-free pass there, so a stencil copy of each material draws the part the floor hides instead.
@@ -348,8 +366,11 @@ func _floor_clip_web(camera: Camera3D) -> void:
 	AwArtDress.apply(web_art, AwWeaponArt.weapon_rows("")[&"rifle"])
 	web.equip(web_art)
 	var revealed := {}
-	for pitch: float in [-70.0, 0.0]:
-		camera.rotation_degrees = Vector3(pitch, 0.0, 0.0)
+	for pitch: float in [-70.0, 0.0, 70.0]:
+		# 70 stands for looking down with the pull off: the pass is then all that keeps the gun out of the floor.
+		web.world_pull = pitch < 50.0
+		web.world_pull_release = 0.0
+		camera.rotation_degrees = Vector3(-absf(pitch) if pitch > 50.0 else pitch, 0.0, 0.0)
 		for _i in 60:
 			await get_tree().physics_frame
 			web.advance(0.02)
@@ -363,7 +384,9 @@ func _floor_clip_web(camera: Camera3D) -> void:
 						and material.stencil_flags == BaseMaterial3D.STENCIL_FLAG_WRITE:
 					passes += 1
 		revealed[pitch] = [passes, surfaces]
-	_check("web, looking down: every gun surface carries the hidden-part pass (%d of %d)" % revealed[-70.0], revealed[-70.0][1] > 0 and revealed[-70.0][0] == revealed[-70.0][1])
+	_check("web, looking down with the pull off: every gun surface carries the hidden-part pass (%d of %d)" % revealed[70.0], revealed[70.0][1] > 0 and revealed[70.0][0] == revealed[70.0][1])
+	# The pass draws with no depth test, so the gun shows inside out and over the hands: the owner's "guns go into the ground" on the web.
+	_check("web, looking down: the pull keeps the gun out of the floor, so the pass is off (%d of %d on)" % revealed[-70.0], revealed[-70.0][1] > 0 and revealed[-70.0][0] == 0)
 	_check("web, looking level: the pass is off, so it cannot draw the gun over the hands (%d on)" % revealed[0.0][0], revealed[0.0][0] == 0)
 	_check("the pass's copies are prepared under the loading cover", AwViewModel._reveal_passes.values().all(func(m: Material) -> bool: return m in AwViewModel.prepared_materials()))
 	web.queue_free()

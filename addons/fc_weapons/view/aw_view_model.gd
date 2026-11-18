@@ -335,11 +335,12 @@ func advance(delta: float) -> void:
 	_pose.lens_share = lens_move_share()
 	_animated.transform = _pose.offset()
 	_advance_wall(delta)
+	# The drawn gun is pulled out of the world first; the wall-free pass is on only while it is still in it.
+	var in_world := _drawn_gun_in_world(delta)
 	if _overlay != null:
-		# Hysteresis: the pass must not flicker at the edge of contact.
-		_overlay.update(_wall.amount > (0.002 if _overlay.is_active() else 0.02) or _drawn_gun_in_world(delta), get_parent() as Camera3D)
+		_overlay.update(in_world, get_parent() as Camera3D)
 	elif _reveal:
-		_set_reveal(_wall.amount > (0.002 if _reveal_on else 0.02) or _drawn_gun_in_world(delta))
+		_set_reveal(in_world)
 	_place_hands()
 	_apply_hands_lens()
 	if _sight != null:
