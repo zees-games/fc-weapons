@@ -140,7 +140,7 @@ static func sec_ticks(seconds: float) -> int:
 static func knife(t: Dictionary = {}) -> DotWeaponDef:
 	var def := _melee(t, &"knife", "Knife", 45.0, 1.9, rpm_ticks(150.0), 24.0, 3)
 	def.deploy_ticks = sec_ticks(0.15)
-	def.holster_ticks = sec_ticks(0.1)
+	def.holster_ticks = sec_ticks(0.14)
 	return def
 
 
