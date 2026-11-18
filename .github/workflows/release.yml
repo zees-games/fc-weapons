@@ -18,7 +18,7 @@ jobs:
 
     release:
         needs: validate
-        uses: gamespice-platform/ci/.github/workflows/release.yml@v1
+        uses: gamespice-platform/ci/.github/workflows/release.yml@v1.3.23
         permissions:
             contents: write
         with:
