@@ -317,6 +317,7 @@ func on_reset() -> void:
 # --- The frame --------------------------------------------------------------
 
 func _process(delta: float) -> void:
+	smooth_reload()
 	advance(delta)
 
 

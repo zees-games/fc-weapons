@@ -495,7 +495,7 @@ func _update_presentation(tick: int) -> void:
 
 	if _view != null:
 		_view.on_deploy(_deploy_fraction(tick))
-		_view.on_reload(_reload_fraction(tick))
+		_view.on_reload(_reload_fraction(tick), 1.0 / float(maxi(_reload_ticks, 1)))
 		charge_shown = _charge_fraction(tick, def)
 		_view.on_charge(charge_shown)
 

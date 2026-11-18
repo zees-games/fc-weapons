@@ -9,9 +9,25 @@ const ReloadCues := preload("aw_reload_cues.gd")
 ## Emitted once per cue, on the first update at or after its moment, so it is at most one update late.
 signal reload_cue(cue: StringName, db: float)
 
-## How far through a reload, 0 to 1; the magazine is animated from the same number.
-func on_reload(fraction: float) -> void:
-	_reload_fraction = clampf(fraction, 0.0, 1.0) if is_finite(fraction) else 0.0
+## How far through a reload, 0 to 1; the magazine is animated from the same number. [param per_tick] is how far one simulation
+## tick moves it: the frames in between then play the part of a tick that has passed (see [method smooth_reload]), so a 66 Hz
+## simulation drawn at 60 fps does not step the hands twice as far on every tenth frame.
+func on_reload(fraction: float, per_tick: float = 0.0) -> void:
+	_reload_base = clampf(fraction, 0.0, 1.0) if is_finite(fraction) else 0.0
+	_reload_per_tick = maxf(per_tick, 0.0) if is_finite(per_tick) else 0.0
+	_apply_reload(_reload_base)
+
+
+## Once a frame (not from a tool that steps the view by hand): the reload fraction the simulation set, plus the share of the
+## next tick that has run since. Held under 1 so only the simulation ends a reload.
+func smooth_reload() -> void:
+	if _reload_per_tick <= 0.0 or _reload_base <= 0.0 or _reload_base >= 1.0:
+		return
+	_apply_reload(minf(_reload_base + _reload_per_tick * clampf(Engine.get_physics_interpolation_fraction(), 0.0, 1.0), 0.9999))
+
+
+func _apply_reload(f: float) -> void:
+	_reload_fraction = f
 	if _seq != null:
 		if _reload_fraction > 0.0:
 			_seq_ran = true
@@ -41,6 +57,8 @@ func _fire_cues(f: float) -> void:
 		reload_cue.emit(c.cue, float(c.db))
 
 var _seq_ran := false
+var _reload_base := 0.0
+var _reload_per_tick := 0.0
 var _cue_plan: Array = []
 var _cue_next := 0
 
