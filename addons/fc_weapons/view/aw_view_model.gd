@@ -251,11 +251,6 @@ func scope_offset() -> Vector2:
 	return _pose.scope_offset()
 
 
-## How far through a switch, 1 fully in hand and 0 fully out of frame.
-func on_deploy(fraction: float) -> void:
-	_pose.set_deploy(fraction)
-
-
 ## A charged weapon's draw, 0 to 1.
 func on_charge(fraction: float) -> void:
 	_pose.set_charge(fraction)
@@ -318,6 +313,7 @@ func on_reset() -> void:
 
 func _process(delta: float) -> void:
 	smooth_reload()
+	smooth_deploy()
 	advance(delta)
 
 

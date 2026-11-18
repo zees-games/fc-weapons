@@ -21,9 +21,30 @@ func on_reload(fraction: float, per_tick: float = 0.0) -> void:
 ## Once a frame (not from a tool that steps the view by hand): the reload fraction the simulation set, plus the share of the
 ## next tick that has run since. Held under 1 so only the simulation ends a reload.
 func smooth_reload() -> void:
-	if _reload_per_tick <= 0.0 or _reload_base <= 0.0 or _reload_base >= 1.0:
-		return
-	_apply_reload(minf(_reload_base + _reload_per_tick * clampf(Engine.get_physics_interpolation_fraction(), 0.0, 1.0), 0.9999))
+	if _reload_per_tick > 0.0 and _reload_base > 0.0 and _reload_base < 1.0:
+		_apply_reload(sub_tick(_reload_base, _reload_per_tick))
+
+
+## How far through a switch, 1 fully in hand and 0 fully out of frame. [param per_tick] is how far one simulation tick moves it
+## (negative for a holster); the frames in between play the part of a tick that has passed, as a reload does.
+func on_deploy(fraction: float, per_tick: float = 0.0) -> void:
+	_deploy_base = fraction if is_finite(fraction) else 1.0
+	_deploy_per_tick = per_tick if is_finite(per_tick) else 0.0
+	_pose.set_deploy(_deploy_base)
+
+
+func smooth_deploy() -> void:
+	if _deploy_per_tick != 0.0:
+		_pose.set_deploy(sub_tick(_deploy_base, _deploy_per_tick))
+
+
+## [param base] moved on by the share of a tick that has run since the simulation set it ([param per_tick] a tick's step,
+## negative when the number runs down), kept off the end it moves toward (0.0001 or 0.9999) so only the simulation reaches it.
+static func sub_tick(base: float, per_tick: float) -> float:
+	var next := base + per_tick * clampf(Engine.get_physics_interpolation_fraction(), 0.0, 1.0)
+	if per_tick > 0.0:
+		return minf(next, maxf(base, 0.9999))
+	return maxf(next, minf(base, 0.0001))
 
 
 func _apply_reload(f: float) -> void:
@@ -59,6 +80,8 @@ func _fire_cues(f: float) -> void:
 var _seq_ran := false
 var _reload_base := 0.0
 var _reload_per_tick := 0.0
+var _deploy_base := 1.0
+var _deploy_per_tick := 0.0
 var _cue_plan: Array = []
 var _cue_next := 0
 

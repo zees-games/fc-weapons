@@ -4,13 +4,9 @@
 extends RefCounted
 
 
-## Samples [param keys] at [param t]: returns [position, rotation in degrees]. Nothing it is
-## handed can make it return a non-finite value; empty or malformed keys sample as rest.
-##
-## [b]Catmull-Rom with the tangents scaled to each span[/b] (keys are not evenly spaced), and
-## zero at the two ends, so a motion starts and finishes at rest and runs through the keys
-## in between rather than stopping at each, which is what made eased-per-segment curves read
-## as a robot.
+## Samples [param keys] at [param t]: returns [position, rotation in degrees]; never non-finite, empty or malformed keys sample as rest.
+## [b]Catmull-Rom with the tangents scaled to each span[/b] (keys are not evenly spaced) and zero at the two ends, so a motion starts and
+## finishes at rest and runs through the keys instead of stopping at each, which made eased-per-segment curves read as a robot.
 static func sample_keys(keys: Array, t: float) -> Array:
 	var rest := [Vector3.ZERO, Vector3.ZERO]
 	if keys.size() < 2 or not is_finite(t):
