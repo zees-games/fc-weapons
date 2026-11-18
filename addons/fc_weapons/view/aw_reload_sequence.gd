@@ -95,6 +95,9 @@ static func anchors_for(grip: Vector3, fore: Vector3, muzzle: Vector3, well: Var
 		&"well": well if well is Vector3 else (at.call(0.40) as Vector3) - up * 0.01 * length,
 		&"port": (at.call(0.42) as Vector3) + up * rise + right * 0.025 * length,
 		&"bolt": (at.call(0.34) as Vector3) + up * rise + right * 0.07 * length,
+		# A pistol's slide is racked overhand from the support side: mid-slide, low and left of the bore, so the
+		# support forearm stays left of the gun instead of reaching across it to the rifle bolt point on the right.
+		&"slide": (at.call(0.40) as Vector3) + up * rise * 0.5 - right * 0.09 * length,
 		&"cover": (at.call(0.40) as Vector3) + up * (rise + 0.045 * length),
 		&"cylinder": (at.call(0.42) as Vector3) + up * rise * 0.7 - right * 0.03 * length,
 		&"breech": (at.call(0.40) as Vector3) + up * rise,
@@ -175,8 +178,8 @@ func _magazine(part: StringName, pistol: bool) -> void:
 	charged = style != &"cell" and (empty or charge_always)
 	if charged:
 		if pistol:
-			_add(&"slide", 0.08, &"cant", &"bolt", Vector3(0.0, 0.02, 0.0))
-			_add(&"slide_back", 0.07, &"cant", &"bolt", Vector3(0.0, 0.02, 0.07))
+			_add(&"slide", 0.08, &"cant", &"slide", Vector3(0.0, 0.02, 0.0))
+			_add(&"slide_back", 0.07, &"cant", &"slide", Vector3(0.0, 0.02, 0.07))
 		else:
 			_add(&"charge", 0.08, &"cant", &"fore", Vector3.ZERO, &"bolt")
 			_add(&"charge_back", 0.07, &"cant", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.0, 0.08))
