@@ -109,7 +109,7 @@ const THROW_KEYS := [
 ## shoulder. Sampled from [member AwWeaponPoseTunables.windup_start] at an empty meter to 1 at a full one.
 const WINDUP_KEYS := [
 	[0.0, Vector3.ZERO, Vector3.ZERO],
-	[1.0, Vector3(0.11, 0.14, 0.1), Vector3(40.0, -20.0, -30.0)],
+	[1.0, Vector3(0.14, 0.12, 0.16), Vector3(55.0, -20.0, -35.0)],
 ]
 
 ## A throw released from a windup: these keys follow the cocked pose (key 0, filled in from where the windup

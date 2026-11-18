@@ -59,6 +59,11 @@ var _strafe: float = 0.0
 ## Smoothed bob amplitude, 0 to 1.
 var _bob_amount: float = 0.0
 
+## The running hand's stride as shown: follows the sprint and bob at once going up, but lets go at most
+## [constant RUN_FALL_PER_SECOND] a second, so the free fist settles rather than snapping out of view.
+var _run_shown: float = 0.0
+const RUN_FALL_PER_SECOND := 3.5
+
 ## Recoil offset in metres (z back) and its velocity.
 var _kick: float = 0.0
 var _kick_velocity: float = 0.0
@@ -273,7 +278,7 @@ func run_phase() -> float:
 
 ## How much of the running stride shows: the sprint blend times the bob's.
 func run_amount() -> float:
-	return clampf(_sprint * _bob_amount, 0.0, 1.0)
+	return _run_shown
 
 
 ## How far through the swing or throw playing, 0 to 1; 1 when none is.
@@ -407,6 +412,7 @@ func reset() -> void:
 	_roll = 0.0
 	_strafe = 0.0
 	_bob_amount = 0.0
+	_run_shown = 0.0
 	_kick = 0.0
 	_kick_velocity = 0.0
 	_kick_rotation = Vector3.ZERO
@@ -599,6 +605,7 @@ func _advance_bob(step: float, speed: float, on_floor: bool, crouched: bool) -> 
 	_bob_amount = lerpf(
 		_bob_amount, target, _smoothing(step, tunables.bob_response)
 	)
+	_run_shown = maxf(clampf(_sprint * _bob_amount, 0.0, 1.0), _run_shown - step * RUN_FALL_PER_SECOND)
 
 	# Advanced by distance travelled rather than by time, so the weapon stops bobbing
 	# the instant the player stops rather than easing out over half a step, and a player

@@ -204,7 +204,7 @@ const RUN_PUMP := Vector3(0.0, 0.07, 0.07)
 const RUN_FIST_LOW := Vector3(-0.2, -0.62, -0.3)
 ## How far a knife's windup is drawn, 0 to 1 ([method AwWeaponPose.windup_fraction]): the fingers open to a throw grip.
 var throw_grip := 0.0
-const THROW_OPEN := 0.45
+const THROW_OPEN := 0.2
 ## Where each shoulder and hand was put last ([method _hands_for]'s keys), in this node's space, for a check.
 var last_hands: Dictionary = {}
 
