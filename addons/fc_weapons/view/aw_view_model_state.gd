@@ -42,6 +42,8 @@ var _id: StringName = &""
 ## Where the right and left hands go, in the Aim node's space, measured at equip.
 var _grip_at := Vector3.ZERO
 var _fore_at := Vector3.ZERO
+## The support hand at full aim (the fore point before its raise onto the handguard); [member _fore_at] at the hip.
+var _fore_aimed_at := Vector3.ZERO
 
 ## The axis of what each hand holds (a pistol grip, a fore-end, a handle), in the same space.
 var _grip_axis := Vector3.UP

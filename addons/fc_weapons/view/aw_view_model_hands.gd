@@ -93,7 +93,7 @@ func _support_hand() -> Vector3:
 	if _seq != null and f > 0.0 and f < 1.0:
 		return _seq.left_hand(f)
 	if not _has_well or f <= 0.0 or f >= 1.0:
-		return _fore_at
+		return _fore_at.lerp(_fore_aimed_at, clampf(_aim_fraction, 0.0, 1.0)) if is_finite(_aim_fraction) else _fore_at
 	if _feeds:
 		return AwWeaponPose.sample_keys(_feed_keys, f)[0]
 	var below := _well + Vector3(0.0, -0.24, 0.08)

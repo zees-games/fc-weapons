@@ -17,6 +17,8 @@ static func measure(art: AwWeaponVisual, weapon: Node3D, holder: Node3D) -> Dict
 	var up := Vector3.UP if absf(forward.dot(Vector3.UP)) < 0.9 else Vector3.BACK
 	var grip := Vector3.ZERO
 	var fore := forward * 0.4
+	# Where the support hand goes at full aim: the fore point before its raise onto the handguard.
+	var fore_aimed := Vector3.INF
 	var grip_axis := up
 	var fore_axis := forward
 	var radius := 0.0
@@ -55,7 +57,19 @@ static func measure(art: AwWeaponVisual, weapon: Node3D, holder: Node3D) -> Dict
 					var spans := spans_for(art, weapon, holder, forward)
 					var under: Dictionary = spans[0]
 					if not under.is_empty():
-						fore.y = minf(fore.y, float(under.low) + float(under.length) * REACH)
+						var cap := float(under.low) + float(under.length) * REACH
+						# The magazine deepens the bounds too: a fore point under the fore-end's own
+						# underside held air (the rifle's open hand 9 cm below its handguard), so it
+						# rises to the fore-end's middle, still no higher than the span allows.
+						# Not a pistol's: its support hand cups the firing one under the frame (raised,
+						# the revolver's went up onto its cylinder, its sleeve across the view).
+						# Aimed, the gun sits under the eye and a raised hand brings the upper arm's sleeve
+						# into the near plane (the carbine's torn blue flap), so aiming keeps it low.
+						fore_aimed = fore
+						fore_aimed.y = minf(fore_aimed.y, cap)
+						if art.pose != &"pistol" and fore.y < float(under.low):
+							fore.y = (float(under.low) + float(under.high)) * 0.5
+						fore.y = minf(fore.y, cap)
 					var rear: Dictionary = spans[1]
 					if not rear.is_empty():
 						grip.y = minf(grip.y, float(rear.low) + float(rear.length) * REACH * 1.6)
@@ -69,8 +83,11 @@ static func measure(art: AwWeaponVisual, weapon: Node3D, holder: Node3D) -> Dict
 			grip = weapon.transform * art.grip_socket
 		if art.support_grip.is_finite():
 			fore = weapon.transform * art.support_grip
+			fore_aimed = fore
 
-	return {"grip": grip, "fore": fore, "grip_axis": grip_axis, "fore_axis": fore_axis, "radius": radius}
+	if not fore_aimed.is_finite():
+		fore_aimed = fore
+	return {"grip": grip, "fore": fore, "fore_aimed": fore_aimed, "grip_axis": grip_axis, "fore_axis": fore_axis, "radius": radius}
 
 
 ## The bounds of every mesh under [param node], in [param space]'s own coordinates.

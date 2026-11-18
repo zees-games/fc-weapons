@@ -195,6 +195,7 @@ func _reach_for(art: AwWeaponVisual) -> void:
 
 	_grip_at = to_aim * grip
 	_fore_at = to_aim * fore
+	_fore_aimed_at = to_aim * (r.get("fore_aimed", fore) as Vector3)
 	# After the fore-end: the keys start and end on it.
 	_feed_keys = _build_feed_keys(art) if _feeds else []
 	_grip_axis = (to_aim.basis * grip_axis).normalized()
