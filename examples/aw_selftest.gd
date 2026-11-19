@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 539
+const CHECKS := 540
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -557,6 +557,8 @@ func _dress() -> void:
 	# The rifle's origin is its grip, under the bore: the flash starts on the barrel's axis, measured from its end.
 	_check("the muzzle sits up on the bore, not on the grip's axis (%.3f m up)" % art.muzzle_offset.y, art.muzzle_offset.y > 0.015 and absf(art.muzzle_offset.z) < 0.001)
 	_check("the base art itself is untouched until a game applies it", before.model_path != art.model_path)
+	var drift := _bore_drift()
+	_check("every gun row's written bore is its model's, within a millimetre: %s" % ", ".join(drift), drift.is_empty())
 	_check("a grenade dressed keeps the throw carry", _thrown())
 	_check("every gun row names its own reload style: %s" % ", ".join(_unstyled()), _unstyled().is_empty())
 	var belt_bad := _style_mismatch("belt", "belt_feed", true)
@@ -574,6 +576,20 @@ func _dress() -> void:
 
 
 ## Roles breaking "reload style [param style] iff [param key] is set"; [param want] picks the direction checked.
+## Gun rows whose `muzzle_offset` is missing or is not what AwModelCache.muzzle_bore measures on the model.
+func _bore_drift() -> Array[String]:
+	var out: Array[String] = []
+	for id: StringName in AwWeaponArt.WEAPONS:
+		var row: Dictionary = AwWeaponArt.row_of(id)
+		if row["motion"] != "gun":
+			continue
+		var written: Variant = row.get("muzzle_offset")
+		var measured := AwModelCache.muzzle_bore(str(row["model"]), Vector3.FORWARD)
+		if not written is Vector3 or (written as Vector3).distance_to(measured) > 0.001:
+			out.append("%s %s, model %s" % [id, written, measured])
+	return out
+
+
 func _style_mismatch(style: String, key: String, want: bool) -> Array[String]:
 	var out: Array[String] = []
 	var rows := AwWeaponArt.weapon_rows("")
