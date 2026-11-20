@@ -4,7 +4,7 @@ Twenty-seven weapons for [Fatal Contact](https://github.com/zees-games/game-fata
 
 ### In GameSpice and Fatal Contact
 
-- **GameSpice:** the pack is published to the Workshop as `gamemann/fc-weapons`. Fatal Contact servers load it through the pack overlay, so players get it with the server and there is nothing to install. Other games and servers add it to their pack list to get the same weapons.
+- [**GameSpice**](https://gamespice.net):** the pack is published to the Workshop as `gamemann/fc-weapons`. Fatal Contact servers load it through the pack overlay, so players get it with the server and there is nothing to install. Other games and servers add it to their pack list to get the same weapons.
 - **Fatal Contact:** FC requires this pack and loads it by default. Its weapons fill the melee, sidearm, primary, heavy and thrown slots, and server owners retune them in `cfg/addons/fc_weapons/weapon/<id>.yml`.
 - **Your own Godot game:** link or copy `addons/fc_weapons` beside dot-weapon and use the code in [Using it](#using-it).
 
