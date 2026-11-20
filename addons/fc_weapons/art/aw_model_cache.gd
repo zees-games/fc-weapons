@@ -341,6 +341,24 @@ static func muzzle_bore(path: String, forward: Vector3) -> Vector3:
 	var out := Vector3.ZERO
 	var node := instantiate(path)
 	if node != null:
+		# A model whose far end is not its bore (the quad launcher's hanging guard juts past its tubes) marks the bore
+		# with a `muzzle_bore` empty.
+		var mark := node.find_child("muzzle_bore", true, false) as Node3D
+		if mark != null:
+			var at := mark.transform
+			var up := mark.get_parent()
+			while up != node and up is Node3D:
+				at = (up as Node3D).transform * at
+				up = up.get_parent()
+			node.queue_free()
+			out = at.origin - axis * at.origin.dot(axis)
+			_bores[key] = out
+			return out
+		# Sight parts (tools/add_sights.py: front_*, rear_*) stand on top near the muzzle and are not the bore.
+		for pattern in ["front_*", "rear_*"]:
+			for part in node.find_children(pattern, "", true, false):
+				part.get_parent().remove_child(part)
+				part.free()
 		var points: Array[PackedVector3Array] = []
 		_collect_vertices(node, Transform3D.IDENTITY, points)
 		node.queue_free()

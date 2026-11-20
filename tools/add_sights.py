@@ -1,117 +1,334 @@
-"""Gives a baked gun model a visible rear aperture, a front post with ears and the `sight_rear` / `sight_front` marks the view runtime's iron sight reads (the aimed line then runs through the ring's centre and the post's tip, above everything between).
-Run: blender -b -P tools/add_sights.py -- <addons/fc_weapons/assets/models> [name ...]
-A model that already has a `sight_rear` mark is skipped. Stations are metres in the baked frame (origin at the grip, muzzle toward -Z, Y up)."""
-import bpy, bmesh, sys, os, math
+"""Seats iron sights on a baked gun model and writes the `sight_rear` / `sight_front` marks the view runtime aims through.
+Run: python3 tools/add_sights.py <addons/fc_weapons/assets/models> [name ...]   (plain Python, no Blender: the model's own meshes,
+materials and textures pass through byte for byte; only the sight nodes are rebuilt).
 
-# name -> (rear z, front z, ring outer radius, half width of the strip the tops are measured on)
-GUNS = {
-    'revolver': (0.03, -0.20, 0.012, 0.012),
-    'pump_shotgun': (0.08, -0.42, 0.016, 0.012),
-    'pistol': (0.085, -0.065, 0.010, 0.010),
-    'machine_pistol': (-0.03, -0.25, 0.012, 0.012),
-    'derringer': (0.01, -0.10, 0.009, 0.010),
-    'battle_rifle': (-0.06, -0.69, 0.018, 0.012),
-    'quad_rocket_launcher': (0.28, -0.40, 0.020, 0.03),
-    'smg': (0.08, -0.12, 0.011, 0.010),
+Every run first strips the nodes an earlier pass added (`rear_*`, `front_*`, `sight_*`, plus the loose `feed_cover` / `bipod_*`
+bars), then builds the parts in SPECS. A spec names a horizontal sight line height `line` (the runtime puts the eye on the rear
+mark and does not tilt the gun, so both marks sit at that height) and parts that either reuse the model's own sight (no part) or
+add a small piece seated ON the surface below it (the model or an earlier part): each part's bottom must be at or under the model top across its footprint, or
+the run fails (a floating part is a defect). A `rear_ring*` part is hidden at the hip by the view runtime.
+Stations are metres in the baked frame (origin at the grip, muzzle toward -Z, Y up). After a change, set each weapon's aim
+in `AwWeaponArt.WEAPONS` to `(0, -line, z)`; the selftest measures it against the rear mark.
+pump_shotgun, pistol and battle_rifle still carry the parts an earlier Blender pass of this tool built; give them a spec here
+before rerunning on them."""
+import json, math, os, struct, sys
+
+STRIP = ('rear_', 'front_', 'sight_', 'feed_cover', 'bipod_')
+
+
+def box(x0, x1, y0, y1, z0, z1):
+    return ('frustum', (x0, x1, z0, z1, y0), (x0, x1, z0, z1, y1))
+
+
+def taper(bottom, top):
+    """bottom/top: (x0, x1, z0, z1, y). A front post keeps top z1 == bottom z1 so its eye-side face is vertical and reads dark."""
+    return ('frustum', bottom, top)
+
+
+def ring(cy, cz, ro, ri, depth):
+    return ('ring', cy, cz, ro, ri, depth)
+
+
+def notch(cz, y0, line, half_gap, half_w, depth):
+    """Two shoulders either side of a gap, tops on the sight line (the front tip shows in the gap, level with them)."""
+    return [('rear_notch-1', box(-half_w, -half_gap, y0, line, cz - depth / 2, cz + depth / 2)),
+            ('rear_notch1', box(half_gap, half_w, y0, line, cz - depth / 2, cz + depth / 2))]
+
+
+# name -> line y, rear mark z, front mark z, parts [(node name, shape)]; numbers come from top profiles of the model itself.
+SPECS = {
+    # Frame top 0.0597 at z -0.04 (the hammer stays under 0.047), barrel rib 0.0556: a low notch on the frame, a ramp blade on the rib.
+    'derringer': (0.0625, -0.037, -0.111, notch(-0.037, 0.0575, 0.0625, 0.0016, 0.0056, 0.008) + [
+        ('front_blade', taper((-0.0009, 0.0009, -0.116, -0.106, 0.0548), (-0.0009, 0.0009, -0.114, -0.106, 0.0625)))]),
+    # Own topstrap notch (shoulders 0.1317, gap 3 mm) and own front blade (tip 0.1348): two caps lift the shoulders to the tip.
+    'revolver': (0.1348, -0.015, -0.220, [
+        ('rear_cap-1', box(-0.0065, -0.0017, 0.1300, 0.1348, -0.019, -0.011)),
+        ('rear_cap1', box(0.0017, 0.0065, 0.1300, 0.1348, -0.019, -0.011))]),
+    # Own rear ears (top 0.036) and front ears (0.0333); the cocking knob at z 0 reaches 0.033, so the line runs at the ear tops:
+    # a small peep between the rear ears and a post between the front ears.
+    'smg': (0.0360, 0.100, -0.100, [
+        ('rear_stem', box(-0.0014, 0.0014, 0.0212, 0.0325, 0.097, 0.103)),
+        ('rear_ring', ring(0.0360, 0.100, 0.0042, 0.0022, 0.005)),
+        ('front_post', taper((-0.0016, 0.0016, -0.104, -0.096, 0.0212), (-0.0011, 0.0011, -0.102, -0.096, 0.0360)))]),
+    # Own notch (shoulders 0.1674, floor 0.1635) and own front post between ears (0.1637): marks only.
+    'machine_pistol': (0.1640, -0.020, -0.202, []),
+    # Carry handle top 0.352 at its back (z -0.23), own front post 0.300 at z -0.648: a peep on the handle and a tower over
+    # with ears on the native post.
+    'lmg': (0.3630, -0.232, -0.648, [
+        ('rear_base', taper((-0.012, 0.012, -0.240, -0.224, 0.3460), (-0.010, 0.010, -0.238, -0.226, 0.3540))),
+        ('rear_ring', ring(0.3630, -0.232, 0.0095, 0.0045, 0.008)),
+        ('front_tower', taper((-0.0120, 0.0120, -0.659, -0.637, 0.2400), (-0.0110, 0.0110, -0.654, -0.642, 0.3400))),
+        ('front_post', taper((-0.0018, 0.0018, -0.651, -0.645, 0.3390), (-0.0012, 0.0012, -0.650, -0.645, 0.3630))),
+        ('front_ear-1', box(-0.0105, -0.0070, 0.3390, 0.3660, -0.652, -0.644)),
+        ('front_ear1', box(0.0070, 0.0105, 0.3390, 0.3660, -0.652, -0.644))]),
+    # Muzzles toward -Z since the bake turn was fixed (it fired out of the capped back): the round cap at z +0.03 (0.1854) takes the
+    # notch, and the cylinder between the low front ears at z -0.299 (0.1734, ears 0.178) takes a post.
+    'quad_rocket_launcher': (0.1910, 0.030, -0.299, notch(0.030, 0.1835, 0.1910, 0.0030, 0.0120, 0.008) + [
+        ('front_post', taper((-0.0018, 0.0018, -0.303, -0.295, 0.1700), (-0.0012, 0.0012, -0.301, -0.295, 0.1910)))]),
 }
-args = sys.argv[sys.argv.index('--') + 1:]
-dst, names = args[0], args[1:] or list(GUNS)
 
 
-def tops(verts, z, half, strip):
-    for w, h in ((strip, half), (strip * 2, half * 2), (strip * 4, half * 4), (1.0, 0.1)):
-        ys = [v[1] for v in verts if abs(v[0]) <= w and abs(v[2] - z) <= h]
-        if ys:
-            return max(ys)
-    return -9.0
+def load(path):
+    b = open(path, 'rb').read()
+    jl = struct.unpack_from('<I', b, 12)[0]
+    j = json.loads(b[20:20 + jl])
+    return j, bytearray(b[20 + jl + 8:])
 
 
-def material():
-    m = bpy.data.materials.new('sight_metal')
-    m.use_nodes = True
-    b = next(n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
-    b.inputs['Base Color'].default_value = (0.03, 0.03, 0.035, 1)
-    b.inputs['Roughness'].default_value = 0.55
-    b.inputs['Metallic'].default_value = 0.6
-    return m
+def save(path, j, bin_):
+    while len(bin_) % 4:
+        bin_.append(0)
+    j['buffers'] = [{'byteLength': len(bin_)}]
+    js = json.dumps(j, separators=(',', ':')).encode()
+    js += b' ' * (-len(js) % 4)
+    out = struct.pack('<III', 0x46546C67, 2, 28 + len(js) + len(bin_))
+    out += struct.pack('<II', len(js), 0x4E4F534A) + js + struct.pack('<II', len(bin_), 0x004E4942) + bytes(bin_)
+    open(path, 'wb').write(out)
 
 
-def make(name, verts, faces, mat):
-    # glTF (x, y, z) is Blender (x, -z, y), a proper rotation, so winding survives.
-    me = bpy.data.meshes.new(name)
-    me.from_pydata([(x, -z, y) for x, y, z in verts], [], faces)
-    bm = bmesh.new()
-    bm.from_mesh(me)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bm.to_mesh(me)
-    bm.free()
-    me.materials.append(mat)
-    o = bpy.data.objects.new(name, me)
-    bpy.context.scene.collection.objects.link(o)
-    return o
+def strip(j, bin_):
+    """Drop the added sight nodes and everything only they used, then compact the buffer."""
+    keep = [i for i, n in enumerate(j['nodes']) if not n.get('name', '').startswith(STRIP)]
+    nmap = {o: k for k, o in enumerate(keep)}
+    j['nodes'] = [j['nodes'][i] for i in keep]
+    for n in j['nodes']:
+        if 'children' in n:
+            n['children'] = [nmap[c] for c in n['children'] if c in nmap]
+    for s in j['scenes']:
+        s['nodes'] = [nmap[c] for c in s['nodes'] if c in nmap]
+    used = sorted({n['mesh'] for n in j['nodes'] if 'mesh' in n})
+    mmap = {o: k for k, o in enumerate(used)}
+    j['meshes'] = [j['meshes'][i] for i in used]
+    for n in j['nodes']:
+        if 'mesh' in n:
+            n['mesh'] = mmap[n['mesh']]
+    acc = set()
+    for m in j['meshes']:
+        for p in m['primitives']:
+            acc |= set(p['attributes'].values())
+            if 'indices' in p:
+                acc.add(p['indices'])
+            for t in p.get('targets', []):
+                acc |= set(t.values())
+    for s in j.get('skins', []):
+        if 'inverseBindMatrices' in s:
+            acc.add(s['inverseBindMatrices'])
+    for a in j.get('animations', []):
+        for sm in a['samplers']:
+            acc |= {sm['input'], sm['output']}
+    acc = sorted(acc)
+    amap = {o: k for k, o in enumerate(acc)}
+    j['accessors'] = [j['accessors'][i] for i in acc]
+
+    def remap_acc(d):
+        return {k: amap[v] for k, v in d.items()}
+    for m in j['meshes']:
+        for p in m['primitives']:
+            p['attributes'] = remap_acc(p['attributes'])
+            if 'indices' in p:
+                p['indices'] = amap[p['indices']]
+            if 'targets' in p:
+                p['targets'] = [remap_acc(t) for t in p['targets']]
+    for s in j.get('skins', []):
+        if 'inverseBindMatrices' in s:
+            s['inverseBindMatrices'] = amap[s['inverseBindMatrices']]
+    for a in j.get('animations', []):
+        for sm in a['samplers']:
+            sm['input'], sm['output'] = amap[sm['input']], amap[sm['output']]
+    views = sorted({a['bufferView'] for a in j['accessors'] if 'bufferView' in a} | {im['bufferView'] for im in j.get('images', []) if 'bufferView' in im})
+    out = bytearray()
+    vmap = {}
+    for k, o in enumerate(views):
+        bv = j['bufferViews'][o]
+        while len(out) % 4:
+            out.append(0)
+        start = bv.get('byteOffset', 0)
+        chunk = bin_[start:start + bv['byteLength']]
+        bv['byteOffset'] = len(out)
+        out += chunk
+        vmap[o] = k
+    j['bufferViews'] = [j['bufferViews'][i] for i in views]
+    for a in j['accessors']:
+        if 'bufferView' in a:
+            a['bufferView'] = vmap[a['bufferView']]
+    for im in j.get('images', []):
+        if 'bufferView' in im:
+            im['bufferView'] = vmap[im['bufferView']]
+    mats = sorted({p['material'] for m in j['meshes'] for p in m['primitives'] if 'material' in p})
+    if len(mats) < len(j.get('materials', [])):
+        # Only the sight material can have gone unused; drop it so the rebuilt parts recreate exactly one.
+        names = [j['materials'][i].get('name') for i in range(len(j['materials'])) if i not in mats]
+        assert all(n == 'sight_metal' for n in names), names
+        xmap = {o: k for k, o in enumerate(mats)}
+        j['materials'] = [j['materials'][i] for i in mats]
+        for m in j['meshes']:
+            for p in m['primitives']:
+                if 'material' in p:
+                    p['material'] = xmap[p['material']]
+    return out
 
 
-def box(name, cx, y0, y1, cz, sx, sz, mat):
-    x0, x1, z0, z1 = cx - sx / 2, cx + sx / 2, cz - sz / 2, cz + sz / 2
-    v = [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0), (x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)]
-    f = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (3, 2, 6, 7), (0, 3, 7, 4), (1, 5, 6, 2)]
-    return make(name, v, f, mat)
+def world_tris(j, bin_):
+    def acc(i):
+        a = j['accessors'][i]
+        bv = j['bufferViews'][a['bufferView']]
+        off = bv.get('byteOffset', 0) + a.get('byteOffset', 0)
+        n = {'VEC3': 3, 'SCALAR': 1}[a['type']]
+        fmt = {5126: 'f', 5123: 'H', 5125: 'I', 5121: 'B'}[a['componentType']]
+        stride = bv.get('byteStride', struct.calcsize(fmt) * n)
+        return [struct.unpack_from('<' + fmt * n, bin_, off + k * stride) for k in range(a['count'])]
+
+    def mat(n):
+        if 'matrix' in n:
+            m = n['matrix']
+            return [[m[c * 4 + r] for c in range(4)] for r in range(4)]
+        t, (x, y, z, w), s = n.get('translation', [0, 0, 0]), n.get('rotation', [0, 0, 0, 1]), n.get('scale', [1, 1, 1])
+        R = [[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)], [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+             [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]]
+        return [[R[i][k] * s[k] for k in range(3)] + [t[i]] for i in range(3)] + [[0, 0, 0, 1]]
+    out = []
+
+    def walk(ni, P):
+        n = j['nodes'][ni]
+        L = mat(n)
+        M = [[sum(P[i][k] * L[k][c] for k in range(4)) for c in range(4)] for i in range(4)]
+        if 'mesh' in n:
+            for p in j['meshes'][n['mesh']]['primitives']:
+                vs = [tuple(M[i][0] * v[0] + M[i][1] * v[1] + M[i][2] * v[2] + M[i][3] for i in range(3)) for v in acc(p['attributes']['POSITION'])]
+                idx = [i[0] for i in acc(p['indices'])] if 'indices' in p else list(range(len(vs)))
+                out.extend((vs[idx[k]], vs[idx[k + 1]], vs[idx[k + 2]]) for k in range(0, len(idx) - 2, 3))
+        for c in n.get('children', []):
+            walk(c, M)
+    for r in j['scenes'][j.get('scene', 0)]['nodes']:
+        walk(r, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    return out
 
 
-def ring(name, cy, cz, ro, ri, depth, mat, seg=24):
-    v, f = [], []
-    for zz in (cz - depth / 2, cz + depth / 2):
-        for r in (ro, ri):
-            for i in range(seg):
-                a = 2 * math.pi * i / seg
-                v.append((r * math.cos(a), cy + r * math.sin(a), zz))
-    n = seg
-    # layout: [back outer, back inner, front outer, front inner]
+def top_at(T, x, z):
+    best = None
+    for a, b, c in T:
+        d = (b[2] - c[2]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[2] - c[2])
+        if abs(d) < 1e-12:
+            continue
+        l1 = ((b[2] - c[2]) * (x - c[0]) + (c[0] - b[0]) * (z - c[2])) / d
+        l2 = ((c[2] - a[2]) * (x - c[0]) + (a[0] - c[0]) * (z - c[2])) / d
+        l3 = 1 - l1 - l2
+        if min(l1, l2, l3) >= -1e-9:
+            y = l1 * a[1] + l2 * b[1] + l3 * c[1]
+            best = y if best is None else max(best, y)
+    return best
+
+
+def faces(shape):
+    """[(polygon verts, outward hint)]"""
+    if shape[0] == 'frustum':
+        (bx0, bx1, bz0, bz1, by), (tx0, tx1, tz0, tz1, ty) = shape[1], shape[2]
+        b = [(bx0, by, bz0), (bx1, by, bz0), (bx1, by, bz1), (bx0, by, bz1)]
+        t = [(tx0, ty, tz0), (tx1, ty, tz0), (tx1, ty, tz1), (tx0, ty, tz1)]
+        c = [sum(v[i] for v in b + t) / 8 for i in range(3)]
+        polys = [b, t] + [[b[i], b[(i + 1) % 4], t[(i + 1) % 4], t[i]] for i in range(4)]
+        return [(p, [sum(v[i] for v in p) / len(p) - c[i] for i in range(3)]) for p in polys]
+    _, cy, cz, ro, ri, depth = shape
+    seg = 28
+    out = []
     for i in range(seg):
-        j = (i + 1) % seg
-        f += [(i, j, 2 * n + j, 2 * n + i), (n + i, 3 * n + i, 3 * n + j, n + j), (i, n + i, n + j, j), (2 * n + i, 2 * n + j, 3 * n + j, 3 * n + i)]
-    return make(name, v, f, mat)
+        a0, a1 = 2 * math.pi * i / seg, 2 * math.pi * (i + 1) / seg
+        am = (a0 + a1) / 2
+        rad = (math.cos(am), math.sin(am), 0)
+
+        def p(r, a, z):
+            return (r * math.cos(a), cy + r * math.sin(a), z)
+        zb, zf = cz + depth / 2, cz - depth / 2
+        out.append(([p(ro, a0, zb), p(ro, a1, zb), p(ro, a1, zf), p(ro, a0, zf)], rad))
+        out.append(([p(ri, a0, zb), p(ri, a1, zb), p(ri, a1, zf), p(ri, a0, zf)], [-v for v in rad]))
+        out.append(([p(ro, a0, zb), p(ro, a1, zb), p(ri, a1, zb), p(ri, a0, zb)], (0, 0, 1)))
+        out.append(([p(ro, a0, zf), p(ro, a1, zf), p(ri, a1, zf), p(ri, a0, zf)], (0, 0, -1)))
+    return out
 
 
-def empty(name, x, y, z):
-    o = bpy.data.objects.new(name, None)
-    o.empty_display_type = 'PLAIN_AXES'
-    o.empty_display_size = 0.01
-    o.location = (x, -z, y)
-    bpy.context.scene.collection.objects.link(o)
+def sub(a, b):
+    return [a[i] - b[i] for i in range(3)]
 
 
-for name in names:
-    rz, fz, ro, strip = GUNS[name]
-    path = os.path.join(dst, name + '.glb')
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.gltf(filepath=path)
-    if 'sight_rear' in bpy.data.objects:
-        print('SKIP', name)
-        continue
-    verts = []
-    for o in bpy.data.objects:
-        if o.type == 'MESH':
-            for v in o.data.vertices:
-                p = o.matrix_world @ v.co
-                verts.append((p.x, p.z, -p.y))
-    rear_top = tops(verts, rz, 0.015, strip)
-    front_top = tops(verts, fz, 0.015, strip)
-    span = max(tops(verts, rz + (fz - rz) * i / 20.0, 0.012, strip) for i in range(21))
-    base = max(span, rear_top, front_top)
-    ri = ro * 0.5
-    yc = base + ro + 0.004
-    mat = material()
-    k = ro / 0.016
-    box('rear_stem', 0.0, rear_top - 0.002, yc - ro + 0.002, rz, 0.012 * k, 0.008 * k, mat)
-    ring('rear_ring', yc, rz, ro, ri, 0.008 * k, mat)
-    pw = 0.0042 * k
-    box('front_post', 0.0, front_top - 0.002, yc, fz, pw, 0.006 * k, mat)
-    for s in (-1, 1):
-        box('front_ear' + str(s), s * (pw / 2 + 0.0035 * k), front_top - 0.002, yc, fz, 0.003 * k, 0.006 * k, mat)
-    empty('sight_rear', 0.0, yc, rz)
-    empty('sight_front', 0.0, yc, fz)
-    for o in bpy.data.objects:
-        o.select_set(False)
-    bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', export_apply=False, export_yup=True)
-    print('SIGHTED', name, 'line y %.3f rear_top %.3f front_top %.3f' % (yc, rear_top, front_top))
+def cross(a, b):
+    return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+
+
+def flat(shape):
+    """Flat-shaded triangle soup: positions, normals."""
+    P, N = [], []
+    for poly, hint in faces(shape):
+        n = [0.0, 0.0, 0.0]
+        for k in range(1, len(poly) - 1):
+            n = [n[i] + cross(sub(poly[k], poly[0]), sub(poly[k + 1], poly[0]))[i] for i in range(3)]
+        if sum(n[i] * hint[i] for i in range(3)) < 0:
+            poly = poly[::-1]
+            n = [-v for v in n]
+        L = math.sqrt(sum(v * v for v in n)) or 1.0
+        n = [v / L for v in n]
+        for k in range(1, len(poly) - 1):
+            for v in (poly[0], poly[k], poly[k + 1]):
+                P.append(v)
+                N.append(n)
+    return P, N
+
+
+def footprint(shape):
+    if shape[0] == 'frustum':
+        x0, x1, z0, z1, y = shape[1]
+        return y, [(x, z) for x in (x0, (x0 + x1) / 2, x1) for z in (z0, (z0 + z1) / 2, z1)]
+    return None, []
+
+
+def add_parts(j, bin_, parts, T, name):
+    mi = len(j['materials'])
+    j['materials'].append({'name': 'sight_metal', 'pbrMetallicRoughness': {'baseColorFactor': [0.035, 0.035, 0.04, 1.0], 'metallicFactor': 0.3, 'roughnessFactor': 0.75}})
+    for pname, shape in parts:
+        y0, feet = footprint(shape)
+        for x, z in feet:
+            top = top_at(T, x, z)
+            if top is None or y0 > top + 0.0005:
+                sys.exit('%s: %s floats at (%.4f, %.4f): bottom %.4f, model top %s' % (name, pname, x, z, y0, top))
+        P, N = flat(shape)
+        T.extend((P[k], P[k + 1], P[k + 2]) for k in range(0, len(P), 3))  # later parts may seat on this one
+        while len(bin_) % 4:
+            bin_.append(0)
+        pv = len(j['bufferViews'])
+        for arr in (P, N):
+            off = len(bin_)
+            for v in arr:
+                bin_ += struct.pack('<3f', *v)
+            j['bufferViews'].append({'buffer': 0, 'byteOffset': off, 'byteLength': len(arr) * 12, 'target': 34962})
+        pa = len(j['accessors'])
+        j['accessors'].append({'bufferView': pv, 'componentType': 5126, 'count': len(P), 'type': 'VEC3',
+                               'min': [min(v[i] for v in P) for i in range(3)], 'max': [max(v[i] for v in P) for i in range(3)]})
+        j['accessors'].append({'bufferView': pv + 1, 'componentType': 5126, 'count': len(N), 'type': 'VEC3'})
+        j['meshes'].append({'name': pname, 'primitives': [{'attributes': {'POSITION': pa, 'NORMAL': pa + 1}, 'material': mi}]})
+        j['nodes'].append({'name': pname, 'mesh': len(j['meshes']) - 1})
+        j['scenes'][0]['nodes'].append(len(j['nodes']) - 1)
+
+
+def run(path, name):
+    line, rz, fz, parts = SPECS[name]
+    j, bin_ = load(path)
+    bin_ = strip(j, bin_)
+    T = world_tris(j, bin_)
+    # The sight line must clear the model between the stations, or the gun's own body sits in the picture.
+    for i in range(1, 20):
+        z = rz + (fz - rz) * i / 20.0
+        top = top_at(T, 0.0, z)
+        if top is not None and top > line + 0.0005:
+            sys.exit('%s: model top %.4f at z %.3f is above the sight line %.4f' % (name, top, z, line))
+    if parts:
+        add_parts(j, bin_, parts, T, name)
+    for mark, z in (('sight_rear', rz), ('sight_front', fz)):
+        j['nodes'].append({'name': mark, 'translation': [0.0, line, z]})
+        j['scenes'][0]['nodes'].append(len(j['nodes']) - 1)
+    save(path, j, bin_)
+    print('SIGHTED %s line y %.4f rear z %.3f front z %.3f parts %s' % (name, line, rz, fz, ','.join(p for p, _ in parts) or 'own'))
+
+
+if __name__ == '__main__':
+    dst, names = sys.argv[1], sys.argv[2:] or list(SPECS)
+    for n in names:
+        run(os.path.join(dst, n + '.glb'), n)

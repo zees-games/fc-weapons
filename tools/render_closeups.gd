@@ -3,9 +3,11 @@ extends SceneTree
 ## A fixed camera per view (fitted to the model's bounds) so a before and an after frame line up exactly.
 ##   godot --path . --resolution 1600x900 --script tools/render_closeups.gd -- <out dir> <model name>...
 ## Views: side (whole profile), q34 (front three-quarter from above), q34b (rear three-quarter from below), detail (receiver, 0.30 m away, a
-## first-person distance), muzzle (front end close up). Env RENDER_DIR points at another models folder (to render a before build).
+## first-person distance), muzzle (front end close up), and on a model with `sight_rear`/`sight_front` marks: sightline (the eye 0.25 m behind
+## the rear mark looking down the line, so the rear and front sights must frame each other) and sightq (close three-quarter over the sight run,
+## so a floating or unseated sight part shows). Env RENDER_DIR points at another models folder (to render a before build).
 
-const VIEWS := ["side", "q34", "q34b", "detail", "muzzle", "fp"]
+const VIEWS := ["side", "q34", "q34b", "detail", "muzzle", "fp", "sightline", "sightq"]
 
 
 func _initialize() -> void:
@@ -52,7 +54,11 @@ func _initialize() -> void:
 		var box := _bounds(m)
 		var c := box.get_center()
 		var r := box.size.length() * 0.5
+		var rear := m.find_child("sight_rear", true, false) as Node3D
+		var front := m.find_child("sight_front", true, false) as Node3D
 		for v in VIEWS:
+			if v.begins_with("sight") and (rear == null or front == null):
+				continue
 			var pos := Vector3()
 			var look := c
 			var f := 40.0
@@ -77,6 +83,17 @@ func _initialize() -> void:
 					pos = mz + Vector3(0.22, 0.09, -0.18)
 					look = mz
 					f = 50.0
+				"sightline":
+					var rp := rear.global_position
+					pos = rp + Vector3(0, 0, 0.25)
+					look = front.global_position
+					f = 30.0
+				"sightq":
+					var mid := (rear.global_position + front.global_position) * 0.5
+					var span := maxf(rear.global_position.distance_to(front.global_position), 0.08)
+					pos = mid + Vector3(0.9, 0.45, 0.35).normalized() * span * 1.6
+					look = mid
+					f = 40.0
 			cam.fov = f
 			cam.global_position = pos
 			cam.look_at(look)
