@@ -14,3 +14,7 @@ Fatal Contact's own weapon set (definitions and CC0 models), required by game-fa
 - Update `CHECKS` in `examples/aw_selftest.gd` with a new check. The hold and aim numbers are placement: look at them with game-fatal-contact's `tools/render_weapons.sh`.
 - No other game or engine is named in anything public here.
 - Publish the pack with `tools/publish.sh VERSION --lock FILE --token-file ...` (wraps `dot-cloud/tools/publish_pack.sh`; the repo's own lock pins the art store, so give `--lock` a file outside it).
+
+## Visual quality
+
+A visual change (a weapon model, its animation, arms or effects) is done only when a fresh judge says so: follow dot-game's brief, `../dot-game/docs/visual-judge-brief.md` (GPU capture, never llvmpipe; three consecutive zero-defect passes; `--audit` before you report). Your own reading of the sheets never counts.
