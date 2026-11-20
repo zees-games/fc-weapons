@@ -17,6 +17,40 @@ func _initialize() -> void:
 	var dir := OS.get_environment("RENDER_DIR")
 	if dir == "":
 		dir = "res://addons/fc_weapons/assets/models"
+	_stage()
+	var cam := Camera3D.new()
+	cam.fov = 40.0
+	root.add_child(cam)
+	cam.current = true
+	await process_frame
+	for i in range(1, a.size()):
+		var n := a[i]
+		var m := _load_model(dir, n)
+		if m == null:
+			print("MISSING ", n)
+			continue
+		root.add_child(m)
+		var box := _bounds(m)
+		var rear := m.find_child("sight_rear", true, false) as Node3D
+		var front := m.find_child("sight_front", true, false) as Node3D
+		for v in VIEWS:
+			if v.begins_with("sight") and (rear == null or front == null):
+				continue
+			var shot := _view(v, box, rear, front)
+			cam.fov = shot[2]
+			cam.global_position = shot[0]
+			cam.look_at(shot[1])
+			for k in 6:
+				await process_frame
+			root.get_texture().get_image().save_png("%s/%s_%s.png" % [out, n, v])
+		m.queue_free()
+		await process_frame
+		print("RESULT ", n)
+	quit()
+
+
+## Sky, sun and a cool fill.
+func _stage() -> void:
 	var env := WorldEnvironment.new()
 	env.environment = _environment()
 	root.add_child(env)
@@ -30,80 +64,59 @@ func _initialize() -> void:
 	fill.light_energy = 0.45
 	fill.light_color = Color(0.8, 0.88, 1.0)
 	root.add_child(fill)
-	var cam := Camera3D.new()
-	cam.fov = 40.0
-	root.add_child(cam)
-	cam.current = true
-	await process_frame
-	for i in range(1, a.size()):
-		var n := a[i]
-		var m: Node3D = null
-		if dir.begins_with("/"):
-			var gd := GLTFDocument.new()
-			var gs := GLTFState.new()
-			if gd.append_from_file("%s/%s.glb" % [dir, n], gs) == OK:
-				m = gd.generate_scene(gs) as Node3D
-		else:
-			var ps := load("%s/%s.glb" % [dir, n]) as PackedScene
-			if ps != null:
-				m = ps.instantiate() as Node3D
-		if m == null:
-			print("MISSING ", n)
-			continue
-		root.add_child(m)
-		var box := _bounds(m)
-		var c := box.get_center()
-		var r := box.size.length() * 0.5
-		var rear := m.find_child("sight_rear", true, false) as Node3D
-		var front := m.find_child("sight_front", true, false) as Node3D
-		for v in VIEWS:
-			if v.begins_with("sight") and (rear == null or front == null):
-				continue
-			var pos := Vector3()
-			var look := c
-			var f := 40.0
-			var dist := r / tan(deg_to_rad(f * 0.5)) * 1.05
-			match v:
-				"side":
-					pos = c + Vector3(1, 0, 0) * dist
-				"q34":
-					pos = c + Vector3(0.75, 0.55, -0.9).normalized() * dist
-				"q34b":
-					pos = c + Vector3(-0.8, -0.35, 0.8).normalized() * dist
-				"detail":
-					pos = c + Vector3(0.30, 0.10, 0.0)
-					f = 50.0
-				"fp":
-					# hand-held: eye behind the stock, weapon low right of centre, in-game hands fov (~74 deg vertical)
-					pos = Vector3(c.x - 0.13, c.y + 0.13, box.end.z + 0.10)
-					look = Vector3(c.x - 0.04, c.y - 0.01, box.position.z + box.size.z * 0.45)
-					f = 74.0
-				"muzzle":
-					var mz := Vector3(c.x, c.y, box.position.z + minf(box.size.z * 0.12, 0.12))
-					pos = mz + Vector3(0.22, 0.09, -0.18)
-					look = mz
-					f = 50.0
-				"sightline":
-					var rp := rear.global_position
-					pos = rp + Vector3(0, 0, 0.25)
-					look = front.global_position
-					f = 30.0
-				"sightq":
-					var mid := (rear.global_position + front.global_position) * 0.5
-					var span := maxf(rear.global_position.distance_to(front.global_position), 0.08)
-					pos = mid + Vector3(0.9, 0.45, 0.35).normalized() * span * 1.6
-					look = mid
-					f = 40.0
-			cam.fov = f
-			cam.global_position = pos
-			cam.look_at(look)
-			for k in 6:
-				await process_frame
-			root.get_texture().get_image().save_png("%s/%s_%s.png" % [out, n, v])
-		m.queue_free()
-		await process_frame
-		print("RESULT ", n)
-	quit()
+
+
+func _load_model(dir: String, n: String) -> Node3D:
+	if dir.begins_with("/"):
+		var gd := GLTFDocument.new()
+		var gs := GLTFState.new()
+		if gd.append_from_file("%s/%s.glb" % [dir, n], gs) == OK:
+			return gd.generate_scene(gs) as Node3D
+		return null
+	var ps := load("%s/%s.glb" % [dir, n]) as PackedScene
+	return ps.instantiate() as Node3D if ps != null else null
+
+
+## Camera [position, look-at, fov] for one view of a model with bounds [param box].
+func _view(v: String, box: AABB, rear: Node3D, front: Node3D) -> Array:
+	var c := box.get_center()
+	var r := box.size.length() * 0.5
+	var pos := Vector3()
+	var look := c
+	var f := 40.0
+	var dist := r / tan(deg_to_rad(f * 0.5)) * 1.05
+	match v:
+		"side":
+			pos = c + Vector3(1, 0, 0) * dist
+		"q34":
+			pos = c + Vector3(0.75, 0.55, -0.9).normalized() * dist
+		"q34b":
+			pos = c + Vector3(-0.8, -0.35, 0.8).normalized() * dist
+		"detail":
+			pos = c + Vector3(0.30, 0.10, 0.0)
+			f = 50.0
+		"fp":
+			# hand-held: eye behind the stock, weapon low right of centre, in-game hands fov (~74 deg vertical)
+			pos = Vector3(c.x - 0.13, c.y + 0.13, box.end.z + 0.10)
+			look = Vector3(c.x - 0.04, c.y - 0.01, box.position.z + box.size.z * 0.45)
+			f = 74.0
+		"muzzle":
+			var mz := Vector3(c.x, c.y, box.position.z + minf(box.size.z * 0.12, 0.12))
+			pos = mz + Vector3(0.22, 0.09, -0.18)
+			look = mz
+			f = 50.0
+		"sightline":
+			var rp := rear.global_position
+			pos = rp + Vector3(0, 0, 0.25)
+			look = front.global_position
+			f = 30.0
+		"sightq":
+			var mid := (rear.global_position + front.global_position) * 0.5
+			var span := maxf(rear.global_position.distance_to(front.global_position), 0.08)
+			pos = mid + Vector3(0.9, 0.45, 0.35).normalized() * span * 1.6
+			look = mid
+			f = 40.0
+	return [pos, look, f]
 
 
 func _bounds(n: Node3D) -> AABB:
