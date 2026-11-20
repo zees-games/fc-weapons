@@ -289,7 +289,7 @@ const MAG_BOXES := {
 	"sniper_ph.glb": [-0.12, -0.01, -0.17, 0.12, 0.04, -0.095],
 	"lmg.glb": [-0.2, -0.125, -0.31, 0.2, 0.10, -0.155],
 	"bullpup.glb": [],
-	"battle_rifle.glb": [],
+	"battle_rifle.glb": [-0.03, -0.095, -0.152, 0.03, -0.011, -0.07],
 }
 
 func _carve_magazine(art: AwWeaponVisual) -> void:

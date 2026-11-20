@@ -75,7 +75,8 @@ static func carve(weapon: Node3D, space: Node3D, to_space: Transform3D, box: AAB
 	mag.cast_shadow = best.cast_shadow
 	best.mesh = chosen[0]
 	best.get_parent().add_child(mag)
-	for s in mag.mesh.get_surface_count():
+	# The closing cap is a surface past the source's own (_add_cap), with no override slot there.
+	for s in mini(mag.mesh.get_surface_count(), best.get_surface_override_material_count()):
 		var override := best.get_surface_override_material(s)
 		if override != null:
 			mag.set_surface_override_material(s, override)
@@ -97,6 +98,12 @@ static func _split(mesh: Mesh, xf: Transform3D, box: AABB) -> Array:
 	var rest := ArrayMesh.new()
 	var mag := ArrayMesh.new()
 	var total := 0
+	# The carved triangles' corners and UVs, to close the opening where they were welded to the gun, and the surface
+	# holding most of them, whose material closes it.
+	var rim := PackedVector3Array()
+	var rim_uv := PackedVector2Array()
+	var most_at := -1
+	var most := 0
 	for s in mesh.get_surface_count():
 		var arrays := mesh.surface_get_arrays(s)
 		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -123,9 +130,96 @@ static func _split(mesh: Mesh, xf: Transform3D, box: AABB) -> Array:
 		total += take.size() / 3
 		_add_surface(rest, mesh, s, arrays, keep)
 		_add_surface(mag, mesh, s, arrays, take)
+		var uvs: Variant = arrays[Mesh.ARRAY_TEX_UV]
+		for v in take:
+			rim.append(verts[v])
+			rim_uv.append((uvs as PackedVector2Array)[v] if uvs is PackedVector2Array else Vector2.ZERO)
+		if take.size() > most:
+			most = take.size()
+			most_at = s
 	if total == 0:
 		return []
+	if most_at >= 0:
+		_add_cap(mag, mesh.surface_get_material(most_at), rim, rim_uv)
 	return [rest, mag, total]
+
+
+## Closes the opening of a carved magazine. It was welded to the gun there, so the model has no faces across it: out of
+## the well the magazine read as an open shell, its inside and far walls showing through its top as a bent, notched
+## sheet (Fatal Contact battle rifle reload, visual judge 2026-11-19). [param tris] are the carved triangles' corners,
+## three a triangle, with [param uvs]; the edges only one of them uses (corners welded by position, so UV seams do not
+## count) are the opening, chained into loops and each filled as a fan from its middle. Seated, it lies inside the gun.
+static func _add_cap(into: ArrayMesh, material: Material, tris: PackedVector3Array, uvs: PackedVector2Array) -> void:
+	var weld := func(p: Vector3) -> Vector3: return p.snapped(Vector3.ONE * 0.0001)
+	var uses := {}
+	var uv_at := {}
+	for t in range(0, tris.size() - 2, 3):
+		for k in 3:
+			var a: Vector3 = weld.call(tris[t + k])
+			var b: Vector3 = weld.call(tris[t + (k + 1) % 3])
+			uv_at[a] = uvs[t + k]
+			var edge := [a, b] if a < b else [b, a]
+			uses[edge] = int(uses.get(edge, 0)) + 1
+	var next := {}
+	for edge: Array in uses:
+		if uses[edge] != 1:
+			continue
+		for e in 2:
+			if not next.has(edge[e]):
+				next[edge[e]] = []
+			(next[edge[e]] as Array).append(edge[1 - e])
+	var verts := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var tex := PackedVector2Array()
+	var seen := {}
+	for start: Vector3 in next:
+		if seen.has(start):
+			continue
+		var loop: Array[Vector3] = [start]
+		seen[start] = true
+		var at := start
+		while true:
+			var step: Variant = null
+			for n: Vector3 in next[at]:
+				if not seen.has(n):
+					step = n
+					break
+			if step == null:
+				break
+			at = step
+			seen[at] = true
+			loop.append(at)
+		if loop.size() < 3:
+			continue
+		var mid := Vector3.ZERO
+		var mid_uv := Vector2.ZERO
+		for p in loop:
+			mid += p
+			mid_uv += uv_at[p]
+		mid /= loop.size()
+		mid_uv /= loop.size()
+		# Both windings, each lit from its own face: which side looks out depends on how the loop happened to run.
+		for side: float in [1.0, -1.0]:
+			for i in loop.size():
+				var a := loop[i]
+				var b := loop[(i + 1) % loop.size()]
+				if side < 0.0:
+					var swap := a
+					a = b
+					b = swap
+				verts.append_array(PackedVector3Array([mid, a, b]))
+				var face := Plane(mid, a, b).normal
+				normals.append_array(PackedVector3Array([face, face, face]))
+				tex.append_array(PackedVector2Array([mid_uv, uv_at[a], uv_at[b]]))
+	if verts.is_empty():
+		return
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = tex
+	into.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	into.surface_set_material(into.get_surface_count() - 1, material)
 
 
 static func _add_surface(into: ArrayMesh, from: Mesh, s: int, arrays: Array, idx: PackedInt32Array) -> void:

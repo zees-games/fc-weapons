@@ -520,6 +520,10 @@ func advance(delta: float) -> void:
 
 ## Follows the support hand while it has the magazine: out of the well at a quarter of the cycle, down to the belt and
 ## back up with the fresh one, seated at three quarters.
+##
+## [b]In the hand, not under the gun.[/b] Dropped straight down 28 cm from the well, the magazine hung in the air
+## beside the hand that was meant to be holding it (a watcher's reload read as a magazine floating at knee height).
+## Its middle goes to the support hand's point as the hand leaves the well.
 func _move_magazine() -> void:
 	if _mag == null or not is_instance_valid(_mag):
 		return
@@ -528,7 +532,9 @@ func _move_magazine() -> void:
 	if f < 0.25 or f >= 0.75 or not _reloading:
 		return
 	var at: Vector3 = AwWeaponPose.sample_keys(RELOAD_SUPPORT_KEYS, f)[0]
-	_mag.global_position += Vector3.DOWN * 0.28 * clampf(at.y, 0.0, 1.0)
+	var mesh := _mag as MeshInstance3D
+	var middle := _mag.global_transform * (mesh.mesh.get_aabb().get_center() if mesh != null and mesh.mesh != null else Vector3.ZERO)
+	_mag.global_position += (_support_world() - middle) * smoothstep(0.0, 0.3, clampf(at.y, 0.0, 1.0))
 
 
 ## Metres the gun must be pulled back for a wall [param hit] away from a ray that starts [param arm] behind the hand (INF for none).
