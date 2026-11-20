@@ -7,7 +7,7 @@ srcs, dst = args[:-1], args[-1]
 # name -> (source file, scale, quarter turns about up so the muzzle ends at -Z, grip point in the source's glTF frame or None to keep its origin)
 M = {'pistol': ('pew.glb', 1.35, 1, None), 'smg': ('mac10.glb', 1.15, 1, None), 'rifle': ('ak47.glb', 1.15, 1, None), 'carbine': ('ak47variant.glb', 1.15, 1, None),
      'sniper_rifle': ('awp.glb', 1.0, 1, None), 'pump_shotgun': ('shotgun.glb', 1.4, 1, None), 'rocket_launcher': ('rocketlaucher.glb', 1.0, 1, None),
-     'rocket_launcher_alt': ('rocketlaunchervariant.glb', 1.0, 1, None), 'quad_rocket_launcher': ('quadrocket.glb', 1.0, -1, None),
+     'rocket_launcher_alt': ('rocketlaunchervariant.glb', 1.0, 1, None), 'quad_rocket_launcher': ('quadrocket.glb', 1.0, 1, None),
      'frag_grenade': ('nade_low.glb', 1.0, 0, None), 'frag_grenade_alt': ('nadevariant_low.glb', 1.0, 0, None), 'flash_grenade': ('flashbang_low.glb', 1.0, 0, None),
      'smoke_grenade': ('smoke_low.glb', 1.0, 0, None), 'incendiary_grenade': ('incendiary_low.glb', 1.0, 0, None), 'ammo_box': ('ammobox_low.glb', 1.0, 0, None),
      'round_pistol': ('bulletPEW.glb', 1.0, 0, None), 'round_rifle': ('bullet1.glb', 1.0, 0, None), 'round_shell': ('bulletshotgun.glb', 1.0, 0, None), 'round_sniper': ('bulletsniper.glb', 1.0, 0, None),
