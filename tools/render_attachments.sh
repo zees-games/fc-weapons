@@ -3,4 +3,4 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 out=$1; shift
-xvfb-run -a -s "-screen 0 960x540x24" timeout 900 godot --path . --resolution 960x540 --script tools/render_attachments.gd -- "$out" "$@" 2>&1 | grep -E "RESULT|ERROR|SCRIPT" | head -60
+xvfb-run -a -s "-screen 0 1600x900x24" timeout 900 godot --path . --resolution 1600x900 --script tools/render_attachments.gd -- "$out" "$@" 2>&1 | grep -E "RESULT|ERROR|SCRIPT" | head -60
