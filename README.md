@@ -13,35 +13,37 @@ Models come from CC0 packs, baked to one contract: origin at the grip, muzzle to
 Pack id: `gamemann/fc-weapons` (it was `gamemann/arena-weapons` up to v1.3.x). The addon directory is `addons/fc_weapons` (it was `addons/arena_weapons` up to API level 31) and its classes still start with `Aw`.
 
 <!-- gen_readme:summary -->
-| | Weapon | Class | Damage | Rate |
+| | Weapon | Class | Damage | Fire rate |
 | --- | --- | --- | --- | --- |
-| <a href="#knife"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/knife_thumb.webp" width="160" alt="Knife"></a> | [Knife](#knife) | Melee | 45 | 148 rpm |
-| <a href="#pistol"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/pistol_thumb.webp" width="160" alt="Pistol"></a> | [Pistol](#pistol) | Pistol | 20 | 384 rpm |
-| <a href="#revolver"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/revolver_thumb.webp" width="160" alt="Revolver"></a> | [Revolver](#revolver) | Pistol | 45 | 148 rpm |
+| <a href="#knife"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/knife_thumb.webp" width="160" alt="Knife"></a> | [Knife](#knife) | Melee | 45 | one swing every 0.41 s |
+| <a href="#pistol"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/pistol_thumb.webp" width="160" alt="Pistol"></a> | [Pistol](#pistol) | Pistol | 20 | one shot every 0.16 s |
+| <a href="#revolver"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/revolver_thumb.webp" width="160" alt="Revolver"></a> | [Revolver](#revolver) | Pistol | 45 | one shot every 0.41 s |
 | <a href="#machine-pistol"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/machine_pistol_thumb.webp" width="160" alt="Machine Pistol"></a> | [Machine Pistol](#machine-pistol) | Pistol | 13 | 960 rpm |
-| <a href="#derringer"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/derringer_thumb.webp" width="160" alt="Derringer"></a> | [Derringer](#derringer) | Pistol | 62 | 89 rpm |
+| <a href="#derringer"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/derringer_thumb.webp" width="160" alt="Derringer"></a> | [Derringer](#derringer) | Pistol | 62 | one shot every 0.67 s |
 | <a href="#smg"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/smg_thumb.webp" width="160" alt="SMG"></a> | [SMG](#smg) | SMG | 16 | 768 rpm |
 | <a href="#carbine"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/carbine_thumb.webp" width="160" alt="Carbine"></a> | [Carbine](#carbine) | Assault rifle | 21 | 640 rpm |
 | <a href="#assault-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/rifle_thumb.webp" width="160" alt="Assault Rifle"></a> | [Assault Rifle](#assault-rifle) | Assault rifle | 23 | 640 rpm |
 | <a href="#bullpup"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/bullpup_thumb.webp" width="160" alt="Bullpup"></a> | [Bullpup](#bullpup) | Assault rifle | 20 | 768 rpm |
-| <a href="#battle-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/battle_rifle_thumb.webp" width="160" alt="Battle Rifle"></a> | [Battle Rifle](#battle-rifle) | Battle rifle | 36 | 295 rpm |
-| <a href="#burst-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/burst_rifle_thumb.webp" width="160" alt="Burst Rifle"></a> | [Burst Rifle](#burst-rifle) | Burst rifle | 24 | 240 rpm |
-| <a href="#shotgun"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/shotgun_thumb.webp" width="160" alt="Shotgun"></a> | [Shotgun](#shotgun) | Shotgun | 12 x 9 | 75 rpm |
-| <a href="#drum-shotgun"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/drum_shotgun_thumb.webp" width="160" alt="Drum Shotgun"></a> | [Drum Shotgun](#drum-shotgun) | Shotgun | 8 x 7 | 192 rpm |
-| <a href="#marksman-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/marksman_thumb.webp" width="160" alt="Marksman Rifle"></a> | [Marksman Rifle](#marksman-rifle) | Marksman rifle | 58 | 183 rpm |
+| <a href="#battle-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/battle_rifle_thumb.webp" width="160" alt="Battle Rifle"></a> | [Battle Rifle](#battle-rifle) | Battle rifle | 36 | one shot every 0.2 s |
+| <a href="#burst-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/burst_rifle_thumb.webp" width="160" alt="Burst Rifle"></a> | [Burst Rifle](#burst-rifle) | Burst rifle | 24 | one shot every 0.25 s |
+| <a href="#shotgun"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/shotgun_thumb.webp" width="160" alt="Shotgun"></a> | [Shotgun](#shotgun) | Shotgun | 12 x 9 | one shot every 0.8 s |
+| <a href="#drum-shotgun"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/drum_shotgun_thumb.webp" width="160" alt="Drum Shotgun"></a> | [Drum Shotgun](#drum-shotgun) | Shotgun | 8 x 7 | one shot every 0.31 s |
+| <a href="#marksman-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/marksman_thumb.webp" width="160" alt="Marksman Rifle"></a> | [Marksman Rifle](#marksman-rifle) | Marksman rifle | 58 | one shot every 0.33 s |
 | <a href="#light-machine-gun"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/lmg_thumb.webp" width="160" alt="Light Machine Gun"></a> | [Light Machine Gun](#light-machine-gun) | LMG | 21 | 768 rpm |
-| <a href="#sniper-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/sniper_thumb.webp" width="160" alt="Sniper Rifle"></a> | [Sniper Rifle](#sniper-rifle) | Sniper rifle | 118 | 45 rpm |
+| <a href="#sniper-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/sniper_thumb.webp" width="160" alt="Sniper Rifle"></a> | [Sniper Rifle](#sniper-rifle) | Sniper rifle | 118 | one shot every 1.33 s |
 | <a href="#minigun"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/minigun_thumb.webp" width="160" alt="Minigun"></a> | [Minigun](#minigun) | Heavy | 11 | 1280 rpm |
-| <a href="#rocket-launcher"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/launcher_thumb.webp" width="160" alt="Rocket Launcher"></a> | [Rocket Launcher](#rocket-launcher) | Launcher | 32 | 70 rpm |
-| <a href="#quad-rocket-launcher"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/quad_launcher_thumb.webp" width="160" alt="Quad Rocket Launcher"></a> | [Quad Rocket Launcher](#quad-rocket-launcher) | Launcher | 24 | 240 rpm |
-| <a href="#grenade-launcher"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/grenade_launcher_thumb.webp" width="160" alt="Grenade Launcher"></a> | [Grenade Launcher](#grenade-launcher) | Launcher | 20 | 89 rpm |
+| <a href="#rocket-launcher"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/launcher_thumb.webp" width="160" alt="Rocket Launcher"></a> | [Rocket Launcher](#rocket-launcher) | Launcher | 32 | one shot every 0.86 s |
+| <a href="#quad-rocket-launcher"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/quad_launcher_thumb.webp" width="160" alt="Quad Rocket Launcher"></a> | [Quad Rocket Launcher](#quad-rocket-launcher) | Launcher | 24 | one shot every 0.25 s |
+| <a href="#grenade-launcher"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/grenade_launcher_thumb.webp" width="160" alt="Grenade Launcher"></a> | [Grenade Launcher](#grenade-launcher) | Launcher | 20 | one shot every 0.67 s |
 | <a href="#plasma-beamer"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/beamer_thumb.webp" width="160" alt="Plasma Beamer"></a> | [Plasma Beamer](#plasma-beamer) | Energy | 9 | 960 rpm |
-| <a href="#rail-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/charge_rifle_thumb.webp" width="160" alt="Rail Rifle"></a> | [Rail Rifle](#rail-rifle) | Energy | 105 | 89 rpm |
-| <a href="#frag-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/frag_thumb.webp" width="160" alt="Frag Grenade"></a> | [Frag Grenade](#frag-grenade) | Grenade | 115 splash | 60 rpm |
-| <a href="#sticky-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/sticky_thumb.webp" width="160" alt="Sticky Grenade"></a> | [Sticky Grenade](#sticky-grenade) | Grenade | 135 splash | 60 rpm |
-| <a href="#flashbang"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/flash_thumb.webp" width="160" alt="Flashbang"></a> | [Flashbang](#flashbang) | Grenade | - | 60 rpm |
-| <a href="#smoke-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/smoke_thumb.webp" width="160" alt="Smoke Grenade"></a> | [Smoke Grenade](#smoke-grenade) | Grenade | - | 60 rpm |
-| <a href="#incendiary-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/incendiary_thumb.webp" width="160" alt="Incendiary Grenade"></a> | [Incendiary Grenade](#incendiary-grenade) | Grenade | 25 splash | 60 rpm |
+| <a href="#rail-rifle"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/charge_rifle_thumb.webp" width="160" alt="Rail Rifle"></a> | [Rail Rifle](#rail-rifle) | Energy | 105 | one shot every 0.67 s |
+| <a href="#frag-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/frag_thumb.webp" width="160" alt="Frag Grenade"></a> | [Frag Grenade](#frag-grenade) | Grenade | 115 splash | one throw every 1 s |
+| <a href="#sticky-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/sticky_thumb.webp" width="160" alt="Sticky Grenade"></a> | [Sticky Grenade](#sticky-grenade) | Grenade | 135 splash | one throw every 1 s |
+| <a href="#flashbang"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/flash_thumb.webp" width="160" alt="Flashbang"></a> | [Flashbang](#flashbang) | Grenade | - | one throw every 1 s |
+| <a href="#smoke-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/smoke_thumb.webp" width="160" alt="Smoke Grenade"></a> | [Smoke Grenade](#smoke-grenade) | Grenade | - | one throw every 1 s |
+| <a href="#incendiary-grenade"><img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/incendiary_thumb.webp" width="160" alt="Incendiary Grenade"></a> | [Incendiary Grenade](#incendiary-grenade) | Grenade | 25 splash | one throw every 1 s |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 <!-- /gen_readme:summary -->
 
 ## Using it
@@ -114,12 +116,14 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 45 (strike) |
-| Swing rate | 148 rpm |
+| Fire rate | one swing every 0.41 s |
 | Fire modes | semi |
 | Reach | 1.9 m |
 | Swing arc | 24 deg |
 | Draw time | 0.16 s |
 | Weight | 0.4 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Pistol
 
@@ -130,7 +134,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 20 (dart) |
-| Fire rate | 384 rpm |
+| Fire rate | one shot every 0.16 s |
 | Fire modes | semi |
 | Magazine | 15 + 60 reserve |
 | Reload | 1.59 s |
@@ -141,6 +145,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.22 s |
 | Weight | 1 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Revolver
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/revolver.webp" width="1280" alt="Revolver, studio render">
@@ -150,7 +156,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 45 (dart) |
-| Fire rate | 148 rpm |
+| Fire rate | one shot every 0.41 s |
 | Fire modes | semi |
 | Magazine | 6 + 36 reserve |
 | Reload | 2.41 s |
@@ -160,6 +166,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 140 m |
 | Draw time | 0.3 s |
 | Weight | 1.2 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Machine Pistol
 
@@ -182,6 +190,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.25 s |
 | Weight | 1.4 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Derringer
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/derringer.webp" width="1280" alt="Derringer, studio render">
@@ -191,7 +201,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 62 (dart) |
-| Fire rate | 89 rpm |
+| Fire rate | one shot every 0.67 s |
 | Fire modes | semi |
 | Magazine | 2 + 12 reserve |
 | Reload | 2 s |
@@ -200,6 +210,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 18 m |
 | Draw time | 0.19 s |
 | Weight | 0.5 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### SMG
 
@@ -222,6 +234,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.27 s |
 | Weight | 2.8 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Carbine
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/carbine.webp" width="1280" alt="Carbine, studio render">
@@ -242,6 +256,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 140 m |
 | Draw time | 0.3 s |
 | Weight | 3.4 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Assault Rifle
 
@@ -264,6 +280,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.31 s |
 | Weight | 3.8 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Bullpup
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/bullpup.webp" width="1280" alt="Bullpup, studio render">
@@ -285,6 +303,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.34 s |
 | Weight | 4.2 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Battle Rifle
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/battle_rifle.webp" width="1280" alt="Battle Rifle, studio render">
@@ -294,7 +314,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 36 (dart) |
-| Fire rate | 295 rpm |
+| Fire rate | one shot every 0.2 s |
 | Fire modes | semi |
 | Magazine | 20 + 80 reserve |
 | Reload | 2.3 s |
@@ -305,6 +325,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.36 s |
 | Weight | 4.4 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Burst Rifle
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/burst_rifle.webp" width="1280" alt="Burst Rifle, studio render">
@@ -314,7 +336,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 24 (dart) |
-| Fire rate | 240 rpm |
+| Fire rate | one shot every 0.25 s |
 | Fire modes | burst, semi, auto |
 | Burst | 3 rounds |
 | Magazine | 30 + 90 reserve |
@@ -326,6 +348,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.3 s |
 | Weight | 3.6 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Shotgun
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/shotgun.webp" width="1280" alt="Shotgun, studio render">
@@ -335,7 +359,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 12 x 9 pellets (dart) |
-| Fire rate | 75 rpm |
+| Fire rate | one shot every 0.8 s |
 | Fire modes | semi |
 | Magazine | 8 + 32 reserve |
 | Reload | 0.42 s per round |
@@ -344,6 +368,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 26 m |
 | Draw time | 0.38 s |
 | Weight | 3.6 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Drum Shotgun
 
@@ -354,7 +380,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 8 x 7 pellets (dart) |
-| Fire rate | 192 rpm |
+| Fire rate | one shot every 0.31 s |
 | Fire modes | auto, semi |
 | Magazine | 20 + 40 reserve |
 | Reload | 4 s |
@@ -363,6 +389,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 20 m |
 | Draw time | 0.42 s |
 | Weight | 4.6 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Marksman Rifle
 
@@ -373,7 +401,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 58 (dart) |
-| Fire rate | 183 rpm |
+| Fire rate | one shot every 0.33 s |
 | Fire modes | semi |
 | Magazine | 10 + 40 reserve |
 | Reload | 2.59 s |
@@ -383,6 +411,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 400 m |
 | Draw time | 0.45 s |
 | Weight | 5 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Light Machine Gun
 
@@ -404,6 +434,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.7 s |
 | Weight | 7 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Sniper Rifle
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/sniper.webp" width="1280" alt="Sniper Rifle, studio render">
@@ -413,7 +445,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Damage | 118 (dart) |
-| Fire rate | 45 rpm |
+| Fire rate | one shot every 1.33 s |
 | Fire modes | semi |
 | Magazine | 5 + 25 reserve |
 | Reload | 3.2 s |
@@ -422,6 +454,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 1000 m |
 | Draw time | 0.7 s |
 | Weight | 6 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Minigun
 
@@ -441,6 +475,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 1.09 s |
 | Weight | 9 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Rocket Launcher
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/launcher.webp" width="1280" alt="Rocket Launcher, studio render">
@@ -451,7 +487,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | --- | --- |
 | Damage | 32 (blast) |
 | Splash | 88 within 5.5 m |
-| Fire rate | 70 rpm |
+| Fire rate | one shot every 0.86 s |
 | Fire modes | semi |
 | Magazine | 1 + 12 reserve |
 | Reload | 2.8 s |
@@ -459,6 +495,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Projectile speed | 44 m/s |
 | Draw time | 0.5 s |
 | Weight | 6.5 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Quad Rocket Launcher
 
@@ -470,7 +508,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | --- | --- |
 | Damage | 24 (blast) |
 | Splash | 62 within 3.6 m |
-| Fire rate | 240 rpm |
+| Fire rate | one shot every 0.25 s |
 | Fire modes | semi |
 | Magazine | 4 + 8 reserve |
 | Reload | 4.2 s |
@@ -479,6 +517,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Projectile speed | 44 m/s |
 | Draw time | 0.5 s |
 | Weight | 8 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Grenade Launcher
 
@@ -490,7 +530,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | --- | --- |
 | Damage | 20 (blast) |
 | Splash | 95 within 4 m |
-| Fire rate | 89 rpm |
+| Fire rate | one shot every 0.67 s |
 | Fire modes | semi |
 | Magazine | 6 + 18 reserve |
 | Reload | 3.41 s |
@@ -498,6 +538,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Projectile speed | 28 m/s |
 | Draw time | 0.5 s |
 | Weight | 5.5 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Plasma Beamer
 
@@ -514,6 +556,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Draw time | 0.41 s |
 | Weight | 6 kg |
 
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
+
 ### Rail Rifle
 
 <img src="https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/img/charge_rifle.webp" width="1280" alt="Rail Rifle, studio render">
@@ -525,7 +569,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Damage | 105 (energy) |
 | Uncharged damage | 33 % |
 | Full charge | 1.09 s |
-| Fire rate | 89 rpm |
+| Fire rate | one shot every 0.67 s |
 | Fire modes | charge |
 | Magazine | 4 + 24 reserve |
 | Reload | 2.59 s |
@@ -534,6 +578,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Range | 500 m |
 | Draw time | 0.5 s |
 | Weight | 6 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Frag Grenade
 
@@ -544,7 +590,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Splash | 115 within 5.2 m |
-| Throw rate | 60 rpm |
+| Fire rate | one throw every 1 s |
 | Fire modes | charge |
 | Carried | 2 (max 4) |
 | Recoil | 0.4 deg up, 0.15 deg side |
@@ -552,6 +598,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Fuse | 3 s |
 | Draw time | 0.34 s |
 | Weight | 0.4 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Sticky Grenade
 
@@ -562,7 +610,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Splash | 135 within 4 m |
-| Throw rate | 60 rpm |
+| Fire rate | one throw every 1 s |
 | Fire modes | charge |
 | Carried | 2 (max 4) |
 | Recoil | 0.4 deg up, 0.15 deg side |
@@ -570,6 +618,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Fuse | 2.2 s |
 | Draw time | 0.34 s |
 | Weight | 0.4 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Flashbang
 
@@ -579,7 +629,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 
 | Default | |
 | --- | --- |
-| Throw rate | 60 rpm |
+| Fire rate | one throw every 1 s |
 | Fire modes | charge |
 | Carried | 2 (max 4) |
 | Recoil | 0.4 deg up, 0.15 deg side |
@@ -587,6 +637,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Fuse | 1.59 s |
 | Draw time | 0.34 s |
 | Weight | 0.3 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Smoke Grenade
 
@@ -596,7 +648,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 
 | Default | |
 | --- | --- |
-| Throw rate | 60 rpm |
+| Fire rate | one throw every 1 s |
 | Fire modes | charge |
 | Carried | 2 (max 4) |
 | Recoil | 0.4 deg up, 0.15 deg side |
@@ -604,6 +656,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Fuse | 1.2 s |
 | Draw time | 0.34 s |
 | Weight | 0.3 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 
 ### Incendiary Grenade
 
@@ -614,7 +668,7 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Default | |
 | --- | --- |
 | Splash | 25 within 3 m |
-| Throw rate | 60 rpm |
+| Fire rate | one throw every 1 s |
 | Fire modes | charge |
 | Carried | 2 (max 4) |
 | Recoil | 0.4 deg up, 0.15 deg side |
@@ -622,6 +676,8 @@ Open `examples/aw_selftest.tscn` headless in Godot for the main suite, and `exam
 | Fuse | 3 s |
 | Draw time | 0.34 s |
 | Weight | 0.4 kg |
+
+*Rates are the time between shots and ignore reloading; rpm is the cyclic rate of an automatic weapon.*
 <!-- /gen_readme:weapons -->
 
 <!-- gen_readme:quality -->
