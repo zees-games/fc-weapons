@@ -1,0 +1,91 @@
+# Words for the generated parts of README.md (tools/gen_readme.py). Numbers never go here: every stat in the
+# README is read from weapons/<id>.tres and cfg/addons/fc_weapons/weapon/<id>.yml (ticks at 64 Hz).
+# order: the README order, by slot (missing ids are appended alphabetically). class: the summary's Class column.
+id_prefix: ""
+summary_before: "## Using it"
+weapons_before: "## Credits"
+order: [knife, pistol, revolver, machine_pistol, derringer, smg, carbine, rifle, bullpup, battle_rifle,
+  burst_rifle, shotgun, drum_shotgun, marksman, lmg, sniper, minigun, launcher, quad_launcher, grenade_launcher,
+  beamer, charge_rifle, frag, sticky, flash, smoke, incendiary]
+weapons:
+  knife:
+    class: Melee
+    blurb: Always in hand and always ready. A quick stab with a short reach that rewards getting behind someone.
+  pistol:
+    class: Pistol
+    blurb: The dependable sidearm. Accurate, quick to draw and fast to reload, with enough rounds to finish what the main gun started.
+  revolver:
+    class: Pistol
+    blurb: Six heavy rounds and a stiff kick. Two clean hits drop most targets, so every trigger pull counts.
+  machine_pistol:
+    class: Pistol
+    blurb: A pocket bullet hose. The fastest cyclic rate in the pack outside the minigun, with burst and semi for when spraying is not the answer.
+  derringer:
+    class: Pistol
+    blurb: Two barrels, two shots, big damage at arm's length. A last-ditch backup that wins a corner fight and little else.
+  smg:
+    class: SMG
+    blurb: Light, fast and steady on the move. The pick for clearing rooms and running between them.
+  carbine:
+    class: Assault rifle
+    blurb: A short rifle that handles like an SMG and still reaches across a map. Auto, semi and burst.
+  rifle:
+    class: Assault rifle
+    blurb: The all-rounder. A full 30-round magazine, a clean recoil pattern and the range to hold a long lane.
+  bullpup:
+    class: Assault rifle
+    blurb: A compact bullpup with an SMG's fire rate and a rifle's magazine. Tight up close, controllable at range.
+  battle_rifle:
+    class: Battle rifle
+    blurb: Semi-automatic and hard hitting. Three hits finish most targets, and it holds its accuracy out to 200 m.
+  burst_rifle:
+    class: Burst rifle
+    blurb: Three-round bursts by default, with light recoil that keeps the whole burst on target at mid range.
+  shotgun:
+    class: Shotgun
+    blurb: A pump gun loaded a shell at a time. Nine pellets at close range end most arguments in one shot.
+  drum_shotgun:
+    class: Shotgun
+    blurb: A fully automatic shotgun with a 20-round drum. Devastating in a doorway, slow to reload once it runs dry.
+  marksman:
+    class: Marksman rifle
+    blurb: A semi-auto precision rifle for players who want sniper reach without giving up follow-up shots.
+  lmg:
+    class: LMG
+    blurb: A 100-round belt and a bipod-steady crouched spread. Lock down a lane and keep the trigger held.
+  sniper:
+    class: Sniper rifle
+    blurb: One shot, one kill at any range, provided you are standing still. It punishes movement hard.
+  minigun:
+    class: Heavy
+    blurb: Spins up to the highest fire rate in the pack and never needs a reload. Slow to draw and hard to aim on the run.
+  launcher:
+    class: Launcher
+    blurb: A single-shot rocket launcher with a wide blast. Aim at the feet and let the splash do the work.
+  quad_launcher:
+    class: Launcher
+    blurb: Four rockets in quick succession. Smaller blasts than the single launcher, but far more of them.
+  grenade_launcher:
+    class: Launcher
+    blurb: Lobs bouncing grenades in an arc. Clears corners and covers ground you cannot see.
+  beamer:
+    class: Energy
+    blurb: A continuous plasma beam. Low damage per tick at a very high rate, so it melts anything you can keep it on.
+  charge_rifle:
+    class: Energy
+    blurb: Hold to charge, release to fire a rail slug that crosses the map instantly. A full charge hits harder than the sniper.
+  frag:
+    class: Grenade
+    blurb: The classic stick grenade. Cook it, throw it and clear the room.
+  sticky:
+    class: Grenade
+    blurb: Sticks to whatever it hits, then detonates with the biggest blast of any grenade in the pack.
+  flash:
+    class: Grenade
+    blurb: Blinds everyone facing it. Throw it ahead of a push and walk in while they recover.
+  smoke:
+    class: Grenade
+    blurb: Pops a thick smoke screen to cut a sightline or cover a crossing.
+  incendiary:
+    class: Grenade
+    blurb: Sets an area on fire. Low damage on impact, but nobody wants to stand in it.
