@@ -1,3 +1,5 @@
+![FC Weapons banner](https://raw.githubusercontent.com/zees-games/fc-weapons/main/docs/banner.png)
+
 Twenty-seven weapons for [Fatal Contact](https://github.com/zees-games/game-fatal-contact) (FC), from a knife and four sidearms to a minigun, a rail rifle and five kinds of grenade. Each has its own 3D model, sounds and a tuned profile, and every number below is a default read straight from the pack's data that a game or server can change without touching the pack.
 
 ### In GameSpice and Fatal Contact
