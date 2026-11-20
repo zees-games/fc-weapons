@@ -71,6 +71,16 @@ func _attachments() -> void:
 	dot.fit(DotWeaponAttachment.MOUNT_OPTIC, &"red_dot")
 	dressed = Dress.apply(gun, dot, art.model_forward, dressed)
 	_check("a red dot swaps in unscoped at its own zoom", dressed.parts.size() == 1 and not dressed.scoped and is_equal_approx(dressed.zoom, 0.83))
+	var skew := PackedStringArray()
+	for optic: StringName in [&"red_dot", &"holo", &"prism_3x", &"scope_6x"]:
+		var one := DotWeaponFitting.make(rifle.id)
+		one.fit(DotWeaponAttachment.MOUNT_OPTIC, optic)
+		var d := Dress.apply(gun, one, art.model_forward, {})
+		var ray: Vector3 = (d.line["front"] as Vector3) - (d.line["rear"] as Vector3)
+		var off := absf(ray.x) + absf(ray.y)
+		if d.line.is_empty() or ray.length() < 0.001 or off > 0.02 * absf(ray.z):
+			skew.append("%s %.3f" % [optic, off / maxf(absf(ray.z), 0.0001)])
+	_check("every optic's sight line runs along the bore, not skewed by its lens (%s)" % [", ".join(skew)], skew.is_empty())
 	gun.free()
 	_end()
 
