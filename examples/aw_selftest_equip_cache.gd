@@ -34,9 +34,31 @@ func _look(view: AwViewModel) -> Array:
 		view._attachments.size(), view._magazine != null, view._carved != null, view._rear_rings.size()]
 
 
+## Nothing builds up over many switches; a limit frees the oldest.
+func _limit_checks(view: AwViewModel, a: AwWeaponVisual, b: AwWeaponVisual) -> void:
+	var ids: Array[StringName] = [&"rifle", &"sniper", &"pistol"]
+	await suite.get_tree().process_frame
+	var base := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	for i in 30:
+		view.equip(_art(ids[i % ids.size()]))
+	await suite.get_tree().process_frame
+	var settled := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	for i in 30:
+		view.equip(_art(ids[i % ids.size()]))
+	await suite.get_tree().process_frame
+	var after := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	suite._check("30 more switches among three weapons add no nodes (%d -> %d -> %d)" % [base, settled, after], after == settled and view.equip_cache_size() == 2)
+	var limited := _rig(true, 1)
+	limited.equip(a)
+	var gone := limited.weapon_node()
+	limited.equip(b)
+	limited.equip(_art(&"pistol"))
+	suite._check("past the limit the oldest kept weapon is freed (1 kept)", not is_instance_valid(gone) and limited.equip_cache_size() == 1)
+	limited.queue_free()
+
+
 func run() -> void:
 	suite._begin("a view model keeps the weapons it put away: A, B, A is the same model, as built, with nothing leaked")
-	var ids: Array[StringName] = [&"rifle", &"sniper", &"pistol"]
 	var view := _rig(true)
 	var a := _art(&"rifle")
 	var b := _art(&"sniper")
@@ -77,25 +99,7 @@ func run() -> void:
 	rig_plain.queue_free()
 	fitted_ref.queue_free()
 
-	# Nothing builds up over many switches; a limit frees the oldest.
-	await suite.get_tree().process_frame
-	var base := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
-	for i in 30:
-		view.equip(_art(ids[i % ids.size()]))
-	await suite.get_tree().process_frame
-	var settled := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
-	for i in 30:
-		view.equip(_art(ids[i % ids.size()]))
-	await suite.get_tree().process_frame
-	var after := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
-	suite._check("30 more switches among three weapons add no nodes (%d -> %d -> %d)" % [base, settled, after], after == settled and view.equip_cache_size() == 2)
-	var limited := _rig(true, 1)
-	limited.equip(a)
-	var gone := limited.weapon_node()
-	limited.equip(b)
-	limited.equip(_art(&"pistol"))
-	suite._check("past the limit the oldest kept weapon is freed (1 kept)", not is_instance_valid(gone) and limited.equip_cache_size() == 1)
-	limited.queue_free()
+	await _limit_checks(view, a, b)
 
 	# Off, it builds each time, as before.
 	var off := _rig(false)

@@ -121,9 +121,8 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> DotResult:
 		model_ready.emit(_id, null)
 		return DotResult.success(null)
 
-	_reused = false
-	if reuse and cache_equips and _unstow(_equip_key(art)):
-		_reused = true
+	_reused = reuse and cache_equips and _unstow(_equip_key(art))
+	if _reused:
 		return DotResult.success(_weapon)
 
 	_weapon = AwModelCache.instantiate(art.model_path)
@@ -158,8 +157,7 @@ func set_fitting(fitting: DotWeaponFitting) -> void:
 	if _weapon == null:
 		return
 	# The kept build is of the fitting it was made with: refitted in hand, it is no longer one to keep.
-	if _build_key != "" and _equip_key(_art) != _build_key:
-		_build_key = ""
+	_build_key = "" if _equip_key(_art) != _build_key else _build_key
 	_dress()
 	_muzzle = _measure_muzzle(_art)
 	if _sight != null:
