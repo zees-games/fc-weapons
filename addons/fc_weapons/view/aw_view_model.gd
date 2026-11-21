@@ -33,7 +33,6 @@ var _charge_fx: Node3D = null
 ## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
 ## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
 const REAR_RING_SHOW_AIM := 0.35
-var _rear_rings: Array[Node3D] = []
 
 var scope_arms_hide_override: float = -1.0
 
@@ -58,20 +57,23 @@ var scope_arms_hide_override: float = -1.0
 @export_range(0.0, 3.0, 0.05) var feel: float = 1.0
 
 
-## Draws [param art]'s weapon, replacing whatever was in hand; rebuilt, not hidden, as every model in the tree is culled per player.
+## Draws [param art]'s weapon, replacing whatever was in hand; a model built before is put back from the kept ones ([member cache_equips]); every model in the tree is culled per player, so the old one leaves the tree rather than hiding.
 func equip(art: AwWeaponVisual) -> DotResult:
 	_forget_mesh_walks()
-	var head := _equip_head(art)
+	var head := _equip_head(art, true)
 	if not head.ok or head.value_or(null) == null:
 		return head
-	for stage in EQUIP_STAGES:
-		_equip_stage(_art, stage)
+	if not _reused:
+		for stage in EQUIP_STAGES:
+			_equip_stage(_art, stage)
+		_note_built(_art)
 	model_ready.emit(_id, _weapon)
 	return DotResult.success(null)
 
 
 ## The part of [method equip] before its stages: the pose, the holder and the model load. Its value is the weapon node, or null for fists.
-func _equip_head(art: AwWeaponVisual) -> DotResult:
+## With [param reuse], a weapon kept from an earlier equip of the same art is put back whole ([member _reused]), its stages already run.
+func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> DotResult:
 	_build_structure()
 
 	if art == null:
@@ -119,6 +121,11 @@ func _equip_head(art: AwWeaponVisual) -> DotResult:
 		model_ready.emit(_id, null)
 		return DotResult.success(null)
 
+	_reused = false
+	if reuse and cache_equips and _unstow(_equip_key(art)):
+		_reused = true
+		return DotResult.success(_weapon)
+
 	_weapon = AwModelCache.instantiate(art.model_path)
 
 	if _weapon == null:
@@ -150,6 +157,9 @@ func set_fitting(fitting: DotWeaponFitting) -> void:
 	_fitting = fitting.duplicate_fitting() if fitting != null else null
 	if _weapon == null:
 		return
+	# The kept build is of the fitting it was made with: refitted in hand, it is no longer one to keep.
+	if _build_key != "" and _equip_key(_art) != _build_key:
+		_build_key = ""
 	_dress()
 	_muzzle = _measure_muzzle(_art)
 	if _sight != null:
@@ -749,7 +759,9 @@ func prewarm_step() -> bool:
 ## its materials made and its hand spans measured before the weapon is first drawn in play.
 ## Call it on a spare view model under a loading cover, one weapon a frame.
 func prewarm(art: AwWeaponVisual) -> void:
+	_prewarming = true
 	var _r := equip(art)
+	_prewarming = false
 	clear()
 	_warm_parts()
 

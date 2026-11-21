@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
-const CHECKS := 541
+const CHECKS := 550
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -57,6 +57,7 @@ func _ready() -> void:
 	_native_spread()
 	preload("aw_selftest_throw.gd").new(self).run()
 	preload("aw_selftest_lens.gd").new(self).run()
+	await preload("aw_selftest_equip_cache.gd").new(self).run()
 	await _finish()
 
 

@@ -65,7 +65,9 @@ extends RefCounted
 # 34: a boomerang's empty hand and its catch. AwWeaponRig.empty_hand_view (bare hands while a thrown weapon is out, and the
 #     draw back from the empty hand plays as a catch), AwViewModel.on_throw() / on_catch(), AwWeaponPose.catch() and
 #     its tunables catch_keys / catch_seconds. Additive.
-const LEVEL := 34
+# 35: AwViewModel keeps the weapons it puts away and puts them back on a switch (cache_equips, equip_cache_limit,
+#     equip_cache_size(), clear_equip_cache()). Looks the same; on by default. Additive.
+const LEVEL := 35
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. dot-weapon is checked by AwWeaponRig.setup(); dot-sim is optional (without it,

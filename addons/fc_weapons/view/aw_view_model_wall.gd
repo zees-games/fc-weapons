@@ -24,6 +24,8 @@ var _clip_left: float = 0.0
 ## of the gun hanging in the world for every parked killcam hand and hidden spare.
 func _notification(what: int) -> void:
 	match what:
+		NOTIFICATION_PREDELETE:
+			_equip_cache.clear()
 		NOTIFICATION_VISIBILITY_CHANGED, NOTIFICATION_DISABLED, NOTIFICATION_PAUSED, NOTIFICATION_EXIT_TREE, NOTIFICATION_PARENTED, NOTIFICATION_UNPARENTED:
 			if not _drawn_live():
 				_clip_left = 0.0

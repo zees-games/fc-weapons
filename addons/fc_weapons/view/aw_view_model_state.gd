@@ -15,6 +15,19 @@ var _weapon: Node3D = null
 var _magazine: Node3D = null
 var _attachments: Array[Node3D] = []
 var _sight: Node3D = null
+## Rear aperture ring nodes of the weapon in hand (see aw_view_model.gd).
+var _rear_rings: Array[Node3D] = []
+
+## Weapons put away, built and ready ([code]aw_equip_cache.gd[/code]); [member cache_equips] says whether switching keeps them.
+const EquipCache := preload("aw_equip_cache.gd")
+var _equip_cache := EquipCache.new()
+## The key the weapon in hand was built under, and what a fresh build of it looked like: set once [method equip] has built it all, "" otherwise (a prewarm, a half-built weapon).
+var _build_key := ""
+var _build_shape := {}
+## True while [method equip] has put a kept build back instead of making one.
+var _reused := false
+## True inside [method prewarm]: what it builds is dropped, not kept.
+var _prewarming := false
 
 ## The fitted attachments (what the rig was told) and what [code]aw_attachment_dress.gd[/code] drew for them.
 var _fitting: DotWeaponFitting = null

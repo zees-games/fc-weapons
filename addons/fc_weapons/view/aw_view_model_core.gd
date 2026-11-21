@@ -45,6 +45,20 @@ var _belt: Node3D = null
 ## Which skin the hands wear. Passed to [AwViewArms] when this builds its own.
 @export_file("*.png", "*.jpg", "*.webp") var arm_skin: String = ""
 
+## Keeps the built models of weapons put away and draws them again on switching back, instead of building them anew (a model load,
+## a material pass, a sight fit and a magazine carve a switch, a stall on the web build). What is drawn is the same either way.
+@export var cache_equips: bool = true:
+	set(value):
+		cache_equips = value
+		if not value:
+			_equip_cache.clear()
+
+## How many put-away weapons are kept; the longest unused goes first. 0 keeps every one.
+@export_range(0, 64) var equip_cache_limit: int = 6:
+	set(value):
+		equip_cache_limit = value
+		_equip_cache.limit = value
+
 @export_group("Wall")
 
 ## Draws the view model again in a pass with no world in it while it is pressed against one, so a wall cannot hide the gun. Costs a second render of the view layer only while active.
@@ -518,8 +532,11 @@ func _measure_muzzle(art: AwWeaponVisual) -> Vector3:
 
 
 func _clear_models() -> void:
+	if _build_key != "" and _weapon != null and is_instance_valid(_weapon):
+		_stow()
+	_build_key = ""
 	for node in [_weapon, _magazine, _sight]:
-		if node != null:
+		if node != null and is_instance_valid(node):
 			node.queue_free()
 	_sight = null
 	_sight_line = {}
@@ -533,3 +550,127 @@ func _clear_models() -> void:
 	_belt = null
 	_magazine = null
 	_attachments.clear()
+
+
+# --- Keeping built weapons ------------------------------------------------------
+
+
+const DressUndo := preload("aw_attachment_dress.gd")
+
+## How many put-away weapons are held for a quick switch back.
+func equip_cache_size() -> int:
+	return _equip_cache.size()
+
+
+## Frees every put-away weapon. The rig does it for you on leaving; a game that swaps its whole kit may do it sooner.
+func clear_equip_cache() -> void:
+	_equip_cache.clear()
+
+
+## What the built weapon depends on besides its art: the art itself, the rules read at build and the finish. A build is reused only under the same key.
+func _equip_key(art: AwWeaponVisual) -> String:
+	return "|".join([EquipCache.describe_object(art), AwModelCache.resolve(art.model_path),
+		EquipCache.describe_object(ads_rules), EquipCache.describe_object(feel_rules), str(view_layer), str(_reveal),
+		str(finish_materials), str(finish_metal), str(finish_metal_roughness), str(finish_polymer_roughness),
+		str(finish_wood_roughness), str(finish_lift), "" if _fitting == null else _fitting.key()])
+
+
+## Notes that the weapon in hand is built through (every stage run): from here on it can be put away and kept.
+## Not for a prewarm, which builds on a spare rig only to warm what the real one reads.
+func _note_built(art: AwWeaponVisual) -> void:
+	if not cache_equips or _prewarming:
+		_build_key = ""
+		return
+	_build_key = _equip_key(art)
+	_build_shape = EquipCache.snapshot(_stow_roots())
+
+
+## The nodes of the weapon in hand that sit under the holder, in draw order.
+func _stow_roots() -> Array:
+	var wanted: Array = [_weapon, _magazine, _sight]
+	wanted.append_array(_attachments)
+	var out: Array = []
+	for child in _holder.get_children():
+		if child in wanted:
+			out.append(child)
+	return out
+
+
+## Ends a reload or action in flight; AwViewModel's reload layer does the work.
+func _end_sequence() -> void:
+	pass
+
+
+## Takes the weapon in hand out of the holder and keeps it, as it was just built: no fitting, no reload in flight.
+func _stow() -> void:
+	_end_sequence()
+	DressUndo.clear(_dressed)
+	var roots := _stow_roots()
+	for node: Node in roots:
+		_holder.remove_child(node)
+	_equip_cache.put(_build_key, {
+		"roots": roots, "shape": _build_shape,
+		"weapon": _weapon, "magazine": _magazine, "sight": _sight, "belt": _belt, "carved": _carved,
+		"attachments": _attachments.duplicate(), "rear_rings": _rear_rings.duplicate(),
+		"sight_line": _sight_line, "sight_aim": _sight_aim, "muzzle": _muzzle, "reach": _reach_state(),
+	})
+	_weapon = null
+	_magazine = null
+	_sight = null
+	_belt = null
+	_carved = null
+	_attachments.clear()
+	_rear_rings.clear()
+
+
+## Puts back the weapon kept under [param key], as [method equip]'s stages left it; false when none is kept.
+func _unstow(key: String) -> bool:
+	var slot := _equip_cache.take(key)
+	if slot.is_empty():
+		return false
+	for node: Node in slot.roots:
+		_holder.add_child(node)
+	EquipCache.restore(slot.shape)
+	_weapon = slot.weapon
+	_magazine = slot.magazine
+	_sight = slot.sight
+	_belt = slot.belt
+	_carved = slot.carved
+	_attachments.clear()
+	_attachments.append_array(slot.attachments)
+	_rear_rings.clear()
+	_rear_rings.append_array(slot.rear_rings)
+	_sight_line = slot.sight_line
+	_sight_aim = slot.sight_aim
+	_muzzle = slot.muzzle
+	_set_reach_state(slot.reach)
+	_build_key = key
+	_build_shape = slot.shape
+	return true
+
+
+## What [method _reach_for] works out from the model (kept, so a reuse does not measure it again).
+func _reach_state() -> Array:
+	return [_has_well, _well, _feeds, _entry, _bolted, _bolt, _bolt_back, _grip_at, _fore_at, _fore_aimed_at,
+		_feed_keys, _grip_axis, _fore_axis, _grip_radius]
+
+
+## The half of [method _reach_for] that touches the arms, with the measurements it would have made given back.
+func _set_reach_state(r: Array) -> void:
+	_has_well = r[0]
+	_well = r[1]
+	_feeds = r[2]
+	_entry = r[3]
+	_bolted = r[4]
+	_bolt = r[5]
+	_bolt_back = r[6]
+	_grip_at = r[7]
+	_fore_at = r[8]
+	_fore_aimed_at = r[9]
+	_feed_keys = r[10]
+	_grip_axis = r[11]
+	_fore_axis = r[12]
+	_grip_radius = r[13]
+	if _arms != null:
+		_arms.fit_glove_to(_weapon)
+	_place_hands()

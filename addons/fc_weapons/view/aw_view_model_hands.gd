@@ -20,6 +20,7 @@ var feel_rules := AwViewFeel.new():
 var ads_rules: AwAdsRules = null:
 	set(value):
 		ads_rules = value
+		_equip_cache.clear()
 		if _source_art != null and _art != null:
 			call(&"equip", _source_art)
 
