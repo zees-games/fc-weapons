@@ -5,24 +5,24 @@ extends RefCounted
 ## FC registers this pack ([AwSpawnProvider]) under plain ids and any other pack after it; the first source to bring an id keeps it.
 
 const CHANNEL := "aw.pack"
-## The tick rate durations are authored at, for a def that does not say ([member DotWeaponDef.authored_tick_rate]).
+## The tick rate durations are authored at, for a def that does not say ([member GSWeaponDef.authored_tick_rate]).
 const TICK_RATE := AwWeaponPack.TICK_RATE
 const ADDON := "fc_weapons"
 
-## name -> Callable(types: Dictionary) -> Array[DotWeaponDef], in the order added.
+## name -> Callable(types: Dictionary) -> Array[GSWeaponDef], in the order added.
 static var _sources: Dictionary = {}
 
 
 ## Whether [method shared] keeps one built catalogue; false builds a fresh one on every call.
 static var def_cache := true
-static var _shared: DotWeaponCatalogue = null
+static var _shared: GSWeaponCatalogue = null
 
 
 ## One catalogue built from the default damage table and kept until a source is added or removed,
 ## for readers that only look a def up (a watched hand's reload period, a fitted code). Building
 ## [method catalogue] makes every def again: a round start where 16 watched players begin a reload
 ## in one frame cost 40-170 ms of it. Read-only: change a def through a catalogue of your own.
-static func shared() -> DotWeaponCatalogue:
+static func shared() -> GSWeaponCatalogue:
 	if not def_cache:
 		return catalogue()
 	if _shared == null:
@@ -30,8 +30,8 @@ static func shared() -> DotWeaponCatalogue:
 	return _shared
 
 
-static func catalogue(damage: Dictionary = {}) -> DotWeaponCatalogue:
-	var out := DotWeaponCatalogue.new()
+static func catalogue(damage: Dictionary = {}) -> GSWeaponCatalogue:
+	var out := GSWeaponCatalogue.new()
 
 	for def in weapons(damage):
 		out.add(def)
@@ -39,9 +39,9 @@ static func catalogue(damage: Dictionary = {}) -> DotWeaponCatalogue:
 	return out
 
 
-static func weapons(types: Dictionary = {}) -> Array[DotWeaponDef]:
+static func weapons(types: Dictionary = {}) -> Array[GSWeaponDef]:
 	var t := types if not types.is_empty() else AwWeaponDamage.table()
-	var out: Array[DotWeaponDef] = []
+	var out: Array[GSWeaponDef] = []
 	var taken := {}
 
 	for name: StringName in _sources:
@@ -50,12 +50,12 @@ static func weapons(types: Dictionary = {}) -> Array[DotWeaponDef]:
 		if not source.is_valid():
 			continue
 
-		for def: DotWeaponDef in source.call(t):
+		for def: GSWeaponDef in source.call(t):
 			if def == null:
 				continue
 
 			if taken.has(def.id):
-				DotLog.warn(CHANNEL, "a weapon pack brought an id that is already taken", {"pack": String(name), "id": String(def.id)})
+				GSLog.warn(CHANNEL, "a weapon pack brought an id that is already taken", {"pack": String(name), "id": String(def.id)})
 				continue
 
 			taken[def.id] = true

@@ -2,13 +2,13 @@ class_name AwGrenadeBlast
 extends RefCounted
 
 ## What a grenade does when it goes off, as plain events for the host to apply and show.
-## Damage is [method DotShot.splash_at]'s linear falloff; a victim behind cover (the [code]los[/code]
+## Damage is [method GSShot.splash_at]'s linear falloff; a victim behind cover (the [code]los[/code]
 ## callable returns false) takes nothing.
 
 ## [param victims] are `{id, position, eye, forward}`; [param los] is `(from, to) -> bool` for clear sight.
-static func detonate(g: AwGrenade, def: DotWeaponDef, victims: Array, los: Callable) -> Array[Dictionary]:
+static func detonate(g: AwGrenade, def: GSWeaponDef, victims: Array, los: Callable) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	var radius := float(def.params.get(&"effect_radius", b.splash_radius if b != null else 0.0))
 	var at := g.position
 	out.append({"event": "detonated", "kind": String(g.kind), "position": at, "radius": radius})
@@ -33,7 +33,7 @@ static func detonate(g: AwGrenade, def: DotWeaponDef, victims: Array, los: Calla
 		elif b != null and b.splash_damage > 0.0:
 			if id == g.owner_entity and not b.splash_hurts_owner:
 				continue
-			var shot := DotShot.make(def.id, g.owner_entity, g.spawn.tick, 0)
+			var shot := GSShot.make(def.id, g.owner_entity, g.spawn.tick, 0)
 			shot.splash_radius = b.splash_radius
 			shot.splash_damage = b.splash_damage
 			var dmg := shot.splash_at(d)

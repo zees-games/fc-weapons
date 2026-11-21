@@ -10,11 +10,11 @@ const HandReach := preload("aw_hand_reach.gd")
 var _art: AwWeaponVisual = null
 var _dressed: Dictionary = {}
 var _fit_code: int = -1
-var _fitting: DotWeaponFitting = null
+var _fitting: GSWeaponFitting = null
 var _id: StringName = &""
 var _weapon: Node3D = null
 ## The catalogue [method on_fitted] decodes a replicated fitting against; the arsenal's own.
-var attachments: DotWeaponAttachments = null
+var attachments: GSWeaponAttachments = null
 var _holder: Node3D = null
 var _mag: Node3D = null
 var _mag_local := Transform3D.IDENTITY
@@ -30,7 +30,7 @@ var _eject_local: Vector3 = Vector3.INF
 
 
 ## Draws [param fitting]'s attachments on the weapon in hand, and moves the muzzle to the suppressor's end.
-func set_fitting(fitting: DotWeaponFitting) -> void:
+func set_fitting(fitting: GSWeaponFitting) -> void:
 	_fitting = fitting.duplicate_fitting() if fitting != null else null
 	if _weapon == null or _art == null:
 		return
@@ -44,7 +44,7 @@ func on_fitted(code: int) -> void:
 		return
 	_fit_code = code
 	var base := AwWeaponCatalogue.shared().get_def(_id)
-	if base != null and attachments.code_bits(base) <= DotWeaponNetSync.FITTED_BITS:
+	if base != null and attachments.code_bits(base) <= GSWeaponNetSync.FITTED_BITS:
 		set_fitting(attachments.decode(base, code))
 
 

@@ -34,11 +34,11 @@ const FLASH := {
 
 @export_group("Muzzle flash")
 
-## Draw dot-fx's `DotMuzzleFlash` (sized by the profile's `extra.muzzle_flash`, else the weapon class) when dot-fx is linked; off, or without dot-fx, the procedural flash below is drawn.
+## Draw dot-fx's `GSMuzzleFlash` (sized by the profile's `extra.muzzle_flash`, else the weapon class) when dot-fx is linked; off, or without dot-fx, the procedural flash below is drawn.
 @export var binbun_flash: bool = true
 
 ## Where a weapon's `extra.muzzle_flash` is read from; the rig sets it. Without it the class decides.
-var catalogue: DotWeaponCatalogue = null
+var catalogue: GSWeaponCatalogue = null
 
 ## Multiplier on every flash's size, on top of the weapon class's own ([constant FLASH]).
 @export_range(0.0, 3.0, 0.05) var flash_scale: float = 1.0
@@ -64,8 +64,8 @@ var _pack_flashes: Dictionary = {}
 var _pack_drew := false
 
 ## Reused flash lights and quads (dot-fx), so a shot builds and frees no node.
-var _lights: DotFxLightPool = null
-var _meshes: DotFxMeshPool = null
+var _lights: GSFxLightPool = null
+var _meshes: GSFxMeshPool = null
 
 ## How many flash lights are alive, against [member max_flash_lights].
 func _lights_live() -> int:
@@ -148,7 +148,7 @@ func _pack_flash_light(muzzle: Transform3D, size: float, weapon_class: StringNam
 			"energy": light.light_energy, "has_light": true})
 
 
-## Weapon class to the dot-fx category `DotMuzzleFlash.size_for` sizes by.
+## Weapon class to the dot-fx category `GSMuzzleFlash.size_for` sizes by.
 const CLASS_CATEGORY := {
 	AwWeaponSound.LIGHT: "pistol", AwWeaponSound.MAGNUM: "magnum", AwWeaponSound.SMG: "smg",
 	AwWeaponSound.RIFLE: "rifle", AwWeaponSound.HEAVY: "dmr", AwWeaponSound.SNIPER: "sniper",
@@ -167,7 +167,7 @@ const PACK_GROW := {
 ## The Binbun flash materials a first-person flash was given, by the shared original: see [method _unfade].
 var _unfaded: Dictionary = {}
 
-## Turns the art's proximity fade off on a first-person flash, once, when attached: dot-fx fades it over [member DotMuzzleFlashConfig.first_person_fade] (0.6 m) in front
+## Turns the art's proximity fade off on a first-person flash, once, when attached: dot-fx fades it over [member GSMuzzleFlashConfig.first_person_fade] (0.6 m) in front
 ## of the depth behind it, which in first person is the gun's own barrel, so only the core quad showed. The art's materials are shared by every copy, so this flash gets
 ## its own copies (one per original, shared by its pool) with the fade off, drawn over the gun ([method over_shader]) so the receiver does not hide them either.
 func _unfade(flash: Node) -> void:
@@ -204,23 +204,23 @@ static func is_unfaded(flash: Node) -> bool:
 
 ## One pooled flash per size and view, moved to the muzzle for each shot. False only when dot-fx is not linked; size none, quality off and a headless server draw nothing and count as handled.
 func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id: StringName, first_person: bool) -> bool:
-	if not ResourceLoader.exists(DotWeaponMuzzle.SCRIPT_PATH):
+	if not ResourceLoader.exists(GSWeaponMuzzle.SCRIPT_PATH):
 		return false
-	var def: DotWeaponDef = catalogue.get_def(id) if catalogue != null and catalogue.has(id) else null
+	var def: GSWeaponDef = catalogue.get_def(id) if catalogue != null and catalogue.has(id) else null
 	var category: String = CLASS_CATEGORY.get(weapon_class, "rifle")
 	var shared: Node3D = null if first_person else _fx_pool().shared_flash(category, def, weapon_class == AwWeaponSound.SUPPRESSED)
 	if shared != null:
 		# Not this node's child, so this node's being hidden has to be asked.
 		if is_visible_in_tree():
 			shared.global_transform = muzzle
-			DotWeaponMuzzle.fire(shared)
+			GSWeaponMuzzle.fire(shared)
 			_pack_flash_light(muzzle, size, weapon_class, shared)
 			_pack_drew = true
 		return true
-	var key := "%s/%s/%s" % [category, DotWeaponMuzzle.flash_name(def), first_person]
+	var key := "%s/%s/%s" % [category, GSWeaponMuzzle.flash_name(def), first_person]
 	var fresh := false
 	if not _pack_flashes.has(key) or (_pack_flashes[key] != null and not is_instance_valid(_pack_flashes[key])):
-		var made := DotWeaponMuzzle.attach(self, category, def, first_person, weapon_class == AwWeaponSound.SUPPRESSED)
+		var made := GSWeaponMuzzle.attach(self, category, def, first_person, weapon_class == AwWeaponSound.SUPPRESSED)
 		if made != null:
 			made.top_level = true
 		_pack_flashes[key] = made
@@ -231,7 +231,7 @@ func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id:
 	flash.global_transform = muzzle
 	var grow: float = float(PACK_GROW.get(weapon_class, 1.0)) if first_person else 1.0
 	flash.scale = Vector3.ONE * (first_person_flash_scale * grow if first_person else 1.0)
-	DotWeaponMuzzle.fire(flash)
+	GSWeaponMuzzle.fire(flash)
 	if fresh and first_person:
 		# After fire: a flash attached without a spare builds its pool inside its first fire.
 		_unfade(flash)

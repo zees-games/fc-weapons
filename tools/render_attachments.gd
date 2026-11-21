@@ -33,7 +33,7 @@ func _initialize() -> void:
 	var sheet := Image.create(W * 5, H * guns.size(), false, Image.FORMAT_RGB8)
 	for row in guns.size():
 		var id := StringName(guns[row])
-		var def: DotWeaponDef = defs[id]
+		var def: GSWeaponDef = defs[id]
 		var choices := cat.choices_for(def)
 		var fa := _fitting(id, choices, FIT_A)
 		var fb := _fitting(id, choices, FIT_B)
@@ -49,8 +49,8 @@ func _initialize() -> void:
 	quit()
 
 
-func _fitting(id: StringName, choices: Dictionary, wanted: Dictionary) -> DotWeaponFitting:
-	var fit := DotWeaponFitting.make(id)
+func _fitting(id: StringName, choices: Dictionary, wanted: Dictionary) -> GSWeaponFitting:
+	var fit := GSWeaponFitting.make(id)
 	for mount: StringName in wanted:
 		for att: StringName in wanted[mount]:
 			if (choices.get(mount, []) as Array).has(att):
@@ -68,7 +68,7 @@ func _camera() -> Camera3D:
 	return cam
 
 
-func _first_person(id: StringName, fit: DotWeaponFitting, aimed: bool, sheet: Image, cell: Vector2i) -> void:
+func _first_person(id: StringName, fit: GSWeaponFitting, aimed: bool, sheet: Image, cell: Vector2i) -> void:
 	var cam := _camera()
 	var view := AwViewModel.new()
 	view.hands_fov = 55.0
@@ -89,7 +89,7 @@ func _first_person(id: StringName, fit: DotWeaponFitting, aimed: bool, sheet: Im
 
 
 ## The gun held 1.6 m ahead, muzzle to the right and its ejection port to the camera.
-func _third_person(id: StringName, fit: DotWeaponFitting, sheet: Image, cell: Vector2i) -> void:
+func _third_person(id: StringName, fit: GSWeaponFitting, sheet: Image, cell: Vector2i) -> void:
 	var cam := _camera()
 	cam.fov = 40.0
 	var held := AwWorldModel.new()

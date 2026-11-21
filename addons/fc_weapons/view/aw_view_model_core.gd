@@ -11,8 +11,8 @@ const CHANNEL := "aw.view"
 @export_group("Wiring")
 
 ## The arms. Left null, the view model builds its own on first use.
-## A [DotNodeRef], not a path: the host decides per instance.
-@export var arms_ref: DotNodeRef = null
+## A [GSNodeRef], not a path: the host decides per instance.
+@export var arms_ref: GSNodeRef = null
 
 const BeltFeed := preload("aw_belt_feed.gd")
 const ArmsColour := preload("aw_view_arms_colour.gd")
@@ -83,7 +83,7 @@ func set_hands_fov_at_4_3(horizontal: float) -> void:
 
 ## The vertical field of view that is [param horizontal] degrees across a 4:3 frame.
 static func vertical_from_horizontal_4_3(horizontal: float) -> float:
-	return DotViewLens.vertical_from_horizontal_4_3(horizontal)
+	return GSViewLens.vertical_from_horizontal_4_3(horizontal)
 
 
 func _init() -> void:
@@ -154,7 +154,7 @@ func _build_arms() -> void:
 	if not res.ok:
 		# Not fatal, and not even an error: a rig with no hands still draws the weapon,
 		# which is what a great many games in this genre ship anyway.
-		DotLog.info(
+		GSLog.info(
 			CHANNEL, "no first-person hands; drawing the weapon alone",
 			{"why": res.error.message}
 		)
@@ -381,13 +381,13 @@ func _set_bolt(back: float) -> void:
 func _apply_hands_lens() -> void:
 	# Only under a camera: the scale is in the camera's own space, and a view model hung
 	# anywhere else is in some other space where this would be a distortion, not a lens.
-	DotViewLens.apply(self, get_parent() as Camera3D, hands_fov, hands_depth_comp)
+	GSViewLens.apply(self, get_parent() as Camera3D, hands_fov, hands_depth_comp)
 
 
 ## How much X and Y are scaled to draw at [param hands] degrees under a [param camera]-degree
 ## lens. 1 when either is not a usable field of view.
 static func lens_scale(camera: float, hands: float) -> float:
-	return DotViewLens.lens_scale(camera, hands)
+	return GSViewLens.lens_scale(camera, hands)
 
 
 # --- Aiming -----------------------------------------------------------------

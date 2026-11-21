@@ -14,7 +14,7 @@ var position: Vector3 = Vector3.ZERO
 var velocity: Vector3 = Vector3.ZERO
 var fuse: int = 0
 var owner_entity: int = 0
-var spawn: DotWeaponSpawn = null
+var spawn: GSWeaponSpawn = null
 var stuck := false
 var gravity: float = 9.8
 var explode_on_impact := false
@@ -23,8 +23,8 @@ var bounces := 0
 var rules: AwGrenadeRules = null
 
 
-## [param def] supplies the kind and flags; a spawn from DotWeaponThrown carries the fuse left after cooking.
-static func from_spawn(s: DotWeaponSpawn, def: DotWeaponDef, p_rules: AwGrenadeRules = null) -> AwGrenade:
+## [param def] supplies the kind and flags; a spawn from GSWeaponThrown carries the fuse left after cooking.
+static func from_spawn(s: GSWeaponSpawn, def: GSWeaponDef, p_rules: AwGrenadeRules = null) -> AwGrenade:
 	var g := AwGrenade.new()
 	g.spawn = s
 	g.rules = p_rules if p_rules != null else AwGrenadeRules.new()

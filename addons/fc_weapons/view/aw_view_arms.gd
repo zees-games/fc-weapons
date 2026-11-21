@@ -115,9 +115,9 @@ var _reaching := false
 ## name the nodes anything, and hands that do not appear are a visual disappointment
 ## rather than a broken weapon — the gun still fires. It is logged once, at WARN,
 ## because it is also not something anybody meant.
-func build() -> DotResult:
+func build() -> GSResult:
 	if _built:
-		return DotResult.success(null)
+		return GSResult.success(null)
 
 	_style_built = style
 
@@ -125,9 +125,9 @@ func build() -> DotResult:
 		if _build_rigged():
 			_built = true
 			set_pose(_pose)
-			return DotResult.success(null)
+			return GSResult.success(null)
 		# Not vendored, or not the arm this expects: the gloves, quietly (one WARN, once).
-		DotLog.warn(
+		GSLog.warn(
 			CHANNEL, "no rigged arm model; using the code-built gloves",
 			{"model": AwWeaponArtTable.RIGGED_ARMS_MODEL}
 		)
@@ -139,13 +139,13 @@ func build() -> DotResult:
 		_set_on_top(self)
 		_built = true
 		set_pose(_pose)
-		return DotResult.success(null)
+		return GSResult.success(null)
 
 	var model := AwModelCache.instantiate(model_path)
 
 	if model == null:
-		return DotResult.fail(
-			DotError.CODE_IO, "No arms model at %s." % model_path
+		return GSResult.fail(
+			GSError.CODE_IO, "No arms model at %s." % model_path
 		)
 
 	_left = _find_named(model, ARM_LEFT)
@@ -168,7 +168,7 @@ func build() -> DotResult:
 	model.queue_free()
 
 	if _left == null or _right == null:
-		DotLog.warn(
+		GSLog.warn(
 			CHANNEL,
 			"could not find both arms in the model; first person will show fewer hands "
 			+ "than it should",
@@ -185,7 +185,7 @@ func build() -> DotResult:
 
 	_built = true
 	set_pose(_pose)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## True while the support hand is sent somewhere ([method reach]'s `fore`) even though the pose
@@ -701,13 +701,13 @@ func _find_named(node: Node, wanted: String) -> Node3D:
 
 func _apply_skin(root: Node) -> void:
 	if not ResourceLoader.exists(skin):
-		DotLog.warn(CHANNEL, "no arm skin at that path", {"skin": skin})
+		GSLog.warn(CHANNEL, "no arm skin at that path", {"skin": skin})
 		return
 
 	var texture: Variant = load(skin)
 
 	if not (texture is Texture2D):
-		DotLog.warn(CHANNEL, "the arm skin is not a texture", {"skin": skin})
+		GSLog.warn(CHANNEL, "the arm skin is not a texture", {"skin": skin})
 		return
 
 	for mesh in HandReach.meshes(root):

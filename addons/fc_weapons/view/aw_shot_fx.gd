@@ -123,7 +123,7 @@ func prewarm_pools() -> void:
 		return
 	if first_person:
 		_lights.prewarm()
-		_meshes.prewarm(_quad_mesh(), _flash_mat(), maxi(DotFxLightBudget.config.prewarm_meshes, FIRST_PERSON_PREWARM_MESHES))
+		_meshes.prewarm(_quad_mesh(), _flash_mat(), maxi(GSFxLightBudget.config.prewarm_meshes, FIRST_PERSON_PREWARM_MESHES))
 		prewarm_voices()
 	else:
 		_lights.prewarm(mini(rules.remote_lights, REMOTE_PREWARM_LIGHTS))
@@ -142,11 +142,11 @@ func _bind_pools() -> void:
 			prewarm_voices()
 			return
 	if _lights == null:
-		_lights = DotFxLightPool.new()
+		_lights = GSFxLightPool.new()
 		_lights.name = "Lights"
 		add_child(_lights)
 	if _meshes == null:
-		_meshes = DotFxMeshPool.new()
+		_meshes = GSFxMeshPool.new()
 		_meshes.name = "Meshes"
 		add_child(_meshes)
 
@@ -204,7 +204,7 @@ func exclude_carrier(carrier: Node) -> void:
 ##
 ## [param muzzle] is where the effect leaves from — the view model's muzzle in first
 ## person — and [param id] is the weapon, for its sound.
-func play_use(outcome: DotWeaponOutcome, muzzle: Transform3D, id: StringName) -> void:
+func play_use(outcome: GSWeaponOutcome, muzzle: Transform3D, id: StringName) -> void:
 	if outcome == null or not outcome.used or not is_inside_tree():
 		return
 
@@ -215,20 +215,20 @@ func play_use(outcome: DotWeaponOutcome, muzzle: Transform3D, id: StringName) ->
 		return
 
 	match kind:
-		DotWeaponOutcome.KIND_SWING, DotWeaponOutcome.KIND_THROW:
+		GSWeaponOutcome.KIND_SWING, GSWeaponOutcome.KIND_THROW:
 			return
-		DotWeaponOutcome.KIND_SPAWN:
+		GSWeaponOutcome.KIND_SPAWN:
 			_flash(muzzle, 1.4, AwWeaponSound.LAUNCHER, id, true)
 			return
 
-	var beam := kind == DotWeaponOutcome.KIND_BEAM
+	var beam := kind == GSWeaponOutcome.KIND_BEAM
 	if not beam:
 		_flash(muzzle, 1.0, AwWeaponSound.class_for(id, kind), id, true)
 
 	var weapon_class := AwWeaponSound.class_for(id, kind)
 	var rail := rail_charge >= CHARGE_READY and weapon_class == AwWeaponSound.CHARGE
 	var drawn := 0
-	for shot: DotShot in outcome.shots:
+	for shot: GSShot in outcome.shots:
 		var directions: Array[Vector3] = shot.pellets
 		if directions.is_empty():
 			directions = [shot.direction]
@@ -320,7 +320,7 @@ func play_eject(port: Transform3D, id: StringName, speed_scale: float = 1.0, siz
 	if not visuals or not eject_shells or max_shells <= 0 or not is_inside_tree():
 		return
 
-	var profile: Dictionary = FLASH.get(AwWeaponSound.class_for(id, DotWeaponOutcome.KIND_SHOT), {})
+	var profile: Dictionary = FLASH.get(AwWeaponSound.class_for(id, GSWeaponOutcome.KIND_SHOT), {})
 	# Somebody else's case is a few centimetres of brass: past the flash light's reach nobody sees it.
 	if not profile.has("case") or not port.origin.is_finite() or _too_far(port.origin, rules.light_distance):
 		return

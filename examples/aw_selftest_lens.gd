@@ -29,12 +29,12 @@ func _move_share() -> void:
 	cam.fov = 75.0
 	var view := AwViewModel.new()
 	cam.add_child(view)
-	view.hands_fov = DotViewLens.vertical_from_horizontal_4_3(54.0)
+	view.hands_fov = GSViewLens.vertical_from_horizontal_4_3(54.0)
 	view.hands_depth_comp = 1.0
 	var full := view.lens_move_share()
 	view.hands_depth_comp = 0.0
 	var near := view.lens_move_share()
-	var size := DotViewLens.lens_scale(AwViewModel.REFERENCE_FOV, view.hands_fov)
+	var size := GSViewLens.lens_scale(AwViewModel.REFERENCE_FOV, view.hands_fov)
 	view.hands_fov = 90.0
 	var plain := view.lens_move_share()
 	cam.free()

@@ -8,7 +8,7 @@ const CHANNEL := "aw.rig"
 
 const BASH_BEHAVIOUR := "res://addons/fc_weapons/behaviour/aw_weapon_bash.gd"
 const AwApi := preload("../fc_weapons_api.gd")
-const DotWeaponApi := preload("res://addons/dot_weapon/dot_weapon_api.gd")
+const GSWeaponApi := preload("res://addons/dot_weapon/dot_weapon_api.gd")
 
 ## Layers the wall probe stops on beyond the shot mask: set it to what stops the carrier (clip brushes and fences a shot passes), so the gun lowers at them.
 @export_flags_3d_physics var wall_extra_mask: int = 0:
@@ -19,12 +19,12 @@ const DotWeaponApi := preload("res://addons/dot_weapon/dot_weapon_api.gd")
 
 
 ## Builds everything and validates the catalogue. Safe to call twice.
-func setup() -> DotResult:
+func setup() -> GSResult:
 	if _ready_for_use:
-		return DotResult.success(null)
+		return GSResult.success(null)
 
-	if DotWeaponApi.LEVEL < AwApi.DOT_WEAPON_MIN:
-		return DotResult.fail(DotError.CODE_STATE, "fc-weapons needs dot-weapon API %d or newer, this one is %d: update addons/dot_weapon." % [AwApi.DOT_WEAPON_MIN, DotWeaponApi.LEVEL])
+	if GSWeaponApi.LEVEL < AwApi.DOT_WEAPON_MIN:
+		return GSResult.fail(GSError.CODE_STATE, "fc-weapons needs dot-weapon API %d or newer, this one is %d: update addons/dot_weapon." % [AwApi.DOT_WEAPON_MIN, GSWeaponApi.LEVEL])
 
 	var res := _resolve_arsenal()
 	if not res.ok:
@@ -50,24 +50,24 @@ func setup() -> DotResult:
 	_connect_arsenal()
 
 	_ready_for_use = true
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
-func _resolve_arsenal() -> DotResult:
+func _resolve_arsenal() -> GSResult:
 	if arsenal_ref != null:
 		var found := arsenal_ref.resolve(self)
-		if found.ok and found.value is DotWeaponArsenal:
+		if found.ok and found.value is GSWeaponArsenal:
 			arsenal = found.value
-			return DotResult.success(null)
+			return GSResult.success(null)
 
-	arsenal = DotWeaponArsenal.new()
+	arsenal = GSWeaponArsenal.new()
 	arsenal.name = "Arsenal"
 	add_child(arsenal)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## Who is carrying this: not presentation, so it must not be skipped on a server.
-## A null player makes [method DotWeaponPlayerBridge.context_for] return defaults, so every shot traces from the world origin.
+## A null player makes [method GSWeaponPlayerBridge.context_for] return defaults, so every shot traces from the world origin.
 ## Nothing else reports it: the weapon fires and the counters move, but hit registration finds nothing.
 func _resolve_carrier() -> void:
 	if player_ref == null:
@@ -80,7 +80,7 @@ func _resolve_carrier() -> void:
 		return
 
 	# Loud, because a carrier that cannot be found is a carrier that shoots the map.
-	DotLog.warn(CHANNEL, "the rig could not find the player carrying it", {
+	GSLog.warn(CHANNEL, "the rig could not find the player carrying it", {
 		"why": player.error.message,
 		"consequence": "shots resolve from the world origin",
 	})
@@ -125,8 +125,8 @@ func _connect_arsenal() -> void:
 	arsenal.fire_mode_changed.connect(_on_fire_mode_changed)
 
 
-## The motion-only context an idle tick hands the arsenal (see [member DotWeaponArsenal.idle_posture]).
-func _posture_now() -> DotWeaponContext:
-	var ctx := DotWeaponPlayerBridge.posture_for(_player, _last_tick)
+## The motion-only context an idle tick hands the arsenal (see [member GSWeaponArsenal.idle_posture]).
+func _posture_now() -> GSWeaponContext:
+	var ctx := GSWeaponPlayerBridge.posture_for(_player, _last_tick)
 	ctx.authority = authority
 	return ctx

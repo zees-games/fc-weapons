@@ -30,7 +30,7 @@ var _reused := false
 var _prewarming := false
 
 ## The fitted attachments (what the rig was told) and what [code]aw_attachment_dress.gd[/code] drew for them.
-var _fitting: DotWeaponFitting = null
+var _fitting: GSWeaponFitting = null
 var _dressed: Dictionary = {}
 
 ## The iron sight's line, measured at equip in the holder's (model) space: `rear` and `front`
@@ -131,9 +131,9 @@ var _aim_fraction: float = 0.0
 @export_range(0.0, 1.0, 0.05) var hands_depth_comp: float = 1.0
 
 ## The field of view the pack's poses were authored under, vertical degrees.
-const REFERENCE_FOV := DotViewLens.REFERENCE_FOV
+const REFERENCE_FOV := GSViewLens.REFERENCE_FOV
 ## The depth the gun's middle sits at under the reference lens, in metres.
-const REFERENCE_DEPTH := DotViewLens.REFERENCE_DEPTH
+const REFERENCE_DEPTH := GSViewLens.REFERENCE_DEPTH
 
 ## The share of a pose's sideways and upward move kept so it lands where it was authored under [constant REFERENCE_FOV]:
 ## a narrow [member hands_fov] drawn near ([member hands_depth_comp] 0) magnifies the gun and each move with it, and a
@@ -141,14 +141,14 @@ const REFERENCE_DEPTH := DotViewLens.REFERENCE_DEPTH
 func lens_move_share() -> float:
 	if not get_parent() is Camera3D:
 		return 1.0
-	var size := DotViewLens.lens_scale(REFERENCE_FOV, hands_fov)
+	var size := GSViewLens.lens_scale(REFERENCE_FOV, hands_fov)
 	if size == 1.0:
 		return 1.0
-	var depth := REFERENCE_DEPTH + maxf((size - 1.0) * REFERENCE_DEPTH * hands_depth_comp, -DotViewLens.MAX_PULL_IN)
+	var depth := REFERENCE_DEPTH + maxf((size - 1.0) * REFERENCE_DEPTH * hands_depth_comp, -GSViewLens.MAX_PULL_IN)
 	return depth / (REFERENCE_DEPTH * size)
 
 ## The most the hands are drawn closer than authored, in metres.
-const MAX_PULL_IN := DotViewLens.MAX_PULL_IN
+const MAX_PULL_IN := GSViewLens.MAX_PULL_IN
 
 ## Seconds to blend the sprint carry in or out (smoothstepped); 0.2 hopped 0.2 m in three frames at 15 fps.
 const SPRINT_SECONDS := 0.4

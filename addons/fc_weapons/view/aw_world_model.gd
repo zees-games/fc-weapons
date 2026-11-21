@@ -24,7 +24,7 @@ extends "aw_world_model_fit.gd"
 ## enough to tell a watcher that the gun went off.
 
 # No CHANNEL: a drawer. Its one failure, a model that will not load, is reported once by
-# AwModelCache and handed back as a DotResult; "nowhere to attach" is headless, not wrong.
+# AwModelCache and handed back as a GSResult; "nowhere to attach" is headless, not wrong.
 
 ## How much of a weapon's recoil a watcher sees.
 const RECOIL_SHARE := 0.35
@@ -116,7 +116,7 @@ var _sprint: float = 0.0
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
 
-## The person's gun-arm carry (dot-player-char API 22's `DotHumanoidFigure.carry`, duck-typed), the weapon id its class
+## The person's gun-arm carry (dot-player-char API 22's `GSHumanoidFigure.carry`, duck-typed), the weapon id its class
 ## was last set for, and whether the character is mid-switch. While there is one it draws the kick, the reload roll
 ## and the sprint, so this model adds none of its own.
 ## Whether a held gun hands its kick, reload and swap to the person's carry (off: the model's own kick and reload
@@ -188,7 +188,7 @@ func attach_to(character: Object) -> bool:
 # --- Weapons ----------------------------------------------------------------
 
 ## Draws [param art]'s weapon at the hand, replacing whatever was there.
-func equip(art: AwWeaponVisual) -> DotResult:
+func equip(art: AwWeaponVisual) -> GSResult:
 	_build()
 	_clear_models()
 	_deferred = false
@@ -197,7 +197,7 @@ func equip(art: AwWeaponVisual) -> DotResult:
 
 	if art == null:
 		_id = &""
-		return DotResult.fail(DotError.CODE_INVALID, "No art to equip.")
+		return GSResult.fail(GSError.CODE_INVALID, "No art to equip.")
 
 	_id = art.id
 	_holder.transform = _rest()
@@ -205,11 +205,11 @@ func equip(art: AwWeaponVisual) -> DotResult:
 	_eject_local = Vector3.INF
 
 	if not art.has_model():
-		return DotResult.success(null)
+		return GSResult.success(null)
 
 	if not _budget_left():
 		_deferred = true
-		return DotResult.success(null)
+		return GSResult.success(null)
 
 	return _build_model(art)
 
@@ -227,13 +227,13 @@ static func _budget_left() -> bool:
 
 
 ## Puts [param art]'s model in the hand, charging the time to this frame's budget.
-func _build_model(art: AwWeaponVisual) -> DotResult:
+func _build_model(art: AwWeaponVisual) -> GSResult:
 	var started := Time.get_ticks_usec()
 	_weapon = AwModelCache.instantiate(art.model_path)
 
 	if _weapon == null:
 		_budget_spent += Time.get_ticks_usec() - started
-		return DotResult.fail(DotError.CODE_IO, "No model loads for this weapon.", art.model_path)
+		return GSResult.fail(GSError.CODE_IO, "No model loads for this weapon.", art.model_path)
 
 	_weapon.name = "Weapon"
 	_holder.add_child(_weapon)
@@ -246,7 +246,7 @@ func _build_model(art: AwWeaponVisual) -> DotResult:
 	_apply_shadows()
 	_support_local = _support_point_for(art)
 	_budget_spent += Time.get_ticks_usec() - started
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## Builds a model [method equip] left for a later frame, and dresses it with the fitting set meanwhile.
@@ -433,7 +433,7 @@ func reload_fraction() -> float:
 
 ## One cycle of the support hand: the weapon's whole reload, or one round of a reload by the round.
 func _cycle_seconds() -> float:
-	var def: DotWeaponDef = AwWeaponCatalogue.shared().get_def(_id) if _id != &"" else null
+	var def: GSWeaponDef = AwWeaponCatalogue.shared().get_def(_id) if _id != &"" else null
 	if def == null or def.reload_ticks <= 0:
 		return 1.5
 	var rate := float(def.authored_tick_rate) if def.authored_tick_rate > 0 else float(AwWeaponCatalogue.TICK_RATE)
@@ -682,7 +682,7 @@ func _tell_carry() -> void:
 	carry.set(&"switching", _switching)
 
 
-## The carry class (dot-player-char's `DotHumanoidCarry.CLASSES`) [param art] is held as; see [code]aw_carry_class.gd[/code].
+## The carry class (dot-player-char's `GSHumanoidCarry.CLASSES`) [param art] is held as; see [code]aw_carry_class.gd[/code].
 static func carry_class(art: AwWeaponVisual) -> Variant:
 	return CarryClass.of(art)
 

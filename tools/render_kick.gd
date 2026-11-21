@@ -30,7 +30,7 @@ func _initialize() -> void:
 		defs[d.id] = d
 	for row in _guns.size():
 		var id: StringName = _guns[row]
-		var def: DotWeaponDef = defs[id]
+		var def: GSWeaponDef = defs[id]
 		var cam := Camera3D.new()
 		cam.fov = 80.0
 		cam.position = Vector3(0, 1.6, 0)
@@ -55,10 +55,10 @@ func _initialize() -> void:
 		for _i in 90:
 			view.advance(1.0 / 60.0)
 			await process_frame
-		var b := def.tuning as DotWeaponBallistics
-		var shot := DotWeaponOutcome.new()
+		var b := def.tuning as GSWeaponBallistics
+		var shot := GSWeaponOutcome.new()
 		shot.used = true
-		shot.kind = DotWeaponOutcome.KIND_SHOT
+		shot.kind = GSWeaponOutcome.KIND_SHOT
 		shot.recoil = Vector2(b.recoil_pitch, b.recoil_yaw)
 		shot.recoil_signed = true
 		view.on_used(shot)
@@ -120,13 +120,13 @@ func _lights() -> void:
 
 
 ## A first-person AwShotFx readied for [param id]'s first shot, under [param cam].
-func _warmed_fx(id: StringName, def: DotWeaponDef, cam: Camera3D) -> AwShotFx:
+func _warmed_fx(id: StringName, def: GSWeaponDef, cam: Camera3D) -> AwShotFx:
 	var fx := _shot_fx(true)
 	# As the game's load cover does: the gun's first-person flash is built before the first shot.
-	var category: String = AwShotFx.CLASS_CATEGORY.get(AwWeaponSound.class_for(id, DotWeaponOutcome.KIND_SHOT), "rifle")
-	DotWeaponMuzzle.warm(fx, category, def, true)
+	var category: String = AwShotFx.CLASS_CATEGORY.get(AwWeaponSound.class_for(id, GSWeaponOutcome.KIND_SHOT), "rifle")
+	GSWeaponMuzzle.warm(fx, category, def, true)
 	# And, as its load gate does, the effects' shared materials are drawn once, so no shot compiles one.
-	var warmup := DotRenderWarmup.new()
+	var warmup := GSRenderWarmup.new()
 	warmup.add_items(AwShotFx.warm())
 	cam.add_child(warmup)
 	warmup.start()

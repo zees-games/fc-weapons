@@ -33,12 +33,12 @@ const CREDITS: Array[Dictionary] = [
 
 
 ## Every attachment, fresh each call; [param rocket_rules] (the server's `sv_rocket_*`) sets the Rocketjump's damage cut.
-static func attachments(rocket_rules: AwRocketRules = null) -> Array[DotWeaponAttachment]:
+static func attachments(rocket_rules: AwRocketRules = null) -> Array[GSWeaponAttachment]:
 	var rules := rocket_rules if rocket_rules != null else AwRocketRules.new()
-	var out: Array[DotWeaponAttachment] = []
+	var out: Array[GSWeaponAttachment] = []
 	for id: StringName in ROWS:
 		var row: Dictionary = ROWS[id]
-		var a := DotWeaponAttachment.new()
+		var a := GSWeaponAttachment.new()
 		a.id = id
 		a.display_name = str(row["name"])
 		a.mount = row["mount"]
@@ -47,7 +47,7 @@ static func attachments(rocket_rules: AwRocketRules = null) -> Array[DotWeaponAt
 		a.scale = (row.get("scale", {}) as Dictionary).duplicate()
 		a.params_set = (row.get("params", {}) as Dictionary).duplicate()
 		if row.has("zoom"):
-			a.params_set[DotWeaponAttachment.PARAM_ZOOM] = row["zoom"]
+			a.params_set[GSWeaponAttachment.PARAM_ZOOM] = row["zoom"]
 		a.excludes_tags.assign(row.get("excludes", []))
 		if id == AwRocketJump.ID:
 			a.scale = {"damage": rules.jump_damage_scale, "splash_damage": rules.jump_damage_scale}
@@ -56,8 +56,8 @@ static func attachments(rocket_rules: AwRocketRules = null) -> Array[DotWeaponAt
 
 
 ## The attachments as a catalogue a host validates and applies fittings with; rebuild it when `sv_rocket_*` changes.
-static func catalogue(rocket_rules: AwRocketRules = null) -> DotWeaponAttachments:
-	var out := DotWeaponAttachments.new()
+static func catalogue(rocket_rules: AwRocketRules = null) -> GSWeaponAttachments:
+	var out := GSWeaponAttachments.new()
 	for a in attachments(rocket_rules):
 		out.add(a)
 	return out
@@ -77,5 +77,5 @@ static func register_art() -> void:
 
 
 ## The sound class a fitted gun fires with: [constant AwWeaponSound.SUPPRESSED] when its def says so, else [param base].
-static func sound_class_for(def: DotWeaponDef, base: StringName) -> StringName:
-	return AwWeaponSound.SUPPRESSED if def != null and bool(def.params.get(DotWeaponAttachment.PARAM_SUPPRESSED, false)) else base
+static func sound_class_for(def: GSWeaponDef, base: StringName) -> StringName:
+	return AwWeaponSound.SUPPRESSED if def != null and bool(def.params.get(GSWeaponAttachment.PARAM_SUPPRESSED, false)) else base

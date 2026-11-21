@@ -16,8 +16,8 @@ static func set_id_prefix(prefix: String) -> void:
 	id_prefix = prefix
 
 
-## Every weapon of the pack, fresh each call; `types` is the host's damage table (kind -> DotDamageType).
-static func weapon_defs(types: Dictionary = {}) -> Array[DotWeaponDef]:
+## Every weapon of the pack, fresh each call; `types` is the host's damage table (kind -> GSDamageType).
+static func weapon_defs(types: Dictionary = {}) -> Array[GSWeaponDef]:
 	return AwWeaponPack.weapons(types, id_prefix)
 
 
@@ -54,13 +54,13 @@ static func spawn_entries() -> Array[Dictionary]:
 
 
 ## The attachments ([AwAttachmentPack]); also starts drawing them. A server validates fittings with this catalogue.
-static func attachment_defs() -> DotWeaponAttachments:
+static func attachment_defs() -> GSWeaponAttachments:
 	AwAttachmentPack.register_art()
 	return AwAttachmentPack.catalogue()
 
 
 ## The sound class a gun fitted as [param def] fires with, from its plain class [param base] (a suppressor quiets it).
-static func sound_class_for(def: DotWeaponDef, base: StringName) -> StringName:
+static func sound_class_for(def: GSWeaponDef, base: StringName) -> StringName:
 	return AwAttachmentPack.sound_class_for(def, base)
 
 

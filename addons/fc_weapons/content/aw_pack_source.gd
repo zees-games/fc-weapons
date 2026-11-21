@@ -30,7 +30,7 @@ static func stand_in_art(defs: Array, provider: Script) -> Array[AwWeaponVisual]
 	var out: Array[AwWeaponVisual] = []
 	var rows: Dictionary = provider.call(&"art_rows") if provider.has_method(&"art_rows") else {}
 
-	for def: DotWeaponDef in defs:
+	for def: GSWeaponDef in defs:
 		var copy := _base_for(def)
 		copy.id = def.id
 		AwArtDress.apply(copy, rows.get(def.id, {}))
@@ -39,7 +39,7 @@ static func stand_in_art(defs: Array, provider: Script) -> Array[AwWeaponVisual]
 	return out
 
 
-static func _base_for(def: DotWeaponDef) -> AwWeaponVisual:
+static func _base_for(def: GSWeaponDef) -> AwWeaponVisual:
 	if def.tags.has(&"sidearm"):
 		return AwWeaponArtTable.pistol()
 	if def.tags.has(&"heavy"):

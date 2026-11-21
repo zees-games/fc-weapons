@@ -147,13 +147,13 @@ func _shot_fx_limits(holder: Node3D) -> void:
 	var mid_at := Transform3D(near_at.basis, Vector3(0.0, 0.0, -60.0))
 	var far_at := Transform3D(near_at.basis, Vector3(0.0, 0.0, -300.0))
 	var aim := Vector3(0.0, -0.5, -1.0)
-	DotFxLightBudget.reset()
+	GSFxLightBudget.reset()
 	lone.play_remote(AwWeaponNet.KIND_SHOT, far_at, aim, &"rifle")
 	_check("a shot farther than cl_shotfx_fx_distance draws nothing", lone.live_count() == 0 and rules.fx_distance < 300.0)
 	lone.play_remote(AwWeaponNet.KIND_SHOT, mid_at, aim, &"rifle")
 	_check("a shot beyond cl_shotfx_light_distance still draws but carries no light", lone.live_count() > 0 and lone._lights_live() == 0)
 	lone.advance(5.0)
-	DotFxLightBudget.reset()
+	GSFxLightBudget.reset()
 	lone.play_remote(AwWeaponNet.KIND_SHOT, near_at, aim, &"rifle")
 	_check("a near shot carries one light, and never more than cl_shotfx_remote_lights", lone._lights_live() == 1)
 	lone.advance(5.0)
@@ -161,7 +161,7 @@ func _shot_fx_limits(holder: Node3D) -> void:
 	mine.first_person = true
 	mine.binbun_flash = false
 	holder.add_child(mine)
-	DotFxLightBudget.reset()
+	GSFxLightBudget.reset()
 	mine.play_remote(AwWeaponNet.KIND_SHOT, mid_at, aim, &"rifle")
 	_check("the local gun keeps its light at the same distance", mine.live_count() > 0 and mine._lights_live() == 1)
 	for _i in 12:
@@ -209,8 +209,8 @@ func _shot_fx_drawn_case(holder: Node3D) -> void:
 ## A first-person pack flash draws without the art's proximity fade (it hid the flash against the gun's own barrel),
 ## keeps that when another copy of the art sets it again, sizes a revolver's above a rifle's, and allocates nothing more per shot.
 func _shot_fx_unfade(holder: Node3D) -> void:
-	var was := DotMuzzleFlash.force_available
-	DotMuzzleFlash.force_available = true
+	var was := GSMuzzleFlash.force_available
+	GSMuzzleFlash.force_available = true
 	var fx := AwShotFx.new()
 	fx.first_person = true
 	fx.sounds = false
@@ -237,7 +237,7 @@ func _shot_fx_unfade(holder: Node3D) -> void:
 	_check("a revolver's first-person pack flash is drawn larger than its category's (%.2f)" % (flash.scale.x if flash != null else 0.0),
 		flash != null and flash.scale.x > 1.2)
 	fx.queue_free()
-	DotMuzzleFlash.force_available = was
+	GSMuzzleFlash.force_available = was
 
 
 ## A shot on the sky draws nothing where it lands, a shot on a wall a mark: sky by group or by hull_kind meta.
@@ -285,7 +285,7 @@ func _shot_fx_rounds(holder: Node3D) -> void:
 	var metal := StaticBody3D.new()
 	metal.set_meta(&"surface", "steel")
 	holder.add_child(metal)
-	var linked := DotWeaponSound.count(&"impact_metal") > 0 and DotWeaponSound.count(&"impact_flesh") > 0
+	var linked := GSWeaponSound.count(&"impact_metal") > 0 and GSWeaponSound.count(&"impact_flesh") > 0
 	var on_metal := AwShotFx.impact_stream(AwShotFx.IMPACT_WORLD, metal)
 	var on_body := AwShotFx.impact_stream(AwShotFx.IMPACT_BODY)
 	_check("a shot on steel sounds of metal and one on a body of flesh, with dot-audio linked",
@@ -392,11 +392,11 @@ func _mark_fade() -> void:
 func _would_idle() -> void:
 	_begin("rig would_idle")
 	var rig := AwWeaponRig.new()
-	var cmd := DotWeaponCommand.new()
+	var cmd := GSWeaponCommand.new()
 	_check("a rig not set up never idles", not rig.would_idle(cmd))
 	rig.free()
 	var r2 := AwWeaponRig.new()
-	var cat := DotWeaponCatalogue.new()
+	var cat := GSWeaponCatalogue.new()
 	for def in AwWeaponPack.weapons(AwWeaponDamage.table(), ""):
 		cat.add(def)
 	r2.catalogue = cat
@@ -414,14 +414,14 @@ func _would_idle() -> void:
 				break
 	_check("a set-up rig with nothing pressed idles on a weapon that needs no context", idles)
 	_idle_parity(r2, cat, cmd)
-	cmd.buttons = DotWeaponCommand.BUTTON_ATTACK
+	cmd.buttons = GSWeaponCommand.BUTTON_ATTACK
 	_check("a pressed attack does not", ok and idles and not r2.would_idle(cmd))
 	r2.queue_free()
 	_end()
 
 
 ## simulate_idle after would_idle leaves the rig and the weapon's state where simulate_tick(cmd, tick, null) does.
-func _idle_parity(r2: AwWeaponRig, cat: DotWeaponCatalogue, cmd: DotWeaponCommand) -> void:
+func _idle_parity(r2: AwWeaponRig, cat: GSWeaponCatalogue, cmd: GSWeaponCommand) -> void:
 	var r3 := AwWeaponRig.new()
 	r3.catalogue = cat
 	add_child(r3)
@@ -547,7 +547,7 @@ func _fx_pool() -> void:
 	other.layered_shots = false
 	hand.add_child(other)
 	other.play_remote(AwWeaponNet.KIND_SHOT, Transform3D.IDENTITY, Vector3.FORWARD, &"rifle")
-	var shared_meshes_node: DotFxMeshPool = pool.get_node("SharedMeshes")
+	var shared_meshes_node: GSFxMeshPool = pool.get_node("SharedMeshes")
 	var idle_after := shared_meshes_node.idle()
 	_check("its effects are on the shared quads", other.live_count() > 0 and idle_after < shared_built)
 	hand.remove_child(other)
@@ -579,7 +579,7 @@ func _fx_pool() -> void:
 func _shared_catalogue() -> void:
 	_begin("shared weapon catalogue")
 	var a := AwWeaponCatalogue.shared()
-	var ids := AwWeaponCatalogue.weapons().map(func(d: DotWeaponDef) -> StringName: return d.id)
+	var ids := AwWeaponCatalogue.weapons().map(func(d: GSWeaponDef) -> StringName: return d.id)
 	_check("the shared catalogue is built once and holds every weapon",
 		a != null and a == AwWeaponCatalogue.shared() and ids.all(func(id: StringName) -> bool: return a.get_def(id) != null))
 	AwWeaponCatalogue.remove_source(&"lag16_probe")

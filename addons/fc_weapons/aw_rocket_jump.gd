@@ -10,21 +10,21 @@ const PARAM := &"rocketjump"
 const ID := &"rocketjump"
 
 
-static func is_rocketjump(def: DotWeaponDef) -> bool:
+static func is_rocketjump(def: GSWeaponDef) -> bool:
 	return def != null and bool(def.params.get(PARAM, false))
 
 
 ## Multiplier on the damage a blast from [param def] deals the one who fired it; 1 for a plain missile.
-static func self_damage_scale(def: DotWeaponDef, rules: AwRocketRules) -> float:
+static func self_damage_scale(def: GSWeaponDef, rules: AwRocketRules) -> float:
 	return rules.jump_self_damage_scale if is_rocketjump(def) else 1.0
 
 
 ## The shooter's velocity after their own blast at [param blast_at]. [param center] is the middle of their body,
 ## [param move_dir] their move input (only its flat part counts), [param on_floor] whether they stood on the floor.
 ## Unchanged for a body outside the blast or a plain missile while `sv_rocket_plain_jump_scale` is 0.
-static func launch_velocity(def: DotWeaponDef, rules: AwRocketRules, velocity: Vector3, center: Vector3, blast_at: Vector3, on_floor: bool, move_dir: Vector3) -> Vector3:
+static func launch_velocity(def: GSWeaponDef, rules: AwRocketRules, velocity: Vector3, center: Vector3, blast_at: Vector3, on_floor: bool, move_dir: Vector3) -> Vector3:
 	var strength := 1.0 if is_rocketjump(def) else rules.plain_jump_scale
-	var b: DotWeaponBallistics = def.tuning as DotWeaponBallistics if def != null else null
+	var b: GSWeaponBallistics = def.tuning as GSWeaponBallistics if def != null else null
 	if strength <= 0.0 or b == null or b.splash_radius <= 0.0:
 		return velocity
 	var dist := center.distance_to(blast_at)

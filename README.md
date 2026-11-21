@@ -68,14 +68,14 @@ Models for ammo boxes, extra grenades and rounds also ship, for a game's pickups
 
 ## Settings
 
-Every stat of every weapon is tunable in `cfg/addons/fc_weapons/weapon/<id>.yml` (through dot-weapon's `DotWeaponProfiles`). Nothing is fixed in code: set a value in the file to change it.
+Every stat of every weapon is tunable in `cfg/addons/fc_weapons/weapon/<id>.yml` (through dot-weapon's `GSWeaponProfiles`). Nothing is fixed in code: set a value in the file to change it.
 
 | Setting | What it does |
 | --- | --- |
 | `fire_modes` | Fire modes of a weapon. The first entry is the starting mode. Automatic guns also fire semi. SMGs, carbines and rifles also burst. |
 | `sv_grenade_*` cvars | Grenade flight, bounce, stick and fuse rules (`AwGrenadeRules`) |
 
-The host binds `DotWeaponCommand.BUTTON_FIRE_MODE` to switch modes.
+The host binds `GSWeaponCommand.BUTTON_FIRE_MODE` to switch modes.
 
 ## What is in the pack
 
@@ -99,7 +99,7 @@ The host binds `DotWeaponCommand.BUTTON_FIRE_MODE` to switch modes.
 - **Inspect and holster.** `AwViewModel.inspect()` plays a look-over of the gun. It moves only the view, never the shot or the net.
 - **Knife throw and sprint.** Each frame the game passes the throw meter to `AwViewModel.on_windup(charge)` (dot-weapon's `charge_of`: 0 to 1 while winding up, below 0 when not); the hand draws back past the ear and the throw releases from there. A blade pumps with the stride on a sprint; arms that show the free hand read `AwViewModel.run_amount()` and `run_phase()` to pump it.
 - **Effects pool.** `AwFxPool` builds shot effects ahead of time under a loading cover, so the first remote shot does not stall a tick. An empty pool is not an error.
-- **Download groups.** A web shell sets `DotCloudAddonSet.groups` to `AwWeaponGroups.groups_for(ids)` for the weapons its loadout can hand out. List every weapon a player can receive, because a deferred group cannot be added at runtime.
+- **Download groups.** A web shell sets `GSCloudAddonSet.groups` to `AwWeaponGroups.groups_for(ids)` for the weapons its loadout can hand out. List every weapon a player can receive, because a deferred group cannot be added at runtime.
 - **Builds without models.** A build that leaves `assets/` out (the web shell) can draw models from a mounted pack: call `AwModelCache.add_fallback_root(...)` after mounting and `remove_fallback_root` when leaving. Until then each weapon still fires and is drawn invisible, with one warning per model.
 
 ## Tests

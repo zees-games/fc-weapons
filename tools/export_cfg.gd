@@ -14,7 +14,7 @@ func _initialize() -> void:
 			printerr("cannot write %s" % def.id)
 			quit(1)
 			return
-		f.store_string(DotWeaponProfiles.to_yaml(def, "FC Weapons"))
+		f.store_string(GSWeaponProfiles.to_yaml(def, "FC Weapons"))
 		n += 1
 
 	print("wrote %d weapon profiles" % n)

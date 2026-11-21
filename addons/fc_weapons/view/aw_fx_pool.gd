@@ -46,7 +46,7 @@ var _layers: Dictionary = {}
 ## The quads and flash lights every remote [AwShotFx] draws from, built on the first ask. Effects are top-level and
 ## world-space, so a shooter owns nothing but its report voices: 63 remote players held 14 nodes each before this.
 var _shared_mesh_pool: AwSharedMeshPool = null
-var _shared_light_pool: DotFxLightPool = null
+var _shared_light_pool: GSFxLightPool = null
 
 
 func _enter_tree() -> void:
@@ -82,7 +82,7 @@ static func take_charge_fx() -> Node3D:
 
 
 ## The shared flash for the next remote shot of this size, or null when the pool keeps none.
-static func shared_flash(category: String, def: DotWeaponDef, suppressed: bool) -> Node3D:
+static func shared_flash(category: String, def: GSWeaponDef, suppressed: bool) -> Node3D:
 	var pool := current()
 	return pool._next_flash(category, def, suppressed) if pool != null else null
 
@@ -112,7 +112,7 @@ func _shared_fx_pools(fx: AwShotFx) -> Array:
 		_shared_mesh_pool.name = "SharedMeshes"
 		_shared_mesh_pool.idle_limit = shared_idle
 		add_child(_shared_mesh_pool)
-		_shared_light_pool = DotFxLightPool.new()
+		_shared_light_pool = GSFxLightPool.new()
 		_shared_light_pool.name = "SharedLights"
 		add_child(_shared_light_pool)
 		_shared_light_pool.prewarm(shared_lights)
@@ -167,10 +167,10 @@ func _shared_layers(bus: StringName) -> AwShotLayers:
 ## Builds [param each] shared flashes per size the [param categories] draw (default: every class's).
 ## True when all are built or none can draw here; each flash builds itself a node a frame.
 func fill_flashes(each: int = 8, categories: PackedStringArray = PackedStringArray()) -> bool:
-	if not is_inside_tree() or not ResourceLoader.exists(DotWeaponMuzzle.SCRIPT_PATH):
+	if not is_inside_tree() or not ResourceLoader.exists(GSWeaponMuzzle.SCRIPT_PATH):
 		return true
 	if _flash_script == null:
-		_flash_script = load(DotWeaponMuzzle.SCRIPT_PATH)
+		_flash_script = load(GSWeaponMuzzle.SCRIPT_PATH)
 	if not _flash_script.call("available"):
 		return true
 	var wanted := categories.duplicate()
@@ -261,10 +261,10 @@ func _take_charge() -> Node3D:
 	return null
 
 
-func _next_flash(category: String, def: DotWeaponDef, suppressed: bool) -> Node3D:
+func _next_flash(category: String, def: GSWeaponDef, suppressed: bool) -> Node3D:
 	if _rings.is_empty():
 		return null
-	var extra := {DotWeaponMuzzle.KEY: DotWeaponMuzzle.flash_name(def)}
+	var extra := {GSWeaponMuzzle.KEY: GSWeaponMuzzle.flash_name(def)}
 	var size: int = _flash_script.call("size_for", category, extra, suppressed)
 	var ring: Array = _rings.get(size, [])
 	if ring.is_empty():

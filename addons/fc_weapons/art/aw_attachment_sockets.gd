@@ -61,7 +61,7 @@ static func ensure(weapon: Node3D) -> void:
 		socket.name = name
 		var at := Transform3D(Basis.IDENTITY, row[String(mount)])
 		var parent: Node3D = weapon
-		if mount == DotWeaponAttachment.MOUNT_MAGAZINE:
+		if mount == GSWeaponAttachment.MOUNT_MAGAZINE:
 			# On the magazine itself, so a reload hides and carries the extension with it.
 			var mag := weapon.find_child(str(row.get("mag", "")), true, false) as Node3D
 			if mag != null:

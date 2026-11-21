@@ -12,7 +12,7 @@ func _grenades() -> void:
 			return {}
 		return {"position": Vector3(to.x, 0.0, to.z), "normal": Vector3.UP}
 	var make := func(id: StringName, vel: Vector3, fuse: int) -> AwGrenade:
-		var s := DotWeaponSpawn.make(id, Vector3(0, 1, 0), vel, 7)
+		var s := GSWeaponSpawn.make(id, Vector3(0, 1, 0), vel, 7)
 		s.fuse_ticks = fuse
 		s.gravity_scale = 1.0
 		return AwGrenade.from_spawn(s, _def(defs, id), rules)
@@ -61,7 +61,7 @@ func _grenades() -> void:
 	_check("splash falls off with distance and the thrower is hurt", hurt.has(7) and hurt.has(2) and hurt[7] > hurt[2] and hurt[2] > 0.0)
 	_check("outside the radius or behind cover takes nothing", not hurt.has(3) and not hurt.has(4))
 
-	var flash := AwGrenade.from_spawn(DotWeaponSpawn.make(&"aw_flash", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_flash"), rules)
+	var flash := AwGrenade.from_spawn(GSWeaponSpawn.make(&"aw_flash", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_flash"), rules)
 	var look: Array = [
 		{"id": 2, "position": Vector3(0, 0, -4), "eye": Vector3(0, 1.6, -4), "forward": Vector3(0, 0, 1)},
 		{"id": 3, "position": Vector3(0, 0, -4), "eye": Vector3(0, 1.6, -4), "forward": Vector3(0, 0, -1)},
@@ -72,7 +72,7 @@ func _grenades() -> void:
 			blind[e["victim"]] = e["seconds"]
 	_check("a flash blinds who faces it and spares who looks away", blind.has(2) and not blind.has(3) and blind[2] <= rules.flash_seconds)
 
-	var sm := AwGrenade.from_spawn(DotWeaponSpawn.make(&"aw_smoke", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_smoke"), rules)
+	var sm := AwGrenade.from_spawn(GSWeaponSpawn.make(&"aw_smoke", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_smoke"), rules)
 	var sev := AwGrenadeBlast.detonate(sm, _def(defs, &"aw_smoke"), [], clear)
 	_check("smoke leaves a cloud and no damage", sev.any(func(e: Dictionary) -> bool: return e["event"] == "smoke") and not sev.any(func(e: Dictionary) -> bool: return e["event"] == "damage"))
 
@@ -83,9 +83,9 @@ func _grenades() -> void:
 
 
 ## A dropped grenade rebounds as high as sv_grenade_bounce says; sv_grenade_damping drags it; a sticky still sticks.
-func _grenade_bounce(defs: Array[DotWeaponDef], floor_y: Callable) -> void:
+func _grenade_bounce(defs: Array[GSWeaponDef], floor_y: Callable) -> void:
 	var throw := func(id: StringName, vel: Vector3, r: AwGrenadeRules) -> AwGrenade:
-		var s := DotWeaponSpawn.make(id, Vector3(0, 1, 0), vel, 7)
+		var s := GSWeaponSpawn.make(id, Vector3(0, 1, 0), vel, 7)
 		s.fuse_ticks = 5000
 		s.gravity_scale = 1.0
 		return AwGrenade.from_spawn(s, _def(defs, id), r)
@@ -151,7 +151,7 @@ func _utility() -> void:
 	var blocked := AwUtilityZones.los_from_ray(func(_f: Vector3, _d: Vector3, _n: float) -> bool: return true)
 	_check("the ray adapter says clear when nothing is hit and blocked when something is", z.los.call(Vector3.ZERO, Vector3.ONE) and not blocked.call(Vector3.ZERO, Vector3.ONE) and z.los.call(Vector3.ONE, Vector3.ONE) and blocked.call(Vector3.ONE, Vector3.ONE))
 
-	var inc := AwGrenade.from_spawn(DotWeaponSpawn.make(&"aw_incendiary", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_incendiary"), z.rules)
+	var inc := AwGrenade.from_spawn(GSWeaponSpawn.make(&"aw_incendiary", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_incendiary"), z.rules)
 	inc.owner_entity = 9
 	var _ev := z.detonate(inc, _def(defs, &"aw_incendiary"))
 	_check("an incendiary opens one fire zone and tells the host", z.active_fires() == 1 and seen.size() == 1 and int(seen[0]["fx"]) == AwUtilityZones.Fx.FIRE)
@@ -164,13 +164,13 @@ func _utility() -> void:
 		z.tick(0.1)
 	_check("a fire zone burns out", z.active_fires() == 0)
 
-	var smoke := AwGrenade.from_spawn(DotWeaponSpawn.make(&"aw_smoke", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_smoke"), z.rules)
+	var smoke := AwGrenade.from_spawn(GSWeaponSpawn.make(&"aw_smoke", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_smoke"), z.rules)
 	var _sev := z.detonate(smoke, _def(defs, &"aw_smoke"))
 	_check("smoke is a cloud that expires", z.active_smokes() == 1 and int(seen[-1]["fx"]) == AwUtilityZones.Fx.SMOKE)
 	z.tick(z.rules.smoke_seconds + 1.0)
 	_check("smoke is gone after its seconds", z.active_smokes() == 0)
 
-	var flash := AwGrenade.from_spawn(DotWeaponSpawn.make(&"aw_flash", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_flash"), z.rules)
+	var flash := AwGrenade.from_spawn(GSWeaponSpawn.make(&"aw_flash", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_flash"), z.rules)
 	var _fev := z.detonate(flash, _def(defs, &"aw_flash"))
 	var blinds := seen.filter(func(i: Dictionary) -> bool: return int(i["fx"]) == AwUtilityZones.Fx.BLIND)
 	_check("a flash blinds the one facing it and the ledger holds the blind", blinds.any(func(i: Dictionary) -> bool: return int(i["victim"]) == 2) and z.ledger.is_blind(2) and not z.ledger.is_blind(3))
@@ -193,7 +193,7 @@ func _utility() -> void:
 
 	z.apply_blast_damage = true
 	hits.clear()
-	var frag := AwGrenade.from_spawn(DotWeaponSpawn.make(&"aw_frag", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_frag"), z.rules)
+	var frag := AwGrenade.from_spawn(GSWeaponSpawn.make(&"aw_frag", Vector3.ZERO, Vector3.ZERO, 7), _def(defs, &"aw_frag"), z.rules)
 	var _gev := z.detonate(frag, _def(defs, &"aw_frag"))
 	_check("blast damage goes through the host's callable when asked", hits.any(func(h: Dictionary) -> bool: return h["v"] == 2))
 
@@ -217,7 +217,7 @@ func _utility_fx() -> void:
 	_check("API level 27 or later", preload("res://addons/fc_weapons/fc_weapons_api.gd").LEVEL >= 27)
 
 	var fx_defs := AwGrenadeFx.defs("res://fx")
-	_check("three fx defs: two clouds from the game's folder and a screen flash", fx_defs.size() == 3 and fx_defs[0].scene_path == "res://fx/smoke_cloud.tscn" and fx_defs[2].kind == DotFxDef.Kind.SCREEN)
+	_check("three fx defs: two clouds from the game's folder and a screen flash", fx_defs.size() == 3 and fx_defs[0].scene_path == "res://fx/smoke_cloud.tscn" and fx_defs[2].kind == GSFxDef.Kind.SCREEN)
 	_check("the flash decay follows the blind, clamped", AwGrenadeFx.flash_decay_ms(0.01) == AwGrenadeFx.BLIND_MIN_MS and AwGrenadeFx.flash_decay_ms(3.0) == 3000 and AwGrenadeFx.flash_decay_ms(99.0) == AwGrenadeFx.BLIND_MAX_MS)
 	_check("showing with no fx host is a no-op", AwGrenadeFx.show(null, null, {"fx": AwUtilityZones.Fx.SMOKE, "seconds": 1.0, "radius": 1.0, "position": Vector3.ZERO, "victim": 0}, 0) == null)
 
@@ -235,8 +235,8 @@ func _rockets() -> void:
 	var defs := AwSpawnProvider.weapon_defs()
 	var single := _def(defs, &"aw_launcher")
 	var quad := _def(defs, &"aw_quad_launcher")
-	var sb := single.tuning as DotWeaponBallistics
-	var qb := quad.tuning as DotWeaponBallistics
+	var sb := single.tuning as GSWeaponBallistics
+	var qb := quad.tuning as GSWeaponBallistics
 	_check("the single-missile launcher holds one missile, the quad four", single.magazine == 1 and quad.magazine == 4)
 	_check("its blast is wider than the quad's (%.1f m against %.1f m)" % [sb.splash_radius, qb.splash_radius], sb.splash_radius > qb.splash_radius)
 	var rules := AwRocketRules.new()
@@ -246,15 +246,15 @@ func _rockets() -> void:
 	var other := AwWeaponPack.quad_launcher()
 	rules.apply(tuned)
 	rules.apply(other)
-	_check("sv_rocket_launcher_* retune the single launcher and leave the quad alone", tuned.magazine == 2 and is_equal_approx((tuned.tuning as DotWeaponBallistics).splash_radius, 8.0) and other.magazine == 4)
+	_check("sv_rocket_launcher_* retune the single launcher and leave the quad alone", tuned.magazine == 2 and is_equal_approx((tuned.tuning as GSWeaponBallistics).splash_radius, 8.0) and other.magazine == 4)
 
 	var weak := AwRocketRules.new()
 	var _w := weak.set_cvar("sv_rocket_jump_damage_scale", "0.25")
-	var fit := DotWeaponFitting.make(single.id)
+	var fit := GSWeaponFitting.make(single.id)
 	fit.fit(AwAttachmentSockets.MOUNT_WARHEAD, AwRocketJump.ID)
 	var res := AwAttachmentPack.catalogue(weak).apply(single, fit)
-	var rj: DotWeaponDef = res.value if res.ok else null
-	var rb: DotWeaponBallistics = rj.tuning as DotWeaponBallistics if rj != null else null
+	var rj: GSWeaponDef = res.value if res.ok else null
+	var rb: GSWeaponBallistics = rj.tuning as GSWeaponBallistics if rj != null else null
 	_check("the Rocketjump fits the launcher and cuts its damage by sv_rocket_jump_damage_scale", rb != null and AwRocketJump.is_rocketjump(rj) and is_equal_approx(rb.splash_damage, sb.splash_damage * 0.25) and not AwRocketJump.is_rocketjump(single))
 	var choices := AwSpawnProvider.attachment_defs().choices_for(_def(defs, &"aw_rifle"))
 	_check("no other gun is offered it", not choices.values().any(func(ids: Array) -> bool: return ids.has(AwRocketJump.ID)))

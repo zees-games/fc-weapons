@@ -9,23 +9,23 @@ extends RefCounted
 static func gaps(id: StringName) -> PackedStringArray:
 	var out := PackedStringArray()
 	if id == &"knife":
-		_need(out, id, "swing", DotWeaponSound.pick(&"swing") != null)
-		_need(out, id, "bash", DotWeaponSound.pick(&"bash") != null)
-		_need(out, id, "impact", DotWeaponSound.pick(&"melee_flesh") != null and DotWeaponSound.pick(&"melee_metal") != null)
-		_need(out, id, "equip", DotWeaponSound.pick_feel(&"light", &"equip") != null)
+		_need(out, id, "swing", GSWeaponSound.pick(&"swing") != null)
+		_need(out, id, "bash", GSWeaponSound.pick(&"bash") != null)
+		_need(out, id, "impact", GSWeaponSound.pick(&"melee_flesh") != null and GSWeaponSound.pick(&"melee_metal") != null)
+		_need(out, id, "equip", GSWeaponSound.pick_feel(&"light", &"equip") != null)
 		return out
 	if AwWeaponPack.SOUND_CLASSES.has(id):
 		var sound_class: StringName = AwWeaponPack.SOUND_CLASSES[id]
 		var own := ResourceLoader.exists("%s%s/attack_0.ogg" % [AwShotLayers.GUN_SOUNDS, id])
-		_need(out, id, "fire", own or DotWeaponSound.pick_class(sound_class) != null)
-		_need(out, id, "reload out", DotWeaponSound.pick_reload(sound_class, &"out") != null)
-		_need(out, id, "reload in", DotWeaponSound.pick_reload(sound_class, &"in") != null)
-		_need(out, id, "equip", DotWeaponSound.pick_feel(sound_class, &"equip") != null)
-		_need(out, id, "dry", DotWeaponSound.pick_feel(sound_class, &"dry") != null)
-		_need(out, id, "impact", DotWeaponSound.pick(&"impact") != null)
+		_need(out, id, "fire", own or GSWeaponSound.pick_class(sound_class) != null)
+		_need(out, id, "reload out", GSWeaponSound.pick_reload(sound_class, &"out") != null)
+		_need(out, id, "reload in", GSWeaponSound.pick_reload(sound_class, &"in") != null)
+		_need(out, id, "equip", GSWeaponSound.pick_feel(sound_class, &"equip") != null)
+		_need(out, id, "dry", GSWeaponSound.pick_feel(sound_class, &"dry") != null)
+		_need(out, id, "impact", GSWeaponSound.pick(&"impact") != null)
 		return out
-	_need(out, id, "throw", DotWeaponSound.pick(&"throw") != null)
-	_need(out, id, "pin pull", DotWeaponSound.pick(&"pin_pull") != null)
+	_need(out, id, "throw", GSWeaponSound.pick(&"throw") != null)
+	_need(out, id, "pin pull", GSWeaponSound.pick(&"pin_pull") != null)
 	_need(out, id, "detonation", AwGrenadeSound.count(id) > 0)
 	return out
 
@@ -37,11 +37,11 @@ static func weak(id: StringName) -> PackedStringArray:
 		return out
 	var sound_class: StringName = AwWeaponPack.SOUND_CLASSES[id]
 	for stage in [&"out", &"in"]:
-		if sound_class != &"shotgun" and DotWeaponSound.reload_name(sound_class, stage) == StringName("reload_" + String(stage)):
+		if sound_class != &"shotgun" and GSWeaponSound.reload_name(sound_class, stage) == StringName("reload_" + String(stage)):
 			out.append("reload %s is the generic set" % stage)
 	if not ResourceLoader.exists("%s%s/attack_0.ogg" % [AwShotLayers.GUN_SOUNDS, id]):
 		out.append("fire is the class stock (%s), shared with other guns" % sound_class)
-	if not ResourceLoader.exists("%s%s/far_0.ogg" % [AwShotLayers.GUN_SOUNDS, id]) and DotWeaponSound.pick_far(sound_class) == null:
+	if not ResourceLoader.exists("%s%s/far_0.ogg" % [AwShotLayers.GUN_SOUNDS, id]) and GSWeaponSound.pick_far(sound_class) == null:
 		out.append("no distant report")
 	return out
 

@@ -1,7 +1,7 @@
 class_name AwWeaponPack
 extends RefCounted
 
-## Fatal Contact's whole gun set as [DotWeaponDef]s: this pack's own numbers, built from dot-weapon alone, so a host needs no other weapon pack.
+## Fatal Contact's whole gun set as [GSWeaponDef]s: this pack's own numbers, built from dot-weapon alone, so a host needs no other weapon pack.
 ## Durations are ticks at [constant TICK_RATE]; every number can be overridden per weapon in `cfg/addons/fc_weapons/weapon/<id>.yml`.
 
 const TICK_RATE := 64
@@ -47,7 +47,7 @@ const IDS: Array[StringName] = [
 	&"frag", &"sticky", &"flash", &"smoke", &"incendiary",
 ]
 
-## Sound class of each gun, as the names a weapon-sound table uses (dot-weapon's `DotWeaponSound.FIRE`), as plain data;
+## Sound class of each gun, as the names a weapon-sound table uses (dot-weapon's `GSWeaponSound.FIRE`), as plain data;
 ## a host feeds it to `AwWeaponSound.set_class`. Nine guns have a recording of their own.
 const SOUND_CLASSES := {
 	&"pistol": &"light", &"revolver": &"magnum", &"derringer": &"derringer", &"machine_pistol": &"mpistol", &"smg": &"smg",
@@ -105,11 +105,11 @@ static func sound_classes(prefix: String = "") -> Dictionary:
 
 
 ## Every weapon, ids prefixed with [param prefix] (a host mixing packs passes `aw_`), tuned by the profiles.
-static func weapons(types: Dictionary = {}, prefix: String = "", profiled: bool = true) -> Array[DotWeaponDef]:
-	var out: Array[DotWeaponDef] = []
+static func weapons(types: Dictionary = {}, prefix: String = "", profiled: bool = true) -> Array[GSWeaponDef]:
+	var out: Array[GSWeaponDef] = []
 
 	for id in IDS:
-		var def: DotWeaponDef = Callable(AwWeaponPack, id).call(types)
+		var def: GSWeaponDef = Callable(AwWeaponPack, id).call(types)
 		def.weight = float(WEIGHTS.get(id, def.weight))
 		var wall := AwWeaponArt.wall_row(id)
 		if not wall.is_empty():
@@ -119,8 +119,8 @@ static func weapons(types: Dictionary = {}, prefix: String = "", profiled: bool 
 		out.append(def)
 
 	if profiled:
-		var set := DotWeaponProfiles.overlay_set(ADDON, game, pack_cfg_root, base_roots)
-		errors = DotWeaponProfiles.tune(out, set)
+		var set := GSWeaponProfiles.overlay_set(ADDON, game, pack_cfg_root, base_roots)
+		errors = GSWeaponProfiles.tune(out, set)
 
 	if prefix != "":
 		for def in out:
@@ -137,15 +137,15 @@ static func sec_ticks(seconds: float) -> int:
 	return maxi(0, int(round(seconds * float(TICK_RATE))))
 
 
-static func knife(t: Dictionary = {}) -> DotWeaponDef:
+static func knife(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _melee(t, &"knife", "Knife", 45.0, 1.9, rpm_ticks(150.0), 24.0, 3)
 	def.deploy_ticks = sec_ticks(0.15)
 	def.holster_ticks = sec_ticks(0.14)
 	return def
 
 
-static func pistol(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"pistol", "Pistol", SLOT_SIDEARM, DotWeaponDef.Fire.SEMI, rpm_ticks(380.0), [&"sidearm"], AMMO_LIGHT, 15, 60, 1.6)
+static func pistol(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"pistol", "Pistol", SLOT_SIDEARM, GSWeaponDef.Fire.SEMI, rpm_ticks(380.0), [&"sidearm"], AMMO_LIGHT, 15, 60, 1.6)
 	def.deploy_ticks = sec_ticks(0.22)
 	def.holster_ticks = sec_ticks(0.16)
 	var b := _ballistics(t, 20.0)
@@ -157,8 +157,8 @@ static func pistol(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func revolver(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"revolver", "Revolver", SLOT_SIDEARM, DotWeaponDef.Fire.SEMI, rpm_ticks(150.0), [&"sidearm"], AMMO_LIGHT, 6, 36, 2.4)
+static func revolver(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"revolver", "Revolver", SLOT_SIDEARM, GSWeaponDef.Fire.SEMI, rpm_ticks(150.0), [&"sidearm"], AMMO_LIGHT, 6, 36, 2.4)
 	def.deploy_ticks = sec_ticks(0.3)
 	def.holster_ticks = sec_ticks(0.2)
 	_art(def, "revolver")
@@ -172,8 +172,8 @@ static func revolver(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func machine_pistol(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"machine_pistol", "Machine Pistol", SLOT_SIDEARM, DotWeaponDef.Fire.AUTO, rpm_ticks(900.0), [&"sidearm", &"automatic"], AMMO_LIGHT, 25, 100, 1.9)
+static func machine_pistol(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"machine_pistol", "Machine Pistol", SLOT_SIDEARM, GSWeaponDef.Fire.AUTO, rpm_ticks(900.0), [&"sidearm", &"automatic"], AMMO_LIGHT, 25, 100, 1.9)
 	def.deploy_ticks = sec_ticks(0.25)
 	def.holster_ticks = sec_ticks(0.18)
 	_art(def, "smg")
@@ -186,8 +186,8 @@ static func machine_pistol(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func derringer(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"derringer", "Derringer", SLOT_SIDEARM, DotWeaponDef.Fire.SEMI, rpm_ticks(90.0), [&"sidearm"], AMMO_LIGHT, 2, 12, 2.0)
+static func derringer(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"derringer", "Derringer", SLOT_SIDEARM, GSWeaponDef.Fire.SEMI, rpm_ticks(90.0), [&"sidearm"], AMMO_LIGHT, 2, 12, 2.0)
 	def.deploy_ticks = sec_ticks(0.18)
 	def.holster_ticks = sec_ticks(0.12)
 	_art(def, "break")
@@ -199,8 +199,8 @@ static func derringer(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func smg(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"smg", "SMG", SLOT_PRIMARY, DotWeaponDef.Fire.AUTO, rpm_ticks(820.0), [&"primary", &"automatic"], AMMO_LIGHT, 30, 120, 1.8)
+static func smg(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"smg", "SMG", SLOT_PRIMARY, GSWeaponDef.Fire.AUTO, rpm_ticks(820.0), [&"primary", &"automatic"], AMMO_LIGHT, 30, 120, 1.8)
 	def.deploy_ticks = sec_ticks(0.26)
 	def.holster_ticks = sec_ticks(0.2)
 	_art(def, "smg")
@@ -213,8 +213,8 @@ static func smg(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func carbine(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"carbine", "Carbine", SLOT_PRIMARY, DotWeaponDef.Fire.AUTO, rpm_ticks(660.0), [&"primary", &"automatic"], AMMO_HEAVY, 24, 96, 2.0)
+static func carbine(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"carbine", "Carbine", SLOT_PRIMARY, GSWeaponDef.Fire.AUTO, rpm_ticks(660.0), [&"primary", &"automatic"], AMMO_HEAVY, 24, 96, 2.0)
 	def.deploy_ticks = sec_ticks(0.3)
 	def.holster_ticks = sec_ticks(0.22)
 	var b := _ballistics(t, 21.0)
@@ -226,8 +226,8 @@ static func carbine(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func rifle(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"rifle", "Assault Rifle", SLOT_PRIMARY, DotWeaponDef.Fire.AUTO, rpm_ticks(600.0), [&"primary", &"automatic"], AMMO_HEAVY, 30, 120, 2.2)
+static func rifle(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"rifle", "Assault Rifle", SLOT_PRIMARY, GSWeaponDef.Fire.AUTO, rpm_ticks(600.0), [&"primary", &"automatic"], AMMO_HEAVY, 30, 120, 2.2)
 	def.deploy_ticks = sec_ticks(0.32)
 	def.holster_ticks = sec_ticks(0.24)
 	var b := _ballistics(t, 23.0)
@@ -239,8 +239,8 @@ static func rifle(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func bullpup(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"bullpup", "Bullpup", SLOT_PRIMARY, DotWeaponDef.Fire.AUTO, rpm_ticks(700.0), [&"primary", &"automatic"], AMMO_HEAVY, 32, 128, 2.4)
+static func bullpup(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"bullpup", "Bullpup", SLOT_PRIMARY, GSWeaponDef.Fire.AUTO, rpm_ticks(700.0), [&"primary", &"automatic"], AMMO_HEAVY, 32, 128, 2.4)
 	def.deploy_ticks = sec_ticks(0.34)
 	def.holster_ticks = sec_ticks(0.26)
 	var b := _ballistics(t, 20.0)
@@ -252,8 +252,8 @@ static func bullpup(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func battle_rifle(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"battle_rifle", "Battle Rifle", SLOT_PRIMARY, DotWeaponDef.Fire.SEMI, rpm_ticks(300.0), [&"primary"], AMMO_HEAVY, 20, 80, 2.3)
+static func battle_rifle(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"battle_rifle", "Battle Rifle", SLOT_PRIMARY, GSWeaponDef.Fire.SEMI, rpm_ticks(300.0), [&"primary"], AMMO_HEAVY, 20, 80, 2.3)
 	def.deploy_ticks = sec_ticks(0.36)
 	def.holster_ticks = sec_ticks(0.26)
 	var b := _ballistics(t, 36.0)
@@ -265,8 +265,8 @@ static func battle_rifle(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func burst_rifle(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"burst_rifle", "Burst Rifle", SLOT_PRIMARY, DotWeaponDef.Fire.BURST, rpm_ticks(240.0), [&"primary"], AMMO_HEAVY, 30, 90, 2.1)
+static func burst_rifle(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"burst_rifle", "Burst Rifle", SLOT_PRIMARY, GSWeaponDef.Fire.BURST, rpm_ticks(240.0), [&"primary"], AMMO_HEAVY, 30, 90, 2.1)
 	def.burst_count = 3
 	def.burst_interval_ticks = 3
 	def.deploy_ticks = sec_ticks(0.3)
@@ -280,8 +280,8 @@ static func burst_rifle(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func shotgun(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"shotgun", "Shotgun", SLOT_PRIMARY, DotWeaponDef.Fire.SEMI, rpm_ticks(75.0), [&"primary"], AMMO_SHELL, 8, 32, 0.42)
+static func shotgun(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"shotgun", "Shotgun", SLOT_PRIMARY, GSWeaponDef.Fire.SEMI, rpm_ticks(75.0), [&"primary"], AMMO_SHELL, 8, 32, 0.42)
 	def.reload_per_round = true
 	def.reload_start_ticks = sec_ticks(0.3)
 	def.deploy_ticks = sec_ticks(0.38)
@@ -298,8 +298,8 @@ static func shotgun(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func drum_shotgun(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"drum_shotgun", "Drum Shotgun", SLOT_PRIMARY, DotWeaponDef.Fire.AUTO, rpm_ticks(190.0), [&"primary", &"automatic"], AMMO_SHELL, 20, 40, 4.0)
+static func drum_shotgun(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"drum_shotgun", "Drum Shotgun", SLOT_PRIMARY, GSWeaponDef.Fire.AUTO, rpm_ticks(190.0), [&"primary", &"automatic"], AMMO_SHELL, 20, 40, 4.0)
 	def.deploy_ticks = sec_ticks(0.42)
 	def.holster_ticks = sec_ticks(0.3)
 	var b := _ballistics(t, 8.0)
@@ -313,8 +313,8 @@ static func drum_shotgun(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func marksman(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"marksman", "Marksman Rifle", SLOT_PRIMARY, DotWeaponDef.Fire.SEMI, rpm_ticks(180.0), [&"primary", &"scoped"], AMMO_HEAVY, 10, 40, 2.6)
+static func marksman(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"marksman", "Marksman Rifle", SLOT_PRIMARY, GSWeaponDef.Fire.SEMI, rpm_ticks(180.0), [&"primary", &"scoped"], AMMO_HEAVY, 10, 40, 2.6)
 	def.deploy_ticks = sec_ticks(0.45)
 	def.holster_ticks = sec_ticks(0.3)
 	_art(def, "bolt")
@@ -328,8 +328,8 @@ static func marksman(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Belt-fed and box-fed: a long magazine, a long reload, and a gun that is slow to bring round.
-static func lmg(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"lmg", "Light Machine Gun", SLOT_PRIMARY, DotWeaponDef.Fire.AUTO, rpm_ticks(720.0), [&"primary", &"automatic"], AMMO_HEAVY, 100, 200, 4.6)
+static func lmg(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"lmg", "Light Machine Gun", SLOT_PRIMARY, GSWeaponDef.Fire.AUTO, rpm_ticks(720.0), [&"primary", &"automatic"], AMMO_HEAVY, 100, 200, 4.6)
 	def.deploy_ticks = sec_ticks(0.7)
 	def.holster_ticks = sec_ticks(0.5)
 	_art(def, "heavy")
@@ -342,8 +342,8 @@ static func lmg(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func sniper(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"sniper", "Sniper Rifle", AwWeaponIds.big_gun_slot(), DotWeaponDef.Fire.SEMI, rpm_ticks(45.0), [&"heavy", &"scoped"], AMMO_HEAVY, 5, 25, 3.2)
+static func sniper(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"sniper", "Sniper Rifle", AwWeaponIds.big_gun_slot(), GSWeaponDef.Fire.SEMI, rpm_ticks(45.0), [&"heavy", &"scoped"], AMMO_HEAVY, 5, 25, 3.2)
 	def.deploy_ticks = sec_ticks(0.7)
 	def.holster_ticks = sec_ticks(0.5)
 	_art(def, "bolt")
@@ -358,8 +358,8 @@ static func sniper(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## No magazine: dot-weapon reads zero as "feeds from the reserve", so it never reloads and simply runs dry.
-static func minigun(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"minigun", "Minigun", AwWeaponIds.heavy_slot(), DotWeaponDef.Fire.AUTO, rpm_ticks(1100.0), [&"heavy", &"automatic"], AMMO_BELT, 0, 200, 0.0)
+static func minigun(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"minigun", "Minigun", AwWeaponIds.heavy_slot(), GSWeaponDef.Fire.AUTO, rpm_ticks(1100.0), [&"heavy", &"automatic"], AMMO_BELT, 0, 200, 0.0)
 	def.reserve_max = 400
 	def.auto_reload = false
 	def.deploy_ticks = sec_ticks(1.1)
@@ -373,7 +373,7 @@ static func minigun(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func launcher(t: Dictionary = {}) -> DotWeaponDef:
+static func launcher(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _rocket(t, &"launcher", "Rocket Launcher", rpm_ticks(70.0), 1, 12, 2.8)
 	# One missile per reload and the biggest blast of the launchers; sv_rocket_launcher_* retune both live.
 	def.params[&"rocket_tube"] = "single"
@@ -382,9 +382,9 @@ static func launcher(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Four tubes fired as fast as the trigger: the whole load in a second, then a long reload.
-static func quad_launcher(t: Dictionary = {}) -> DotWeaponDef:
+static func quad_launcher(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _rocket(t, &"quad_launcher", "Quad Rocket Launcher", rpm_ticks(240.0), 4, 8, 4.2)
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	b.damage = 24.0
 	b.splash_damage = 62.0
 	b.splash_radius = 3.6
@@ -393,10 +393,10 @@ static func quad_launcher(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Lobbed shells that drop: thrown at a corner rather than at a person.
-static func grenade_launcher(t: Dictionary = {}) -> DotWeaponDef:
+static func grenade_launcher(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _rocket(t, &"grenade_launcher", "Grenade Launcher", rpm_ticks(90.0), 6, 18, 3.4)
 	_art(def, "revolver")
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	b.damage = 20.0
 	b.speed = 28.0
 	b.min_speed = 28.0
@@ -408,8 +408,8 @@ static func grenade_launcher(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Damage while held on a target and nothing for a flick: it ramps from 45% to full over half a second.
-static func beamer(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"beamer", "Plasma Beamer", AwWeaponIds.heavy_slot(), DotWeaponDef.Fire.HOLD, 4, [&"heavy", &"energy"], AMMO_CELL, 0, 260, 0.0)
+static func beamer(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"beamer", "Plasma Beamer", AwWeaponIds.heavy_slot(), GSWeaponDef.Fire.HOLD, 4, [&"heavy", &"energy"], AMMO_CELL, 0, 260, 0.0)
 	def.behaviour_path = BEAM
 	def.reserve_max = 520
 	def.auto_reload = false
@@ -425,8 +425,8 @@ static func beamer(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Hold to charge, release to fire; refuses to release below a third of a charge.
-static func charge_rifle(t: Dictionary = {}) -> DotWeaponDef:
-	var def := _gun(&"charge_rifle", "Rail Rifle", AwWeaponIds.heavy_slot(), DotWeaponDef.Fire.CHARGE, rpm_ticks(90.0), [&"heavy", &"energy", &"scoped"], AMMO_CELL, 4, 24, 2.6)
+static func charge_rifle(t: Dictionary = {}) -> GSWeaponDef:
+	var def := _gun(&"charge_rifle", "Rail Rifle", AwWeaponIds.heavy_slot(), GSWeaponDef.Fire.CHARGE, rpm_ticks(90.0), [&"heavy", &"energy", &"scoped"], AMMO_CELL, 4, 24, 2.6)
 	def.charge_ticks = sec_ticks(1.1)
 	def.charge_requires_min = true
 	def.min_charge = 0.34
@@ -443,9 +443,9 @@ static func charge_rifle(t: Dictionary = {}) -> DotWeaponDef:
 	return def
 
 
-static func frag(t: Dictionary = {}) -> DotWeaponDef:
+static func frag(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _thrown(t, &"frag", "Frag Grenade", 3.0)
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	b.splash_radius = 5.2
 	b.splash_damage = 115.0
 	b.speed = 19.0
@@ -456,9 +456,9 @@ static func frag(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Sticks where it lands, so it is thrown at a place; a shorter fuse because it cannot be kicked away.
-static func sticky(t: Dictionary = {}) -> DotWeaponDef:
+static func sticky(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _thrown(t, &"sticky", "Sticky Grenade", 2.2)
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	b.splash_radius = 4.0
 	b.splash_damage = 135.0
 	b.speed = 22.0
@@ -470,7 +470,7 @@ static func sticky(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Blinds whoever faces it, scaled by distance; no damage.
-static func flash(t: Dictionary = {}) -> DotWeaponDef:
+static func flash(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _thrown(t, &"flash", "Flashbang", 1.6)
 	def.params[&"kind"] = &"flash"
 	def.params[&"effect_radius"] = 12.0
@@ -478,7 +478,7 @@ static func flash(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## A cloud that blocks sight for a while; no damage.
-static func smoke(t: Dictionary = {}) -> DotWeaponDef:
+static func smoke(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _thrown(t, &"smoke", "Smoke Grenade", 1.2)
 	def.params[&"kind"] = &"smoke"
 	def.params[&"effect_radius"] = 4.5
@@ -486,9 +486,9 @@ static func smoke(t: Dictionary = {}) -> DotWeaponDef:
 
 
 ## Bursts on first contact and leaves a fire that burns whoever stands in it.
-static func incendiary(t: Dictionary = {}) -> DotWeaponDef:
+static func incendiary(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _thrown(t, &"incendiary", "Incendiary Grenade", 3.0)
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	b.splash_radius = 3.0
 	b.splash_damage = 25.0
 	b.speed = 18.0
@@ -503,15 +503,15 @@ static func incendiary(t: Dictionary = {}) -> DotWeaponDef:
 const BURST_SELECTOR: Array[StringName] = [&"machine_pistol", &"smg", &"carbine", &"rifle", &"bullpup"]
 
 
-static func _gun(id: StringName, name: String, slot: int, fire: DotWeaponDef.Fire, interval: int, tags: Array, ammo: StringName, magazine: int, reserve: int, reload_sec: float) -> DotWeaponDef:
-	var def := DotWeaponDef.new()
+static func _gun(id: StringName, name: String, slot: int, fire: GSWeaponDef.Fire, interval: int, tags: Array, ammo: StringName, magazine: int, reserve: int, reload_sec: float) -> GSWeaponDef:
+	var def := GSWeaponDef.new()
 	def.authored_tick_rate = TICK_RATE
 	def.id = id
 	def.display_name = name
 	def.behaviour_path = HITSCAN
 	def.slot = slot
 	def.fire_mode = fire
-	def.fire_modes = DotWeaponDef.selector_modes(fire, id in BURST_SELECTOR)
+	def.fire_modes = GSWeaponDef.selector_modes(fire, id in BURST_SELECTOR)
 	def.use_interval_ticks = interval
 	def.cost_per_use = 1
 	def.tags.assign(tags)
@@ -523,13 +523,13 @@ static func _gun(id: StringName, name: String, slot: int, fire: DotWeaponDef.Fir
 	def.params = {&"bash_damage": 42.0, &"bash_reach": 1.9, &"bash_cooldown_ticks": sec_ticks(0.8)}
 	var kick := _kick_defaults()
 	if not kick.is_empty():
-		kick.merge(VIEW_FEEL.get(id, VIEW_FEEL_AUTO if fire == DotWeaponDef.Fire.AUTO else {}), true)
+		kick.merge(VIEW_FEEL.get(id, VIEW_FEEL_AUTO if fire == GSWeaponDef.Fire.AUTO else {}), true)
 	def.params.merge(kick)
 	return def
 
 
-static func _rocket(t: Dictionary, id: StringName, name: String, interval: int, magazine: int, reserve: int, reload_sec: float) -> DotWeaponDef:
-	var def := _gun(id, name, AwWeaponIds.big_gun_slot(), DotWeaponDef.Fire.SEMI, interval, [&"heavy", &"explosive"], AMMO_ORDNANCE, magazine, reserve, reload_sec)
+static func _rocket(t: Dictionary, id: StringName, name: String, interval: int, magazine: int, reserve: int, reload_sec: float) -> GSWeaponDef:
+	var def := _gun(id, name, AwWeaponIds.big_gun_slot(), GSWeaponDef.Fire.SEMI, interval, [&"heavy", &"explosive"], AMMO_ORDNANCE, magazine, reserve, reload_sec)
 	def.behaviour_path = PROJECTILE
 	def.deploy_ticks = sec_ticks(0.5)
 	def.holster_ticks = sec_ticks(0.34)
@@ -553,14 +553,14 @@ static func _rocket(t: Dictionary, id: StringName, name: String, interval: int, 
 	return def
 
 
-static func _melee(t: Dictionary, id: StringName, name: String, damage: float, reach: float, interval: int, arc: float, rays: int) -> DotWeaponDef:
-	var def := DotWeaponDef.new()
+static func _melee(t: Dictionary, id: StringName, name: String, damage: float, reach: float, interval: int, arc: float, rays: int) -> GSWeaponDef:
+	var def := GSWeaponDef.new()
 	def.authored_tick_rate = TICK_RATE
 	def.id = id
 	def.display_name = name
 	def.behaviour_path = MELEE
 	def.slot = SLOT_MELEE
-	def.fire_mode = DotWeaponDef.Fire.SEMI
+	def.fire_mode = GSWeaponDef.Fire.SEMI
 	def.use_interval_ticks = interval
 	def.tags = [&"melee"]
 	def.ammo_type = &""
@@ -580,14 +580,14 @@ static func _melee(t: Dictionary, id: StringName, name: String, damage: float, r
 
 
 ## The fuse starts when the pin comes out, not on release: cooking past it kills the thrower.
-static func _thrown(t: Dictionary, id: StringName, name: String, fuse_seconds: float) -> DotWeaponDef:
-	var def := DotWeaponDef.new()
+static func _thrown(t: Dictionary, id: StringName, name: String, fuse_seconds: float) -> GSWeaponDef:
+	var def := GSWeaponDef.new()
 	def.authored_tick_rate = TICK_RATE
 	def.id = id
 	def.display_name = name
 	def.behaviour_path = THROWN
 	def.slot = AwWeaponIds.thrown_slot()
-	def.fire_mode = DotWeaponDef.Fire.CHARGE
+	def.fire_mode = GSWeaponDef.Fire.CHARGE
 	def.use_interval_ticks = sec_ticks(1.0)
 	def.tags = [&"thrown", &"explosive"]
 	def.ammo_type = AMMO_GRENADE
@@ -611,40 +611,40 @@ static func _thrown(t: Dictionary, id: StringName, name: String, fuse_seconds: f
 	return def
 
 
-static func _ballistics(t: Dictionary, damage: float, kind: StringName = DART) -> DotWeaponBallistics:
-	var b := DotWeaponBallistics.new()
+static func _ballistics(t: Dictionary, damage: float, kind: StringName = DART) -> GSWeaponBallistics:
+	var b := GSWeaponBallistics.new()
 	b.damage = damage
 	b.damage_type = _type(t, kind)
 	return b
 
 
 ## The host's damage type of [param kind]; a bare one of that id when the host hands none.
-static func _type(t: Dictionary, kind: StringName) -> DotDamageType:
+static func _type(t: Dictionary, kind: StringName) -> GSDamageType:
 	var found: Variant = t.get(kind)
-	return found if found is DotDamageType else DotDamageType.make(kind, String(kind).capitalize())
+	return found if found is GSDamageType else GSDamageType.make(kind, String(kind).capitalize())
 
 
-static func _spread(b: DotWeaponBallistics, still: float, moving: float, airborne: float, crouched: float) -> void:
+static func _spread(b: GSWeaponBallistics, still: float, moving: float, airborne: float, crouched: float) -> void:
 	b.spread = still
 	b.spread_moving = moving
 	b.spread_airborne = airborne
 	b.spread_crouched = crouched
 
 
-static func _bloom(b: DotWeaponBallistics, per_shot: float, most: float, recovery_per_sec: float = -1.0) -> void:
+static func _bloom(b: GSWeaponBallistics, per_shot: float, most: float, recovery_per_sec: float = -1.0) -> void:
 	b.bloom = per_shot
 	b.bloom_max = most
 	if recovery_per_sec >= 0.0:
 		b.bloom_recovery = recovery_per_sec / float(TICK_RATE)
 
 
-static func _recoil(b: DotWeaponBallistics, pitch: float, yaw: float) -> void:
+static func _recoil(b: GSWeaponBallistics, pitch: float, yaw: float) -> void:
 	b.recoil_pitch = pitch
 	b.recoil_yaw = yaw
 
 
 ## The reload animation class a view rig plays (`params.art.reload_class`).
-static func _art(def: DotWeaponDef, reload_class: String) -> void:
+static func _art(def: GSWeaponDef, reload_class: String) -> void:
 	def.params[&"art"] = {"reload_class": reload_class}
 
 

@@ -66,16 +66,16 @@ func _native_spread() -> void:
 	_begin("native spread switch")
 	var was := AwWeaponRig.native_spread
 	AwWeaponRig.native_spread = not was
-	var flipped := DotWeaponHitscan.native_tick == (not was)
-	DotWeaponHitscan.native_tick = was
-	_check("AwWeaponRig.native_spread sets and reads DotWeaponHitscan.native_tick", flipped and AwWeaponRig.native_spread == was)
+	var flipped := GSWeaponHitscan.native_tick == (not was)
+	GSWeaponHitscan.native_tick = was
+	_check("AwWeaponRig.native_spread sets and reads GSWeaponHitscan.native_tick", flipped and AwWeaponRig.native_spread == was)
 	AwWeaponRig.native_spread = true
 	var on := AwWeaponRig.native_spread_active()
 	AwWeaponRig.native_spread = false
 	var off := AwWeaponRig.native_spread_active()
 	AwWeaponRig.native_spread = was
 	_check("native_spread_active() is the switch and dot-sim's class together",
-		on == ClassDB.class_exists(&"DotSimWeaponSpread") and not off)
+		on == ClassDB.class_exists(&"GSSimWeaponSpread") and not off)
 	_end()
 
 
@@ -150,7 +150,7 @@ func _reload_cues() -> void:
 	_check("ticking a reload fires each cue once, at most one tick late (%s)" % str(late.slice(0, 5)), late.is_empty())
 	var have := 0
 	for cue in ReloadCues.all_cues():
-		if DotWeaponSound.count(StringName("cue_%s" % cue)) > 0:
+		if GSWeaponSound.count(StringName("cue_%s" % cue)) > 0:
 			have += 1
 	_check("an empty magazine's reload drops it (%d of %d); stock has %d of %d cues (0 when dot-audio is not linked)" % [empty_drop, empty_mags, have, ReloadCues.all_cues().size()],
 		empty_drop == empty_mags and (have == 0 or have == ReloadCues.all_cues().size()))
@@ -450,7 +450,7 @@ func _provider() -> void:
 	_check("a rifle retreats deeper from a wall than the 0.34 m default", float(AwWeaponArt.wall_row(&"rifle")["wall_max"]) > 0.34)
 	_check("a launcher retreats deeper than a rifle", float(AwWeaponArt.wall_row(&"launcher")["wall_max"]) > float(AwWeaponArt.wall_row(&"rifle")["wall_max"]))
 	_check("a knife shortens its wall reach", float(AwWeaponArt.wall_row(&"knife")["wall_reach"]) < 1.0)
-	var rifle_def := AwWeaponPack.weapons({}, "", false).filter(func(d: DotWeaponDef) -> bool: return d.id == &"rifle")[0] as DotWeaponDef
+	var rifle_def := AwWeaponPack.weapons({}, "", false).filter(func(d: GSWeaponDef) -> bool: return d.id == &"rifle")[0] as GSWeaponDef
 	_check("the rifle def carries its wall row in params.ads", (rifle_def.params["ads"] as Dictionary).has("wall_max"))
 	var rules := AwAdsRules.new()
 	rules.set_def_row(&"rifle", rifle_def.params["ads"])
@@ -485,12 +485,12 @@ func _defs() -> void:
 	_check("the rifle is a primary with a magazine", _def(defs, &"aw_rifle").slot == AwWeaponPack.SLOT_PRIMARY and _def(defs, &"aw_rifle").magazine > 0)
 	_check("the quad launcher fires the launcher's ammunition", _def(defs, &"aw_quad_launcher").ammo_type == _def(defs, &"aw_launcher").ammo_type)
 	_check("default layout: the frag is on the thrown slot, the sniper on the heavy slot", _def(defs, &"aw_frag").slot == AwWeaponIds.thrown_slot() and _def(defs, &"aw_sniper").slot == AwWeaponIds.heavy_slot() and AwWeaponIds.thrown_slot() == AwWeaponIds.SLOT_THROWN)
-	_check("one weapon per slot at least", [1, 2, 3, 4, 5].all(func(s: int) -> bool: return defs.any(func(d: DotWeaponDef) -> bool: return d.slot == s)))
+	_check("one weapon per slot at least", [1, 2, 3, 4, 5].all(func(s: int) -> bool: return defs.any(func(d: GSWeaponDef) -> bool: return d.slot == s)))
 	var rifle_modes := _def(defs, &"aw_rifle").allowed_fire_modes()
-	_check("the rifle's selector offers semi, burst and auto", rifle_modes.size() == 3 and rifle_modes.has(DotWeaponDef.Fire.AUTO) and rifle_modes.has(DotWeaponDef.Fire.SEMI))
-	_check("the pistol's selector has no auto it cannot fire", not _def(defs, &"aw_pistol").allowed_fire_modes().has(DotWeaponDef.Fire.AUTO))
+	_check("the rifle's selector offers semi, burst and auto", rifle_modes.size() == 3 and rifle_modes.has(GSWeaponDef.Fire.AUTO) and rifle_modes.has(GSWeaponDef.Fire.SEMI))
+	_check("the pistol's selector has no auto it cannot fire", not _def(defs, &"aw_pistol").allowed_fire_modes().has(GSWeaponDef.Fire.AUTO))
 	_check("the smg's selector offers more than one mode", _def(defs, &"aw_smg").allowed_fire_modes().size() > 1)
-	_check("every selector starts on a mode its gun allows", defs.all(func(d: DotWeaponDef) -> bool: return d.allowed_fire_modes().has(d.fire_mode)))
+	_check("every selector starts on a mode its gun allows", defs.all(func(d: GSWeaponDef) -> bool: return d.allowed_fire_modes().has(d.fire_mode)))
 	# As a host's registered source: it must not recurse through the host's own weapons().
 	AwWeaponCatalogue.add_source(&"aw_selftest", Callable(AwSpawnProvider, &"weapon_defs"))
 	var hosted := AwWeaponCatalogue.weapons()
@@ -527,7 +527,7 @@ func _fire_feel() -> void:
 	var defs := AwSpawnProvider.weapon_defs()
 	var shot := func(id: StringName, own: bool) -> Array[float]:
 		var d := _def(defs, id)
-		var b := d.tuning as DotWeaponBallistics
+		var b := d.tuning as GSWeaponBallistics
 		var interval := float(d.use_interval_ticks) / float(AwWeaponPack.TICK_RATE)
 		return _kick_trace(d.params if own else {}, Vector2(b.recoil_pitch, b.recoil_yaw), interval)
 	var sniper: Array[float] = shot.call(&"aw_sniper", true)
@@ -540,9 +540,9 @@ func _fire_feel() -> void:
 	_check("a sniper shot climbs the gun at least 12 degrees and shoves it back at least 8 cm", sniper[1] >= 12.0 and sniper[2] >= 0.08)
 	_check("a rifle shot climbs the gun 1.4 times the default, its camera within 0.8 to 1.3 times", rifle[1] >= rifle_old[1] * 1.4 and rifle[0] >= rifle_old[0] * 0.8 and rifle[0] <= rifle_old[0] * 1.3)
 	_check("every kick has settled a second later", sniper[3] < 0.05 and rifle[3] < 0.05)
-	var sim_kept := (_def(defs, &"aw_sniper").tuning as DotWeaponBallistics).recoil_pitch == (AwWeaponPack.sniper().tuning as DotWeaponBallistics).recoil_pitch \
+	var sim_kept := (_def(defs, &"aw_sniper").tuning as GSWeaponBallistics).recoil_pitch == (AwWeaponPack.sniper().tuning as GSWeaponBallistics).recoil_pitch \
 		and not _def(defs, &"aw_sniper").params.has(&"recoil_pitch")
-	_check("the feel lives in params only: the bullets' recoil is the ballistics' own", sim_kept and (AwWeaponPack.sniper().tuning as DotWeaponBallistics).recoil_pitch == 4.0)
+	_check("the feel lives in params only: the bullets' recoil is the ballistics' own", sim_kept and (AwWeaponPack.sniper().tuning as GSWeaponBallistics).recoil_pitch == 4.0)
 	_end()
 
 

@@ -94,8 +94,8 @@ static func round_profile(weapon_class: StringName) -> Dictionary:
 static func impact_stream(kind: StringName, collider: Object = null, shape: int = -1) -> AudioStream:
 	var sound: StringName = &"impact_flesh" if kind == IMPACT_BODY \
 		else SURFACE_IMPACTS.get(surface_of(collider, shape), &"impact")
-	var picked := DotWeaponSound.pick(sound, randi())
-	return picked if picked != null else DotWeaponSound.pick(&"impact", randi())
+	var picked := GSWeaponSound.pick(sound, randi())
+	return picked if picked != null else GSWeaponSound.pick(&"impact", randi())
 
 
 ## What [param collider] is made of as dot-audio names it (metal, wood, ...), empty without dot-audio or a tag.

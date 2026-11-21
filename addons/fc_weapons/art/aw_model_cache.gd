@@ -109,39 +109,39 @@ static func resolve(path: String) -> String:
 
 
 ## The scene at [param path], loaded at most once.
-static func scene(path: String) -> DotResult:
+static func scene(path: String) -> GSResult:
 	if path == "":
-		return DotResult.fail(DotError.CODE_INVALID, "No model path.")
+		return GSResult.fail(GSError.CODE_INVALID, "No model path.")
 
 	if _scenes.has(path):
-		return DotResult.success(_scenes[path])
+		return GSResult.success(_scenes[path])
 
 	var real := _locate(resolve(path))
 
 	if not ResourceLoader.exists(real):
-		return DotResult.fail(
-			DotError.CODE_IO,
+		return GSResult.fail(
+			GSError.CODE_IO,
 			"No model at %s. A weapon delivered in a content pack needs that pack " % real
 			+ "mounted before it can be drawn."
 		)
 
 	if not _imported(real):
-		return DotResult.fail(
-			DotError.CODE_IO,
+		return GSResult.fail(
+			GSError.CODE_IO,
 			"%s has an import marker but no imported scene; the project was not (fully) imported." % real
 		)
 
 	var loaded: Variant = load(real)
 
 	if not (loaded is PackedScene):
-		return DotResult.fail(
-			DotError.CODE_INVALID, "%s is not a scene." % path
+		return GSResult.fail(
+			GSError.CODE_INVALID, "%s is not a scene." % path
 		)
 
 	_scenes[path] = loaded
 	if shrink_textures_headless and DisplayServer.get_name() == "headless":
 		_shrink(loaded as PackedScene, path)
-	return DotResult.success(loaded)
+	return GSResult.success(loaded)
 
 
 ## Whether a headless build swaps a loaded model's textures for 4x4 downsamples. The dummy renderer
@@ -262,7 +262,7 @@ static func instantiate(path: String) -> Node3D:
 	if not res.ok:
 		if not _complained.has(path):
 			_complained[path] = true
-			DotLog.warn(
+			GSLog.warn(
 				CHANNEL,
 				"could not load a weapon model; the weapon will be invisible",
 				{"path": path, "why": res.error.message}
@@ -277,7 +277,7 @@ static func instantiate(path: String) -> Node3D:
 	# A .glb always instantiates as a Node3D. A .tscn a game substituted might not, and
 	# adding a Control to a 3D rig is a crash several frames later rather than here.
 	made.queue_free()
-	DotLog.warn(
+	GSLog.warn(
 		CHANNEL, "a weapon model is not a Node3D and was discarded", {"path": path}
 	)
 	return null

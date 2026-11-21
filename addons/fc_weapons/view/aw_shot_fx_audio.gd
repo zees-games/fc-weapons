@@ -45,14 +45,14 @@ const PCM_PATH := "res://addons/dot_audio/sink/dot_audio_pcm.gd"
 static var _pcm: Script = null
 static var _pcm_probed := false
 
-## Replaces the stock report and tail: `func(id: StringName, kind: StringName, at: Vector3, indoors: bool) -> bool`, e.g. wrapping a DotShotPlayer's `fire`. Return true when it played the shot; false falls back to the stock sound. Unset keeps the stock sound.
+## Replaces the stock report and tail: `func(id: StringName, kind: StringName, at: Vector3, indoors: bool) -> bool`, e.g. wrapping a GSShotPlayer's `fire`. Return true when it played the shot; false falls back to the stock sound. Unset keeps the stock sound.
 var shot_sound: Callable = Callable()
 
 var _layers: AwShotLayers = null
 ## True when [member _layers] is [AwFxPool]'s, which probes the room itself.
 var _layers_shared := false
 
-## What other people's shots may cost (`cl_shotfx_*`); shared by every AwShotFx. Bind it with [method DotWeaponCvarRules.bind_cvars].
+## What other people's shots may cost (`cl_shotfx_*`); shared by every AwShotFx. Bind it with [method GSWeaponCvarRules.bind_cvars].
 ## Made on first use: an instance built while this script loads blocks reloading AwShotFxRules (the parse pass).
 static var rules: AwShotFxRules:
 	get:
@@ -67,7 +67,7 @@ static var _rules: AwShotFxRules = null
 ## Play reports.
 @export var sounds: bool = true
 
-## The game's roof probe ([code]DotAmbienceRoof[/code], which the game steps); roofed means indoors, so a shot is followed by a room tail.
+## The game's roof probe ([code]GSAmbienceRoof[/code], which the game steps); roofed means indoors, so a shot is followed by a room tail.
 var roof: RefCounted = null
 
 var _voices: Array[AudioStreamPlayer3D] = []
@@ -98,7 +98,7 @@ func play_reload(stage: StringName, at: Vector3, weapon_id: StringName = &"") ->
 func play_cue(cue: StringName, at: Vector3, db: float = 0.0) -> void:
 	if not sounds or not is_inside_tree():
 		return
-	_play(DotWeaponSound.pick(StringName("cue_%s" % cue), randi()), at, db - 4.0, &"handling")
+	_play(GSWeaponSound.pick(StringName("cue_%s" % cue), randi()), at, db - 4.0, &"handling")
 
 
 ## The selector switch of weapon [param weapon_id] at [param at]; the click differs per gun class.
@@ -121,7 +121,7 @@ func play_dry(at: Vector3, weapon_id: StringName = &"") -> void:
 func play_equip(at: Vector3, thrown: bool = false, weapon_id: StringName = &"") -> void:
 	if not is_inside_tree():
 		return
-	var pin := DotWeaponSound.pick(&"pin_pull", randi()) if thrown else null
+	var pin := GSWeaponSound.pick(&"pin_pull", randi()) if thrown else null
 	_play(pin if pin != null else AwWeaponSound.equip_stream(weapon_id), at, -6.0, &"handling")
 
 
@@ -147,7 +147,7 @@ func _play_casing(at: Vector3) -> void:
 
 
 func _report(id: StringName, kind: StringName, at: Vector3) -> void:
-	if not sounds or kind == DotWeaponOutcome.KIND_NONE or _too_far(at, rules.voice_distance):
+	if not sounds or kind == GSWeaponOutcome.KIND_NONE or _too_far(at, rules.voice_distance):
 		return
 	if shot_sound.is_valid() and bool(shot_sound.call(id, kind, at, roof != null and bool(roof.get(&"roofed")))):
 		return
@@ -195,7 +195,7 @@ func prewarm_layers() -> bool:
 func _layered(id: StringName, kind: StringName, at: Vector3) -> bool:
 	if not layered_shots or not is_inside_tree():
 		return false
-	var own := kind == DotWeaponOutcome.KIND_SHOT and AwShotLayers.has_gun_sound(id)
+	var own := kind == GSWeaponOutcome.KIND_SHOT and AwShotLayers.has_gun_sound(id)
 	if AwShotLayers.shot_class(AwWeaponSound.class_for(id, kind)) == &"" and not own:
 		return false
 	if not prewarm_layers():
@@ -208,15 +208,15 @@ func _layered(id: StringName, kind: StringName, at: Vector3) -> bool:
 	return true
 
 
-## Indoors the class's distant recording follows the report, [constant DotWeaponSound.TAIL_DELAY] late.
+## Indoors the class's distant recording follows the report, [constant GSWeaponSound.TAIL_DELAY] late.
 func _play_tail(id: StringName, kind: StringName, at: Vector3) -> void:
 	var indoors := roof != null and bool(roof.get(&"roofed"))
-	var tail := DotWeaponSound.pick_tail(AwWeaponSound.class_for(id, kind), indoors, randi())
+	var tail := GSWeaponSound.pick_tail(AwWeaponSound.class_for(id, kind), indoors, randi())
 	if tail == null or not is_inside_tree():
 		return
-	await get_tree().create_timer(DotWeaponSound.TAIL_DELAY).timeout
+	await get_tree().create_timer(GSWeaponSound.TAIL_DELAY).timeout
 	if is_instance_valid(self) and is_inside_tree():
-		_play(tail, at, DotWeaponSound.TAIL_GAIN_DB)
+		_play(tail, at, GSWeaponSound.TAIL_GAIN_DB)
 
 
 ## True when this is somebody else's gun and [param at] is farther than [param limit] metres from the camera (0 never).

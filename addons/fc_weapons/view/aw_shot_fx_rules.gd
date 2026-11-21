@@ -1,5 +1,5 @@
 class_name AwShotFxRules
-extends DotWeaponCvarRules
+extends GSWeaponCvarRules
 
 ## Client cvars (`cl_shotfx_*`) for what other people's shots cost: a bot's or another player's report, flash, tracer
 ## and impact. The local player's own gun is never limited by these. One shared instance: [member AwShotFx.rules].

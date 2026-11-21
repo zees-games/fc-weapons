@@ -1,7 +1,7 @@
 class_name AwShotLayers
 extends Node
 
-## dot-audio's layered, room-aware shot (DotShotPlayer) for AwShotFx. Duck-typed by script path so a project without dot-audio, or a class with no stock shot, falls back to AwShotFx's single sound.
+## dot-audio's layered, room-aware shot (GSShotPlayer) for AwShotFx. Duck-typed by script path so a project without dot-audio, or a class with no stock shot, falls back to AwShotFx's single sound.
 
 const CHANNEL := "aw.shot_layers"
 const ROOT := "res://addons/dot_audio/"
@@ -85,9 +85,9 @@ func setup(send_bus: StringName) -> bool:
 	manager.set(&"apply_mixer_to_buses", false)
 	manager.set(&"limit_master", false)
 	add_child(manager)
-	var made: DotResult = manager.call(&"setup")
+	var made: GSResult = manager.call(&"setup")
 	if not made.ok:
-		DotLog.warn(CHANNEL, "the audio manager did not start", {"cause": str(made)})
+		GSLog.warn(CHANNEL, "the audio manager did not start", {"cause": str(made)})
 		return false
 	enclosure = (load(ENCLOSURE) as GDScript).new()
 	enclosure.set(&"send_bus", send_bus)
@@ -97,9 +97,9 @@ func setup(send_bus: StringName) -> bool:
 	player.set(&"enclosure", enclosure)
 	add_child(player)
 	for weapon_class in STOCK_CLASSES:
-		var res: DotResult = player.call(&"register", _stock.call(&"shot", weapon_class))
+		var res: GSResult = player.call(&"register", _stock.call(&"shot", weapon_class))
 		if not res.ok:
-			DotLog.warn(CHANNEL, "a stock shot did not register", {"class": weapon_class, "cause": str(res)})
+			GSLog.warn(CHANNEL, "a stock shot did not register", {"class": weapon_class, "cause": str(res)})
 			return false
 	for gun: StringName in AwWeaponPack.SOUND_CLASSES:
 		_register_gun(gun)
@@ -107,7 +107,7 @@ func setup(send_bus: StringName) -> bool:
 	return true
 
 
-## [param gun]'s shot definition for a DotShotPlayer: its class's stock (room tails, suppressed set, gain) with the
+## [param gun]'s shot definition for a GSShotPlayer: its class's stock (room tails, suppressed set, gain) with the
 ## gun's own layers over it, registered as [method gun_shot_id]. Null when the gun has none or dot-audio is missing.
 static func gun_shot(gun: StringName) -> Resource:
 	if not has_gun_sound(gun) or not AwWeaponPack.SOUND_CLASSES.has(gun) or not available():
@@ -137,11 +137,11 @@ func _register_gun(gun: StringName) -> void:
 	var def := gun_shot(gun)
 	if def == null:
 		return
-	var res: DotResult = player.call(&"register", def)
+	var res: GSResult = player.call(&"register", def)
 	if res.ok:
 		_guns[gun] = true
 	else:
-		DotLog.warn(CHANNEL, "a gun's own shot did not register", {"gun": gun, "cause": str(res)})
+		GSLog.warn(CHANNEL, "a gun's own shot did not register", {"gun": gun, "cause": str(res)})
 
 
 ## True when [param weapon_id]'s own shot is registered here.
@@ -158,7 +158,7 @@ func fire(weapon_class: StringName, at: Vector3, listener: Vector3, weapon_id: S
 		return false
 	manager.set(&"listener_position", listener)
 	var id: StringName = gun_shot_id(weapon_id) if own else _stock.call(&"id_of", stock_class)
-	var res: DotResult = player.call(&"fire", id, at, weapon_class == AwWeaponSound.SUPPRESSED)
+	var res: GSResult = player.call(&"fire", id, at, weapon_class == AwWeaponSound.SUPPRESSED)
 	return res.ok and int(res.value_or(0)) > 0
 
 

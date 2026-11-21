@@ -32,7 +32,7 @@ const CATEGORIES: Array[Dictionary] = [
 
 
 ## The schema-1 `provides.json` document for [param defs].
-static func provides(defs: Array[DotWeaponDef]) -> Dictionary:
+static func provides(defs: Array[GSWeaponDef]) -> Dictionary:
 	var cats: Array = []
 	var by_slot := {}
 	for c in CATEGORIES:

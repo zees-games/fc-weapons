@@ -1,5 +1,5 @@
 class_name AwGrenadeRules
-extends DotWeaponCvarRules
+extends GSWeaponCvarRules
 
 ## Server cvars for thrown grenades (`sv_grenade_*`); the defaults are the shipped feel.
 

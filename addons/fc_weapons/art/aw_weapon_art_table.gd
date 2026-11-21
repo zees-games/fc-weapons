@@ -7,7 +7,7 @@ const Listing := preload("aw_art_listing.gd")
 ## ([method knife], [method pistol], [method rifle], [method launcher], [method frag]) a pack's weapon is dressed over
 ## ([method AwPackSource.stand_in_art]). The base rows' attachment files are under the host's `res://assets/`.
 
-# No CHANNEL: a table of filenames. validate() returns a DotResult for the caller to log,
+# No CHANNEL: a table of filenames. validate() returns a GSResult for the caller to log,
 # and the one runtime that can fail against the disk, AwModelCache, logs its own misses.
 
 
@@ -60,7 +60,7 @@ static func pose_rotation(pose: StringName) -> Vector3:
 
 
 ## How much bigger than life a weapon is drawn in a person's hand, by pose, as a share of the figure's own hand scale
-## (`DotHumanoidFigure.held_scale`, which makes a pistol visible in a fist): a pistol needs all of it, a long gun would be a plank.
+## (`GSHumanoidFigure.held_scale`, which makes a pistol visible in a fist): a pistol needs all of it, a long gun would be a plank.
 static func pose_world_factor(pose: StringName) -> float:
 	match pose:
 		POSE_PISTOL:
@@ -452,13 +452,13 @@ static func _thrown(id: StringName, model: String) -> AwWeaponVisual:
 # --- Validation -------------------------------------------------------------
 
 ## Checks every entry. Loads no mesh: file presence is [method validate_models]'s question.
-static func validate() -> DotResult:
+static func validate() -> GSResult:
 	for art: AwWeaponVisual in table().values():
 		var res := art.validate()
 		if not res.ok:
 			return res
 
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## Every model file the table names, once each, sorted: the weapon, its magazine and its attachments, from this pack and every registered source.
@@ -469,7 +469,7 @@ static func model_paths(with_arms: bool = false) -> Array[String]:
 
 ## Checks that every named model resolves, through [method AwModelCache.resolve] so a game's asset root applies. Loads scenes, so it is not the boot check.
 ## A game's suite calls this one line; it reports every missing model, not the first.
-static func validate_models(with_arms: bool = false) -> DotResult:
+static func validate_models(with_arms: bool = false) -> GSResult:
 	return Listing.missing_result(model_paths(with_arms))
 
 

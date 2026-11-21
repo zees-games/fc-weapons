@@ -58,7 +58,7 @@ var scope_arms_hide_override: float = -1.0
 
 
 ## Draws [param art]'s weapon, replacing whatever was in hand; a model built before is put back from the kept ones ([member cache_equips]); every model in the tree is culled per player, so the old one leaves the tree rather than hiding.
-func equip(art: AwWeaponVisual) -> DotResult:
+func equip(art: AwWeaponVisual) -> GSResult:
 	_forget_mesh_walks()
 	var head := _equip_head(art, true)
 	if not head.ok or head.value_or(null) == null:
@@ -68,17 +68,17 @@ func equip(art: AwWeaponVisual) -> DotResult:
 			_equip_stage(_art, stage)
 		_note_built(_art)
 	model_ready.emit(_id, _weapon)
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## The part of [method equip] before its stages: the pose, the holder and the model load. Its value is the weapon node, or null for fists.
 ## With [param reuse], a weapon kept from an earlier equip of the same art is put back whole ([member _reused]), its stages already run.
-func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> DotResult:
+func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 	_build_structure()
 
 	if art == null:
 		clear()
-		return DotResult.fail(DotError.CODE_INVALID, "No art to equip.")
+		return GSResult.fail(GSError.CODE_INVALID, "No art to equip.")
 
 	_clear_models()
 
@@ -119,24 +119,24 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> DotResult:
 		_muzzle = Vector3.ZERO
 		_reach_for(art)
 		model_ready.emit(_id, null)
-		return DotResult.success(null)
+		return GSResult.success(null)
 
 	_reused = reuse and cache_equips and _unstow(_equip_key(art))
 	if _reused:
-		return DotResult.success(_weapon)
+		return GSResult.success(_weapon)
 
 	_weapon = AwModelCache.instantiate(art.model_path)
 
 	if _weapon == null:
-		return DotResult.fail(
-			DotError.CODE_IO, "No model for %s." % String(art.id), art.model_path
+		return GSResult.fail(
+			GSError.CODE_IO, "No model for %s." % String(art.id), art.model_path
 		)
 
 	_weapon.name = "Weapon"
 	_drop_parts(art)
 	_holder.add_child(_weapon)
 	_set_on_top(_weapon)
-	return DotResult.success(_weapon)
+	return GSResult.success(_weapon)
 
 
 ## Frees the parts [member AwWeaponVisual.view_drop] names from the first-person model, before anything measures or cuts it.
@@ -152,7 +152,7 @@ func _drop_parts(art: AwWeaponVisual) -> void:
 
 
 ## Draws [param fitting]'s attachments on the weapon in hand, and moves the muzzle and the sight line to suit.
-func set_fitting(fitting: DotWeaponFitting) -> void:
+func set_fitting(fitting: GSWeaponFitting) -> void:
 	_fitting = fitting.duplicate_fitting() if fitting != null else null
 	if _weapon == null:
 		return
@@ -194,18 +194,18 @@ func set_kick_params(params: Dictionary) -> void:
 
 
 ## A use produced [param outcome].
-func on_used(outcome: DotWeaponOutcome) -> void:
+func on_used(outcome: GSWeaponOutcome) -> void:
 	if outcome == null or not outcome.used:
 		return
 
 	_pose.fire_interval = fire_interval
 	_pose.punch(outcome.recoil, outcome.recoil_signed)
-	if _belt != null and outcome.kind == DotWeaponOutcome.KIND_SHOT:
+	if _belt != null and outcome.kind == GSWeaponOutcome.KIND_SHOT:
 		_belt.step()
 	match outcome.kind:
-		DotWeaponOutcome.KIND_SWING:
+		GSWeaponOutcome.KIND_SWING:
 			_pose.swing()
-		DotWeaponOutcome.KIND_THROW:
+		GSWeaponOutcome.KIND_THROW:
 			_pose.throw()
 
 
@@ -249,7 +249,7 @@ func inspect_fraction() -> float:
 
 ## How far recoil should turn the camera this frame, in degrees: x pitch up, y yaw.
 ## This node cannot apply it: controllers write the camera's angles from scratch each frame, so the game adds it
-## where it writes the camera (`DotFpsView.external_angles`).
+## where it writes the camera (`GSFpsView.external_angles`).
 func view_punch() -> Vector2:
 	return _pose.view_punch()
 
@@ -447,7 +447,7 @@ func scope_clear() -> float:
 	return ScopeView.clear(has_scope(), scope_walk_clear, scope_walk_speed, _speed)
 
 
-## The field-of-view multiplier this frame: 1 at the hip, the zoom at full aim; the game applies it (`DotFpsView.external_fov_scale`).
+## The field-of-view multiplier this frame: 1 at the hip, the zoom at full aim; the game applies it (`GSFpsView.external_fov_scale`).
 func aim_fov_scale() -> float:
 	if _art == null:
 		return 1.0
@@ -569,7 +569,7 @@ func _apply_aim(f: float) -> void:
 
 	var ocular := Describe.scope_ocular(scope_style()) if scope_body_active() else []
 	var grow := 1.0 if ocular.is_empty() else _scope_body_growth(float(ocular[1]))
-	# The scope body view: the eye is where the camera is, in this rig's space (DotViewLens pulls the rig along z).
+	# The scope body view: the eye is where the camera is, in this rig's space (GSViewLens pulls the rig along z).
 	var eye := Vector3(0.0, 0.0, -position.z)
 	var sight := _aim_target() if ocular.is_empty() else _scope_body_target(ocular[0], eye, grow)
 	var turn := hip.basis.get_rotation_quaternion().slerp(

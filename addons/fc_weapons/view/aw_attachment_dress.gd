@@ -20,7 +20,7 @@ static func art_parts(art: AwWeaponVisual, parent: Node3D) -> Array[Node3D]:
 
 
 ## Replaces [param before] with [param fitting]'s models on [param weapon]'s sockets; a mount with no socket or no art draws nothing.
-static func apply(weapon: Node3D, fitting: DotWeaponFitting, forward: Vector3, before: Dictionary) -> Dictionary:
+static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, before: Dictionary) -> Dictionary:
 	clear(before)
 	var out := {"parts": [], "hidden": [], "reach": 0.0, "scoped": false, "zoom": 0.0, "line": {}}
 	if weapon == null or fitting == null:
@@ -40,7 +40,7 @@ static func apply(weapon: Node3D, fitting: DotWeaponFitting, forward: Vector3, b
 			if node != null:
 				node.visible = false
 				out.hidden.append(node)
-		if mount == DotWeaponAttachment.MOUNT_MUZZLE:
+		if mount == GSWeaponAttachment.MOUNT_MUZZLE:
 			out.reach = muzzle_reach_in(weapon, part, f)
 		var aim: StringName = entry.get("aim", &"")
 		var glass := _glass_of(part)
@@ -63,10 +63,10 @@ static var _reach_cache: Dictionary = {}
 
 
 ## The muzzle attachment's reach on [param art] for [param fitting], measured once per model and attachment (a server draws nothing).
-static func muzzle_reach(art: AwWeaponVisual, fitting: DotWeaponFitting) -> float:
-	if art == null or fitting == null or not fitting.mounts().has(DotWeaponAttachment.MOUNT_MUZZLE):
+static func muzzle_reach(art: AwWeaponVisual, fitting: GSWeaponFitting) -> float:
+	if art == null or fitting == null or not fitting.mounts().has(GSWeaponAttachment.MOUNT_MUZZLE):
 		return 0.0
-	var entry := AwAttachmentArt.of(fitting.attachment_on(DotWeaponAttachment.MOUNT_MUZZLE))
+	var entry := AwAttachmentArt.of(fitting.attachment_on(GSWeaponAttachment.MOUNT_MUZZLE))
 	var path := str(entry.get("path", ""))
 	var key := "%s|%s|%s" % [art.model_path, path, art.model_forward]
 	if _reach_cache.has(key):
@@ -75,7 +75,7 @@ static func muzzle_reach(art: AwWeaponVisual, fitting: DotWeaponFitting) -> floa
 	var measured := false
 	var weapon := AwModelCache.instantiate(art.model_path)
 	AwAttachmentSockets.ensure(weapon)
-	var socket := weapon.find_child(String(AwAttachmentArt.socket_name(DotWeaponAttachment.MOUNT_MUZZLE)), true, false) as Node3D if weapon != null else null
+	var socket := weapon.find_child(String(AwAttachmentArt.socket_name(GSWeaponAttachment.MOUNT_MUZZLE)), true, false) as Node3D if weapon != null else null
 	var part := AwModelCache.instantiate(path) if socket != null else null
 	if part != null:
 		socket.add_child(part)

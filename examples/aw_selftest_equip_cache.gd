@@ -85,9 +85,9 @@ func run() -> void:
 	suite._check("a magazine moved and a model hidden are as a fresh build's after a switch away and back", view.weapon_node() == first and _look(view) == plain_look)
 
 	# A fitting changes what is built, so a build kept without it is not put back under it.
-	var fit := DotWeaponFitting.new()
+	var fit := GSWeaponFitting.new()
 	fit.weapon_id = &"aw_rifle"
-	fit.fit(DotWeaponAttachment.MOUNT_OPTIC, &"red_dot")
+	fit.fit(GSWeaponAttachment.MOUNT_OPTIC, &"red_dot")
 	view.set_fitting(fit)
 	view.equip(b)
 	view.equip(a)

@@ -1,5 +1,5 @@
 class_name AwRocketRules
-extends DotWeaponCvarRules
+extends GSWeaponCvarRules
 
 ## Server cvars for the rocket launchers (`sv_rocket_*`): the single-missile launcher's tube and blast, and the
 ## Rocketjump warhead's damage and launch. [method apply] puts the launcher numbers on a def; [AwRocketJump] reads the rest.
@@ -40,13 +40,13 @@ func prefix() -> String:
 
 
 ## Puts the single-missile launcher's tube and blast on [param def] (params `rocket_tube` = single); others are left alone.
-func apply(def: DotWeaponDef) -> void:
+func apply(def: GSWeaponDef) -> void:
 	if def == null or str(def.params.get(&"rocket_tube", "")) != "single":
 		return
 	def.magazine = int(launcher_magazine)
 	def.reserve = int(launcher_reserve)
 	def.reserve_max = maxi(def.reserve_max, def.reserve)
-	var b := def.tuning as DotWeaponBallistics
+	var b := def.tuning as GSWeaponBallistics
 	if b != null:
 		b.splash_radius = launcher_splash_radius
 		b.splash_damage = launcher_splash_damage

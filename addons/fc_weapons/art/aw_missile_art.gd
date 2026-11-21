@@ -49,7 +49,7 @@ static func _from_model(file: String, node_name: String, scale: float, weapon_id
 	var mesh: Mesh = src.mesh if src != null else null
 	model.free()
 	if mesh == null:
-		DotLog.warn("aw.missile_art", "model has no such mesh", {"file": file, "node": node_name, "weapon": weapon_id})
+		GSLog.warn("aw.missile_art", "model has no such mesh", {"file": file, "node": node_name, "weapon": weapon_id})
 		return null
 	# The model lies along +X with its nose there; a quarter turn about Y points it to -Z, as the launcher's own root does.
 	var basis := Basis(Vector3.UP, PI * 0.5).scaled(Vector3.ONE * scale)
