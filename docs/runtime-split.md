@@ -1,6 +1,6 @@
-# fc-weapons as its own runtime: the split from zee-dot-weapons
+# fc-weapons as its own runtime: the split from zee-gs-weapons
 
-**Decision (2026-11-03, from the owner's orders of 2026-10-29/30):** fc-weapons carries its own runtime. There is no shared `dot-weapon-view` addon. zee-dot-weapons stays the pack the smaller games use, and is untouched by the split.
+**Decision (2026-11-03, from the owner's orders of 2026-10-29/30):** fc-weapons carries its own runtime. There is no shared `gs-weapon-view` addon. zee-gs-weapons stays the pack the smaller games use, and is untouched by the split.
 
 ## What was done
 
@@ -12,7 +12,7 @@
 
 **Migration:** operator overrides under `cfg/addons/zee_weapons/` are ignored now; move them to `cfg/addons/fc_weapons/`.
 
-0. **Done: `headless_viewarms` 221/0 on the Aw runtime.** The 219/2 was not weapon order (the two failures reproduced alone and in any order): dot-menu declared `viewmodel_fov` only when a `ZeeViewModel` class existed, so without zee linked `AwViewModel` kept its 90-degree `hands_fov` instead of the 54-degree setting. dot-menu 7f65e7d counts `AwViewModel` too (`GSMenuStock.VIEW_MODEL_CLASSES`); game-fatal-contact needs a dot-menu with it, so lock dot-menu past 7f65e7d in step 1.
+0. **Done: `headless_viewarms` 221/0 on the Aw runtime.** The 219/2 was not weapon order (the two failures reproduced alone and in any order): gs-menu declared `viewmodel_fov` only when a `ZeeViewModel` class existed, so without zee linked `AwViewModel` kept its 90-degree `hands_fov` instead of the 54-degree setting. gs-menu 7f65e7d counts `AwViewModel` too (`GSMenuStock.VIEW_MODEL_CLASSES`); game-fatal-contact needs a gs-menu with it, so lock gs-menu past 7f65e7d in step 1.
 1. **Tag and lock.** fc-weapons and game-fatal-contact need a tag and an `addons.lock` bump: the deployed shell pins fc-weapons v1.4.22, which predates level 8. After that, republish the FC packs to dev and prod and rebuild and upload the web shell.
 2. **Vendored base art.** The base rows still point at CC0 models vendored in game-fatal-contact's `assets/` (`low-poly-guns/*_magazine.glb`, `ammo/`, `arms/`). Move the ones the rows need into `addons/fc_weapons/assets/` and repoint the rows; game-fatal-contact's copies can then go.
 3. **Other consumers.** game-playlot and game-zombie-zone link both packs. Each now resolves `Aw*` classes from fc-weapons, and each needs `--import` and a suite run after pulling it.

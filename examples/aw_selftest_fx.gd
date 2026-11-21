@@ -224,7 +224,7 @@ func _shot_fx_unfade(holder: Node3D) -> void:
 		flash = one
 	var originals: Array = fx._unfaded.keys().filter(func(m: ShaderMaterial) -> bool: return fx._unfaded[m] != m)
 	var faded_elsewhere := originals.any(func(m: ShaderMaterial) -> bool: return bool(m.get_shader_parameter("proximity_fade")))
-	_check("a first-person pack flash draws over its gun, without the proximity fade dot-fx sets on the shared art (%d materials)" % originals.size(),
+	_check("a first-person pack flash draws over its gun, without the proximity fade gs-fx sets on the shared art (%d materials)" % originals.size(),
 		flash != null and not originals.is_empty() and faded_elsewhere and AwShotFx.is_unfaded(flash))
 	var copies := fx._unfaded.size()
 	var nodes := flash.find_children("*", "", true, false).size() if flash != null else -1
@@ -288,7 +288,7 @@ func _shot_fx_rounds(holder: Node3D) -> void:
 	var linked := GSWeaponSound.count(&"impact_metal") > 0 and GSWeaponSound.count(&"impact_flesh") > 0
 	var on_metal := AwShotFx.impact_stream(AwShotFx.IMPACT_WORLD, metal)
 	var on_body := AwShotFx.impact_stream(AwShotFx.IMPACT_BODY)
-	_check("a shot on steel sounds of metal and one on a body of flesh, with dot-audio linked",
+	_check("a shot on steel sounds of metal and one on a body of flesh, with gs-audio linked",
 		not linked or (on_metal.resource_path.contains("impact_metal") and on_body.resource_path.contains("impact_flesh")))
 	var reloader := AwShotFx.new()
 	var shooter := AwShotFx.new()
@@ -623,10 +623,10 @@ func _mag_carve() -> void:
 
 
 ## A build without the models (the web shell) draws them from a mounted pack listed with add_fallback_root.
-## The pack is built here with PCKPacker: one box scene, under a synthetic dot-cloud mount; no CDN.
+## The pack is built here with PCKPacker: one box scene, under a synthetic gs-cloud mount; no CDN.
 func _assets_pack() -> void:
 	_begin("models come from a mounted pack when the build lacks them")
-	const ROOT := "res://dot_cloud/aw_synth/1/fc_weapons/assets"
+	const ROOT := "res://gs_cloud/aw_synth/1/fc_weapons/assets"
 	var path := AwModelCache.ASSETS_BASE + "models/selftest_pack_gun.tscn"
 	var outside := "res://aw_selftest_elsewhere/models/selftest_pack_gun.tscn"
 	AwModelCache.clear()

@@ -4,7 +4,7 @@
 	"origin": "https://content.gamespice.net/content",
 	"packs": [
 		{
-			"id": "gamemann/arena-weapons",
+			"id": "gamemann/fc-weapons",
 			"into": "addons/fc_weapons/assets/models",
 			"kind": "store",
 			"manifest_sha256": "ab33748e7011f3a321c7ef6906d3e3e2395e16a87c582fbbeaef3915eec003f2",

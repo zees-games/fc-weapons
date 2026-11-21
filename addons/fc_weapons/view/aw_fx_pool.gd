@@ -88,7 +88,7 @@ static func shared_flash(category: String, def: GSWeaponDef, suppressed: bool) -
 
 
 ## The layered shot the pool shares with remote shooters on [param bus] in [param fx]'s viewport, or null (no pool,
-## another viewport, no dot-audio). Built on the first ask, about 60 ms: one per shooter was that on each one's first shot.
+## another viewport, no gs-audio). Built on the first ask, about 60 ms: one per shooter was that on each one's first shot.
 static func shared_layers(fx: Node, bus: StringName) -> AwShotLayers:
 	var pool := current()
 	if pool == null or fx == null or not fx.is_inside_tree() or fx.get_viewport() != pool.get_viewport():

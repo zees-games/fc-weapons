@@ -14,7 +14,7 @@ jobs:
         with:
             suite-timeout: 900
         secrets:
-            DEPS_TOKEN: ${{ secrets.DOT_DEPS_TOKEN }}
+            DEPS_TOKEN: ${{ secrets.GS_DEPS_TOKEN }}
 
     release:
         needs: validate
@@ -25,4 +25,4 @@ jobs:
             pack: true
             pack-owned-addons: true
         secrets:
-            DEPS_TOKEN: ${{ secrets.DOT_DEPS_TOKEN }}
+            DEPS_TOKEN: ${{ secrets.GS_DEPS_TOKEN }}

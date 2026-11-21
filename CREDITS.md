@@ -20,7 +20,7 @@ Polyy's packs carry a CC0 1.0 LICENSE.txt in the zip and say the models were gen
 
 ## Sounds
 
-Each gun's own layered report (attack, body, outdoor tail, distant; two takes each) is in `assets/sounds/<gun>/`, cut by `tools/make_fire_sounds.py` from one recording per gun of the CC0 library below, plus a generated low thump on the heavy guns and the small guns that lacked low end, a generated motor whir on the minigun, and per-gun loudness levelling. The launchers and energy guns are built in the same tool over library takes: the rocket launchers add the two CC0 rocket recordings below, and the grenade launcher's tube pop, the plasma bolt and the rail shot's snap, ring and whoosh are generated (no licence). Other sounds come from dot-audio's stock, which cites each file; the recordings below are credited here too, because CC-BY asks for it:
+Each gun's own layered report (attack, body, outdoor tail, distant; two takes each) is in `assets/sounds/<gun>/`, cut by `tools/make_fire_sounds.py` from one recording per gun of the CC0 library below, plus a generated low thump on the heavy guns and the small guns that lacked low end, a generated motor whir on the minigun, and per-gun loudness levelling. The launchers and energy guns are built in the same tool over library takes: the rocket launchers add the two CC0 rocket recordings below, and the grenade launcher's tube pop, the plasma bolt and the rail shot's snap, ring and whoosh are generated (no licence). Other sounds come from gs-audio's stock, which cites each file; the recordings below are credited here too, because CC-BY asks for it:
 
 | What | Author | Licence | Where |
 | --- | --- | --- | --- |

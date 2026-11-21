@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Builds each gun's own layered fire sound (attack, body, open-air tail, far) from the CC0 Free Firearm Sound
-Library recordings, with the layer splitting, tails and levels of dot-audio's tools/make_shot_layers.py, which this
+Library recordings, with the layer splitting, tails and levels of gs-audio's tools/make_shot_layers.py, which this
 runs rather than copies. Heavy guns get a generated low thump under the body. Two variants per gun: the take, and
 the same take a few percent lower with its own tail seeds. Room tails stay the stock class's (AwShotLayers).
 
@@ -20,13 +20,13 @@ import urllib.request
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GS_AUDIO = os.environ.get("GS_AUDIO", os.environ.get("DOT_AUDIO", os.path.join(HERE, "..", "..", "dot-audio")))
+GS_AUDIO = os.environ.get("GS_AUDIO", os.path.join(HERE, "..", "..", "gs-audio"))
 if not os.path.isdir(os.path.join(GS_AUDIO, "tools")):
-    GS_AUDIO = "/home/gamedev/godot/dot-audio"
+    GS_AUDIO = "/home/gamedev/godot/gs-audio"
 LIB = os.path.join(GS_AUDIO, "source-candidates", "free-firearm-sound-library", "raw", "Prepared SFX Library")
 OUT = os.path.join(HERE, "..", "addons", "fc_weapons", "assets", "sounds")
 
-# Its helpers in their own namespace, so its OUT (dot-audio's stock folder) can never be where this writes; a checkout
+# Its helpers in their own namespace, so its OUT (gs-audio's stock folder) can never be where this writes; a checkout
 # older than its main guard ends in a bare main() call, cut off here.
 _src = open(os.path.join(GS_AUDIO, "tools", "make_shot_layers.py")).read()
 if _src.rstrip().endswith("\nmain()"):
@@ -35,7 +35,7 @@ L = {"__name__": "make_shot_layers", "__file__": os.path.join(GS_AUDIO, "tools",
 exec(compile(_src, "make_shot_layers.py", "exec"), L)
 RATE = L["RATE"]
 sys.path.insert(0, os.path.join(GS_AUDIO, "tools"))
-import audit_weapon_audio  # noqa: E402  (dot-audio's loudness meter, the one its audit reports in)
+import audit_weapon_audio  # noqa: E402  (gs-audio's loudness meter, the one its audit reports in)
 from scipy import signal  # noqa: E402
 
 SRC = os.path.join(HERE, "sound_sources")

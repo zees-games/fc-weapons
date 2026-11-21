@@ -1,9 +1,9 @@
 @tool
 class_name AwScopeOverlay
-extends "res://addons/dot_weapon/view/dot_weapon_scope_overlay.gd"
+extends "res://addons/gs_weapon/view/gs_weapon_scope_overlay.gd"
 
-## What a player sees through a scope; the drawing and the exports live in dot-weapon's shared
-## overlay (`view/dot_weapon_scope_overlay.gd`), which zee-dot-weapons' [ZeeScopeOverlay] also
+## What a player sees through a scope; the drawing and the exports live in gs-weapon's shared
+## overlay (`view/gs_weapon_scope_overlay.gd`), which zee-gs-weapons' [ZeeScopeOverlay] also
 ## extends. A game puts one of these in its HUD and calls [method follow] with its [AwViewModel]
 ## each frame.
 
@@ -93,7 +93,7 @@ func _to_overlay(viewport_point: Vector2) -> Vector2:
 	return viewport_point / view * size
 
 
-## The lens view's drawing (dot-weapon's _draw_lens) at [param centre] with [param radius] pixels: the scope body's ocular.
+## The lens view's drawing (gs-weapon's _draw_lens) at [param centre] with [param radius] pixels: the scope body's ocular.
 func _draw_lens_at(centre: Vector2, radius: float) -> void:
 	var unit := size.y / 1080.0
 	var alpha := _shown()

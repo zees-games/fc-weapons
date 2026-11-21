@@ -6,7 +6,7 @@ extends "aw_shot_fx_surface.gd"
 ##
 ## [b]It existed nowhere, and that is why every weapon in the pack "fired nothing".[/b] The
 ## rig decided the use, the ammunition went down, the server resolved the hit — and the
-## only thing a player saw was the gun kick. dot-weapon refuses to draw a shot, correctly;
+## only thing a player saw was the gun kick. gs-weapon refuses to draw a shot, correctly;
 ## this pack is the half that draws, and it drew the gun and stopped there, leaving the
 ## rest to "a game hanging a muzzle flash off [signal AwViewModel.model_ready]". No game
 ## did. Two games carried the pack and both were silent and tracerless.
@@ -38,7 +38,7 @@ const REMOTE_PREWARM_MESHES := 6
 
 ## Quads built up front for the local gun. A flash draws its core and petals beside the pack's flash
 ## (up to five quads), and two flashes of a held gun overlap with its tracer, case and impact quads:
-## dot-fx's default of eight ran out on the first burst and built nodes mid-fire.
+## gs-fx's default of eight ran out on the first burst and built nodes mid-fire.
 const FIRST_PERSON_PREWARM_MESHES := 16
 
 ## Most marks left on the world at once, per carrier. A mark outlives every other effect, so

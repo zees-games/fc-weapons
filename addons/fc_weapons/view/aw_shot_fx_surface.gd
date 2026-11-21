@@ -42,11 +42,11 @@ const ROUNDS := {
 }
 const ROUND_DEFAULT := {"width": 0.004, "length": 1.0, "hit": 1.0}
 
-## Stock impact per surface (dot-audio's [code]surface_of_collider[/code] names it); others play [code]impact[/code].
+## Stock impact per surface (gs-audio's [code]surface_of_collider[/code] names it); others play [code]impact[/code].
 const SURFACE_IMPACTS := {&"metal": &"impact_metal", &"wood": &"impact_wood"}
 
-## Read by path, so the pack needs no dot-audio; without it every surface sounds the same.
-const SURFACE_PROBE := "res://addons/dot_audio/runtime/dot_audio_footsteps.gd"
+## Read by path, so the pack needs no gs-audio; without it every surface sounds the same.
+const SURFACE_PROBE := "res://addons/gs_audio/runtime/gs_audio_footsteps.gd"
 
 
 ## What a shot landing on [param collider] is drawn as: [constant IMPACT_BODY] for a character,
@@ -90,7 +90,7 @@ static func round_profile(weapon_class: StringName) -> Dictionary:
 	return ROUNDS.get(weapon_class, ROUND_DEFAULT)
 
 
-## The stock impact for what [param kind] and [param collider] are made of, or null without dot-audio.
+## The stock impact for what [param kind] and [param collider] are made of, or null without gs-audio.
 static func impact_stream(kind: StringName, collider: Object = null, shape: int = -1) -> AudioStream:
 	var sound: StringName = &"impact_flesh" if kind == IMPACT_BODY \
 		else SURFACE_IMPACTS.get(surface_of(collider, shape), &"impact")
@@ -98,7 +98,7 @@ static func impact_stream(kind: StringName, collider: Object = null, shape: int 
 	return picked if picked != null else GSWeaponSound.pick(&"impact", randi())
 
 
-## What [param collider] is made of as dot-audio names it (metal, wood, ...), empty without dot-audio or a tag.
+## What [param collider] is made of as gs-audio names it (metal, wood, ...), empty without gs-audio or a tag.
 static func surface_of(collider: Object, shape: int = -1) -> StringName:
 	if collider == null or not is_instance_valid(collider) or not ResourceLoader.exists(SURFACE_PROBE):
 		return &""

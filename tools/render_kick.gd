@@ -1,6 +1,6 @@
 extends SceneTree
 ## Contact sheet of one shot's drawn kick per gun: rows are guns, columns 60 fps frames after the trigger, the camera turned by view_punch. Args: out.png; "before" (pose
-## defaults), "after" (pack params), "fx" (after plus the rig's flash and case) or "tp" (third person side-on); "proc" for the procedural flash ("-" keeps dot-fx's); a comma
+## defaults), "after" (pack params), "fx" (after plus the rig's flash and case) or "tp" (third person side-on); "proc" for the procedural flash ("-" keeps gs-fx's); a comma
 ## list of gun ids to replace the default rows. Run with --fixed-fps 60 (tools/render_kick.sh) so the effects step one 60th a frame.
 const GUNS := [&"sniper", &"shotgun", &"revolver", &"rifle"]
 const FRAMES := [0, 3, 6, 12, 24]

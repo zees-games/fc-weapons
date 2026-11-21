@@ -229,7 +229,7 @@ func _advance_wall(delta: float) -> void:
 ## inside as flat white or blue-grey faces. A stock that passes the plane outside the view is not seen and does not count.
 ## The weapon's share of the slide is capped at what the wall pulled it back toward the eye ([param rest] is where it was before),
 ## so the clamp only undoes retraction and never shoves the gun past its free pose; the overlay draws it over the wall.
-## Ported from zee-dot-weapons (viewmodel-white-blue-1).
+## Ported from zee-gs-weapons (viewmodel-white-blue-1).
 func _keep_off_near_plane(rest: Vector3 = Vector3.INF) -> void:
 	var camera := get_parent() as Camera3D
 	if camera == null:

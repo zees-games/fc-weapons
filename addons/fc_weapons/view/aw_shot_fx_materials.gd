@@ -232,10 +232,10 @@ static func warm() -> Array:
 	] + _over_warm()
 
 
-## The pack flash art's shaders (dot-fx, Binbun), which a first-person flash draws with [method over_shader].
+## The pack flash art's shaders (gs-fx, Binbun), which a first-person flash draws with [method over_shader].
 const PACK_FLASH_SHADERS := [
-	"res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/base.gdshader",
-	"res://addons/dot_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/glow.gdshader",
+	"res://addons/gs_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/base.gdshader",
+	"res://addons/gs_fx/art/binbun_muzzle/BinbunVFX/muzzle_flash/shader/glow.gdshader",
 ]
 
 ## Each pack flash shader with its depth test off, by the original (and each copy by itself).
@@ -259,7 +259,7 @@ static func over_shader(shader: Shader) -> Shader:
 	return own
 
 
-## One material per pack flash shader, drawn over the gun, for the load gate to draw once. Empty without dot-fx.
+## One material per pack flash shader, drawn over the gun, for the load gate to draw once. Empty without gs-fx.
 static func _over_warm() -> Array:
 	var out := []
 	for path: String in PACK_FLASH_SHADERS:

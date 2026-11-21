@@ -1,7 +1,7 @@
 class_name AwGrenadeSound
 extends RefCounted
 
-## The detonation recordings of the thrown grenades, which dot-audio's stock has no set for.
+## The detonation recordings of the thrown grenades, which gs-audio's stock has no set for.
 ## Every grenade of the pack has a sound of its own here, recordings from the credited sources in CREDITS.md (a frag and a sticky blast, a flash bang, a steam release, a flame whoosh), cut and levelled by hand with ffmpeg to the loudness the stock explosion has.
 ## A host plays [method stream] where a grenade goes off.
 

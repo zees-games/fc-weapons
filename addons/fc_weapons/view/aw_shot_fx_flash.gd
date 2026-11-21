@@ -34,7 +34,7 @@ const FLASH := {
 
 @export_group("Muzzle flash")
 
-## Draw dot-fx's `GSMuzzleFlash` (sized by the profile's `extra.muzzle_flash`, else the weapon class) when dot-fx is linked; off, or without dot-fx, the procedural flash below is drawn.
+## Draw gs-fx's `GSMuzzleFlash` (sized by the profile's `extra.muzzle_flash`, else the weapon class) when gs-fx is linked; off, or without gs-fx, the procedural flash below is drawn.
 @export var binbun_flash: bool = true
 
 ## Where a weapon's `extra.muzzle_flash` is read from; the rig sets it. Without it the class decides.
@@ -57,13 +57,13 @@ var first_person_flash_scale: float = 1.0
 ## What each effect still alive is: {node, age, life, kind, ...}.
 var _live: Array[Dictionary] = []
 
-## Pooled dot-fx flashes by `category/size name/first person`.
+## Pooled gs-fx flashes by `category/size name/first person`.
 var _pack_flashes: Dictionary = {}
 
 ## The last [method _pack_flash] put a flash on screen (and its light), so the core is drawn without a second light.
 var _pack_drew := false
 
-## Reused flash lights and quads (dot-fx), so a shot builds and frees no node.
+## Reused flash lights and quads (gs-fx), so a shot builds and frees no node.
 var _lights: GSFxLightPool = null
 var _meshes: GSFxMeshPool = null
 
@@ -148,7 +148,7 @@ func _pack_flash_light(muzzle: Transform3D, size: float, weapon_class: StringNam
 			"energy": light.light_energy, "has_light": true})
 
 
-## Weapon class to the dot-fx category `GSMuzzleFlash.size_for` sizes by.
+## Weapon class to the gs-fx category `GSMuzzleFlash.size_for` sizes by.
 const CLASS_CATEGORY := {
 	AwWeaponSound.LIGHT: "pistol", AwWeaponSound.MAGNUM: "magnum", AwWeaponSound.SMG: "smg",
 	AwWeaponSound.RIFLE: "rifle", AwWeaponSound.HEAVY: "dmr", AwWeaponSound.SNIPER: "sniper",
@@ -157,7 +157,7 @@ const CLASS_CATEGORY := {
 	&"battle": "dmr", &"marksman": "dmr", &"lmg": "lmg", &"autoshot": "shotgun", &"grenade": "shotgun", &"rail": "rifle",
 }
 
-## First-person pack flash size on top of the dot-fx category's, for the classes whose category size undersells them
+## First-person pack flash size on top of the gs-fx category's, for the classes whose category size undersells them
 ## (a revolver's "magnum" and the heavy guns' "lmg"/"dmr" are all MEDIUM, a rifle's): a free scale, no other art.
 const PACK_GROW := {
 	AwWeaponSound.MAGNUM: 1.35, AwWeaponSound.HEAVY: 1.35, AwWeaponSound.MINIGUN: 1.4, AwWeaponSound.LAUNCHER: 1.3,
@@ -167,7 +167,7 @@ const PACK_GROW := {
 ## The Binbun flash materials a first-person flash was given, by the shared original: see [method _unfade].
 var _unfaded: Dictionary = {}
 
-## Turns the art's proximity fade off on a first-person flash, once, when attached: dot-fx fades it over [member GSMuzzleFlashConfig.first_person_fade] (0.6 m) in front
+## Turns the art's proximity fade off on a first-person flash, once, when attached: gs-fx fades it over [member GSMuzzleFlashConfig.first_person_fade] (0.6 m) in front
 ## of the depth behind it, which in first person is the gun's own barrel, so only the core quad showed. The art's materials are shared by every copy, so this flash gets
 ## its own copies (one per original, shared by its pool) with the fade off, drawn over the gun ([method over_shader]) so the receiver does not hide them either.
 func _unfade(flash: Node) -> void:
@@ -202,7 +202,7 @@ static func is_unfaded(flash: Node) -> bool:
 			return false
 	return true
 
-## One pooled flash per size and view, moved to the muzzle for each shot. False only when dot-fx is not linked; size none, quality off and a headless server draw nothing and count as handled.
+## One pooled flash per size and view, moved to the muzzle for each shot. False only when gs-fx is not linked; size none, quality off and a headless server draw nothing and count as handled.
 func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id: StringName, first_person: bool) -> bool:
 	if not ResourceLoader.exists(GSWeaponMuzzle.SCRIPT_PATH):
 		return false

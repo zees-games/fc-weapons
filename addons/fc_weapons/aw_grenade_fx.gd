@@ -1,7 +1,7 @@
 class_name AwGrenadeFx
 extends RefCounted
 
-## Client visuals of the utility grenades through dot-fx: smoke and fire clouds, and the blind flash the player's flash settings cap.
+## Client visuals of the utility grenades through gs-fx: smoke and fire clouds, and the blind flash the player's flash settings cap.
 ## The cloud scenes ship in this addon's `fx/` folder; [method add_defs] takes another folder only to override them.
 
 const SMOKE_ID := &"smoke_cloud"

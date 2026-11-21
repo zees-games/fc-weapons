@@ -66,9 +66,9 @@ func current_art() -> AwWeaponVisual:
 	return AwWeaponArtTable.table().get(def.id, null) if def != null else null
 
 
-## The spread tick of every rig's hitscan weapons in native code (dot-sim's GSSimWeaponSpread, through dot-weapon 42's [member GSWeaponHitscan.native_tick]) or in GDScript.
-## Both leave the same state and cone bit for bit, so this is a speed switch, for an A/B or a box without dot-sim; a missing native class falls back to GDScript on its own.
-## Process-wide: it is dot-weapon's one static, so it reads back whatever was set last on either side.
+## The spread tick of every rig's hitscan weapons in native code (gs-sim's GSSimWeaponSpread, through gs-weapon 42's [member GSWeaponHitscan.native_tick]) or in GDScript.
+## Both leave the same state and cone bit for bit, so this is a speed switch, for an A/B or a box without gs-sim; a missing native class falls back to GDScript on its own.
+## Process-wide: it is gs-weapon's one static, so it reads back whatever was set last on either side.
 static var native_spread: bool:
 	set(v):
 		GSWeaponHitscan.native_tick = v
@@ -76,7 +76,7 @@ static var native_spread: bool:
 		return GSWeaponHitscan.native_tick
 
 
-## Whether the spread tick runs natively right now: the switch is on and dot-sim's class is loaded.
+## Whether the spread tick runs natively right now: the switch is on and gs-sim's class is loaded.
 static func native_spread_active() -> bool:
 	return GSWeaponHitscan.native_tick and ClassDB.class_exists(&"GSSimWeaponSpread")
 
@@ -191,7 +191,7 @@ func _aim_along_sprint_barrel(context: GSWeaponContext) -> void:
 func _aim_unread(command: GSWeaponCommand, context: GSWeaponContext) -> bool:
 	if (command.buttons & (GSWeaponCommand.BUTTON_AIM | GSWeaponCommand.BUTTON_ALT)) != 0:
 		return false
-	# Asked by name: an older dot-weapon has no such answer, and then every tick casts as before.
+	# Asked by name: an older gs-weapon has no such answer, and then every tick casts as before.
 	return arsenal.has_method(&"is_cooling_for") and arsenal.call(&"is_cooling_for", command, context)
 
 
@@ -242,8 +242,8 @@ func simulate_idle(command: GSWeaponCommand, tick: int) -> GSWeaponOutcome:
 	return _idle_tick(command, tick, prof)
 
 
-## [method simulate_idle] with the arsenal's [member GSWeaponArsenal.idle_posture] context handed in as a row and its [member GSWeaponArsenal.idle_still] answer as [param still] (both what those callables would say this tick), so a native weapon takes the whole idle tick in one call (dot-weapon API 44, [method GSWeaponArsenal.idle_tick_row]).
-## With an older dot-weapon it is [method simulate_idle]. Same result either way.
+## [method simulate_idle] with the arsenal's [member GSWeaponArsenal.idle_posture] context handed in as a row and its [member GSWeaponArsenal.idle_still] answer as [param still] (both what those callables would say this tick), so a native weapon takes the whole idle tick in one call (gs-weapon API 44, [method GSWeaponArsenal.idle_tick_row]).
+## With an older gs-weapon it is [method simulate_idle]. Same result either way.
 func simulate_idle_row(command: GSWeaponCommand, tick: int, row: PackedFloat64Array, still: bool) -> GSWeaponOutcome:
 	_last_tick = tick
 	var prof := phase_timers
@@ -253,7 +253,7 @@ func simulate_idle_row(command: GSWeaponCommand, tick: int, row: PackedFloat64Ar
 	return _idle_tick(command, tick, prof, row, still)
 
 
-## Whether this dot-weapon has [method GSWeaponArsenal.idle_tick_row] (API 44); named through call(), so this parses on older ones.
+## Whether this gs-weapon has [method GSWeaponArsenal.idle_tick_row] (API 44); named through call(), so this parses on older ones.
 const _ROW_LEVEL := 44
 static var _row_arsenal: bool = GSWeaponApi.LEVEL >= _ROW_LEVEL
 
@@ -354,7 +354,7 @@ func _simulate_aimed(command: GSWeaponCommand, context: GSWeaponContext) -> GSWe
 	return outcome
 
 
-## The class's aim factors and hip spread (dot-weapon switches both the instant the aim bit is set) follow the sights' ramp.
+## The class's aim factors and hip spread (gs-weapon switches both the instant the aim bit is set) follow the sights' ramp.
 static func _ease_class_aim(b: GSWeaponBallistics, def: GSWeaponDef, ramp: float) -> void:
 	var klass := GSWeaponAccuracyClass.resolve(b.accuracy_class, def.tags, def.id)
 	var factor := lerpf(1.0, b.accuracy("spread_aim", klass), ramp)
@@ -371,7 +371,7 @@ static func aim_facts(shot: GSShot) -> Dictionary:
 	return {"ads_progress": float(shot.get_meta(&"ads_progress", -1.0)), "quickscope": bool(shot.get_meta(&"quickscope", false))}
 
 
-## Marks each shot fired while the sights were still coming up: `ads_progress` (0 to 1) always, `quickscope` true for a scope fired before it landed. Metadata, because a shot is dot-combat's.
+## Marks each shot fired while the sights were still coming up: `ads_progress` (0 to 1) always, `quickscope` true for a scope fired before it landed. Metadata, because a shot is gs-combat's.
 func _tag_aimed_shots(outcome: GSWeaponOutcome, scoped: bool) -> void:
 	for shot in outcome.shots:
 		shot.set_meta(&"ads_progress", _ads_progress)
@@ -418,7 +418,7 @@ func is_replaying() -> bool:
 	return _replaying
 
 
-## The alt-fire, simulated here because dot-weapon's arsenal routes one button (see [AwWeaponBash]).
+## The alt-fire, simulated here because gs-weapon's arsenal routes one button (see [AwWeaponBash]).
 ## The cooldown lives in [member _bash_ready_tick], travels in [method snapshot] and rolls back, so a correction cannot bash twice.
 func _advance_bash(
 	command: GSWeaponCommand, context: GSWeaponContext, tick: int
@@ -441,7 +441,7 @@ func _advance_bash(
 
 	# A bash interrupts a reload, the same as firing does. Unlike firing, it can always
 	# afford to: a bash spends nothing, so there is no order-of-operations trap here of
-	# the kind that made dot-weapon's `_try_use` check payment before cancelling.
+	# the kind that made gs-weapon's `_try_use` check payment before cancelling.
 	arsenal.cancel_reload()
 	_reload_started = -1
 

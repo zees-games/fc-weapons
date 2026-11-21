@@ -271,7 +271,7 @@ func on_charge(fraction: float) -> void:
 		_charge_fx.set_charge(fraction)
 
 
-## A throw's meter (dot-weapon's `charge_of`): 0 to 1 while it winds up, below 0 when not. The hand draws back past
+## A throw's meter (gs-weapon's `charge_of`): 0 to 1 while it winds up, below 0 when not. The hand draws back past
 ## the ear, further the fuller it is; the throw outcome then releases from there.
 func on_windup(fraction: float) -> void:
 	_pose.set_windup(fraction)
@@ -403,7 +403,7 @@ func flash_scale() -> float:
 	return clampf(aim_fov_scale(), 0.1, 1.0) if is_scoped() else 1.0
 
 
-const ScopeView := preload("res://addons/dot_weapon/view/dot_weapon_scope_view.gd")
+const ScopeView := preload("res://addons/gs_weapon/view/gs_weapon_scope_view.gd")
 
 ## The scope views: the scope as a lens on a normal screen, and the scope filling it.
 const SCOPE_LENS := ScopeView.LENS
@@ -621,7 +621,7 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 	_rear_rings = Describe.find_rear_rings(_weapon)
 	var camera := get_parent() as Camera3D
 	var near := (camera.near if camera != null else 0.05) + NEAR_MARGIN
-	var dot := ads_rules.sight_dot_for(art.id) if ads_rules != null else float(AwAdsRules.SPECS["sight_dot"]["default"])
+	var dot := ads_rules.sight_gs_for(art.id) if ads_rules != null else float(AwAdsRules.SPECS["sight_dot"]["default"])
 	var fitted := SightFit.fit(art, _weapon, _holder, _dressed.get("line", {}), near, dot)
 	if not fitted.is_empty():
 		_sight_line = fitted.line

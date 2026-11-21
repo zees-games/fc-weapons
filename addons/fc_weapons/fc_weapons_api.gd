@@ -11,12 +11,12 @@ extends RefCounted
 # 3: flash, smoke and incendiary weapons; AwGrenade (flight, bounce, stick, fuse), AwGrenadeBlast (falloff, blind, smoke,
 #    fire events) and AwGrenadeRules (sv_grenade_* cvars).
 # 4: AwUtilityZones (victims/line-of-sight adapter, fire-zone ticker, blast events to effects), AwBlindLedger (per-victim
-#    capped blind clock) and AwGrenadeFx (dot-fx smoke, fire and blind defs and visuals). Nothing removed, OLDEST stays.
+#    capped blind clock) and AwGrenadeFx (gs-fx smoke, fire and blind defs and visuals). Nothing removed, OLDEST stays.
 # 5: the smoke and fire cloud scenes ship in fx/ and AwGrenadeFx finds them itself (fx_dir optional); AwBlindLedger.strength
 #    and the effect/blind-event "strength" (0..1, distance and facing scaled) so a screen can be as white as the flash was.
 # 6: sound_classes(prefix) (id -> weapon-sound class) so a host's sound table classes lmg, the launchers and prefixed ids.
 # 7: sound_classes() names nine new classes (lmg, battle, marksman, carbine, derringer, mpistol, autoshot, grenade, rail),
-#    each a recording of its own in dot-audio's stock; a host that fed the old classes to set_class need change nothing.
+#    each a recording of its own in gs-audio's stock; a host that fed the old classes to set_class need change nothing.
 # 8: the view runtime is the pack's own: AwWeaponCatalogue, AwWeaponArtTable, AwWeaponVisual, AwViewModel, AwWorldModel,
 #    AwWeaponRig, AwWeaponNet, AwShotFx, AwWeaponSound, AwAdsRules (hip_zero 20 m) and the rest, a host needs no other weapon pack.
 # 9: AwFxPool (fill, fill_flashes, take_shot_fx, take_charge_fx, shared_flash): a world model's shot effects, charge ball
@@ -28,7 +28,7 @@ extends RefCounted
 # 13: AwModelCache.add_fallback_root / remove_fallback_root / fallback_roots / exists: a build without the addon's models (the web shell) draws them
 #     from a mounted pack laid out like addons/fc_weapons/assets/.
 # 14: AwWeaponGroups (group_of, groups_for, all_groups): the download group "weapon-<id>" of each weapon, as groups.json at the pack root defines them.
-# 15: AwShotFx.prewarm_layers(): build a weapon's layered shot sound (dot-audio layers, enclosure, player) under a
+# 15: AwShotFx.prewarm_layers(): build a weapon's layered shot sound (gs-audio layers, enclosure, player) under a
 #     loading cover; the first knife shot built them in the tick, 61 ms on a GPU box.
 # 16: AwFxPool.layers_bus and shared_layers(fx, bus): fill() builds one layered shot every remote shooter shares, so
 #     no shooter's first shot builds its own.
@@ -56,12 +56,12 @@ extends RefCounted
 # 29: a narrow hands lens at hands_depth_comp 0 keeps the authored place: AwViewModel.lens_move_share(), AwWeaponPose.lens_share /
 #     lens_turn(angle, share), and AwWallSlam.offset's lens_share; the wall's closing is eased (CLOSING_RATE).
 # 30: AwShotFxRules.crowd_frame (cl_shotfx_crowd_frame): most other shooters' shots drawn in one frame across the crowd.
-# 31: AwWeaponRig.native_spread (and native_spread_active()): the hitscan spread tick in dot-sim's native class or in
-#     GDScript, bit-exact either way; DOT_WEAPON_MIN, which AwWeaponRig.setup() checks and fails on.
+# 31: AwWeaponRig.native_spread (and native_spread_active()): the hitscan spread tick in gs-sim's native class or in
+#     GDScript, bit-exact either way; GS_WEAPON_MIN, which AwWeaponRig.setup() checks and fails on.
 # 32: the addon directory is addons/fc_weapons (was addons/arena_weapons) and its cfg cfg/addons/fc_weapons;
 #     this file is fc_weapons_api.gd. Nothing a game calls changed meaning, so OLDEST stays.
 # 33: AwWeaponRig.simulate_idle_row(command, tick, row, still): simulate_idle with the idle posture as a packed row and the
-#     carrier's stillness as a bool, one native call per idle weapon on dot-weapon API 44 (else simulate_idle). Additive.
+#     carrier's stillness as a bool, one native call per idle weapon on gs-weapon API 44 (else simulate_idle). Additive.
 # 34: a boomerang's empty hand and its catch. AwWeaponRig.empty_hand_view (bare hands while a thrown weapon is out, and the
 #     draw back from the empty hand plays as a catch), AwViewModel.on_throw() / on_catch(), AwWeaponPose.catch() and
 #     its tunables catch_keys / catch_seconds. Additive.
@@ -70,7 +70,7 @@ extends RefCounted
 const LEVEL := 35
 const OLDEST := 1
 
-## The oldest addons this pack runs on. dot-weapon is checked by AwWeaponRig.setup(); dot-sim is optional (without it,
-## or older than DOT_SIM_MIN, the spread tick stays in GDScript).
-const DOT_WEAPON_MIN := 42
-const DOT_SIM_MIN := "1a28540"
+## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
+## or older than GS_SIM_MIN, the spread tick stays in GDScript).
+const GS_WEAPON_MIN := 42
+const GS_SIM_MIN := "1a28540"

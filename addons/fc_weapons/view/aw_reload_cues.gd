@@ -5,7 +5,7 @@ extends RefCounted
 ## going forward, the cover shutting) instead of at the start and end of the reload.
 ##
 ## Pure: no nodes, no audio. [method plan] is what the view model plays from and what the headless checks read.
-## The cue names are dot-audio's `stock/weapons/cue_<name>_<n>.ogg`.
+## The cue names are gs-audio's `stock/weapons/cue_<name>_<n>.ogg`.
 
 ## Per style: phase name -> [[where in the phase 0..1, cue name, decibels], ...].
 const TABLE := {

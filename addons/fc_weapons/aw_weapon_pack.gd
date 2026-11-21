@@ -1,17 +1,17 @@
 class_name AwWeaponPack
 extends RefCounted
 
-## Fatal Contact's whole gun set as [GSWeaponDef]s: this pack's own numbers, built from dot-weapon alone, so a host needs no other weapon pack.
+## Fatal Contact's whole gun set as [GSWeaponDef]s: this pack's own numbers, built from gs-weapon alone, so a host needs no other weapon pack.
 ## Durations are ticks at [constant TICK_RATE]; every number can be overridden per weapon in `cfg/addons/fc_weapons/weapon/<id>.yml`.
 
 const TICK_RATE := 64
 const ADDON := "fc_weapons"
 
-const HITSCAN := "res://addons/dot_weapon/behaviour/dot_weapon_hitscan.gd"
-const PROJECTILE := "res://addons/dot_weapon/behaviour/dot_weapon_projectile.gd"
-const THROWN := "res://addons/dot_weapon/behaviour/dot_weapon_thrown.gd"
-const BEAM := "res://addons/dot_weapon/behaviour/dot_weapon_beam.gd"
-const MELEE := "res://addons/dot_weapon/behaviour/dot_weapon_melee.gd"
+const HITSCAN := "res://addons/gs_weapon/behaviour/gs_weapon_hitscan.gd"
+const PROJECTILE := "res://addons/gs_weapon/behaviour/gs_weapon_projectile.gd"
+const THROWN := "res://addons/gs_weapon/behaviour/gs_weapon_thrown.gd"
+const BEAM := "res://addons/gs_weapon/behaviour/gs_weapon_beam.gd"
+const MELEE := "res://addons/gs_weapon/behaviour/gs_weapon_melee.gd"
 ## Optional: a host with a view rig gets its kick numbers into each gun's params, so a profile can tune them.
 const POSE_SCRIPT := "res://addons/fc_weapons/view/aw_weapon_pose.gd"
 
@@ -47,7 +47,7 @@ const IDS: Array[StringName] = [
 	&"frag", &"sticky", &"flash", &"smoke", &"incendiary",
 ]
 
-## Sound class of each gun, as the names a weapon-sound table uses (dot-weapon's `GSWeaponSound.FIRE`), as plain data;
+## Sound class of each gun, as the names a weapon-sound table uses (gs-weapon's `GSWeaponSound.FIRE`), as plain data;
 ## a host feeds it to `AwWeaponSound.set_class`. Nine guns have a recording of their own.
 const SOUND_CLASSES := {
 	&"pistol": &"light", &"revolver": &"magnum", &"derringer": &"derringer", &"machine_pistol": &"mpistol", &"smg": &"smg",
@@ -357,7 +357,7 @@ static func sniper(t: Dictionary = {}) -> GSWeaponDef:
 	return def
 
 
-## No magazine: dot-weapon reads zero as "feeds from the reserve", so it never reloads and simply runs dry.
+## No magazine: gs-weapon reads zero as "feeds from the reserve", so it never reloads and simply runs dry.
 static func minigun(t: Dictionary = {}) -> GSWeaponDef:
 	var def := _gun(&"minigun", "Minigun", AwWeaponIds.heavy_slot(), GSWeaponDef.Fire.AUTO, rpm_ticks(1100.0), [&"heavy", &"automatic"], AMMO_BELT, 0, 200, 0.0)
 	def.reserve_max = 400

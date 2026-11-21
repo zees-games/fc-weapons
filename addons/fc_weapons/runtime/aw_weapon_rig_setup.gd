@@ -8,7 +8,7 @@ const CHANNEL := "aw.rig"
 
 const BASH_BEHAVIOUR := "res://addons/fc_weapons/behaviour/aw_weapon_bash.gd"
 const AwApi := preload("../fc_weapons_api.gd")
-const GSWeaponApi := preload("res://addons/dot_weapon/dot_weapon_api.gd")
+const GSWeaponApi := preload("res://addons/gs_weapon/gs_weapon_api.gd")
 
 ## Layers the wall probe stops on beyond the shot mask: set it to what stops the carrier (clip brushes and fences a shot passes), so the gun lowers at them.
 @export_flags_3d_physics var wall_extra_mask: int = 0:
@@ -23,8 +23,8 @@ func setup() -> GSResult:
 	if _ready_for_use:
 		return GSResult.success(null)
 
-	if GSWeaponApi.LEVEL < AwApi.DOT_WEAPON_MIN:
-		return GSResult.fail(GSError.CODE_STATE, "fc-weapons needs dot-weapon API %d or newer, this one is %d: update addons/dot_weapon." % [AwApi.DOT_WEAPON_MIN, GSWeaponApi.LEVEL])
+	if GSWeaponApi.LEVEL < AwApi.GS_WEAPON_MIN:
+		return GSResult.fail(GSError.CODE_STATE, "fc-weapons needs gs-weapon API %d or newer, this one is %d: update addons/gs_weapon." % [AwApi.GS_WEAPON_MIN, GSWeaponApi.LEVEL])
 
 	var res := _resolve_arsenal()
 	if not res.ok:

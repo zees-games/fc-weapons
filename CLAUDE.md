@@ -5,16 +5,16 @@ Fatal Contact's own weapon set (definitions and CC0 models), required by game-fa
 ## Rules
 
 - **game-fatal-contact requires it** (a plain `.gitignore` link) and names it once, as `weapons.own` in its roles config; this pack's ids are plain there, and its `Aw*` runtime (rig, view model, net, art table, shot fx, ADS rules) is the game's only weapon runtime ([docs/runtime-split.md](docs/runtime-split.md)). Every other game finds it by scanning `addons/*/spawn_provider.gd` and gets `aw_` ids.
-- **The contract is plain data**: `role_art()` (role -> `{model, muzzle, motion, view}`), `art_rows()`, `weapon_defs()`, `spawn_entries()`, `credits()`, `set_id_prefix()`. The definitions (`AwWeaponPack`) use dot-weapon only; no class of another weapon pack appears here. `IDS` is append-only.
+- **The contract is plain data**: `role_art()` (role -> `{model, muzzle, motion, view}`), `art_rows()`, `weapon_defs()`, `spawn_entries()`, `credits()`, `set_id_prefix()`. The definitions (`AwWeaponPack`) use gs-weapon only; no class of another weapon pack appears here. `IDS` is append-only.
 - A model's origin is at the grip, its muzzle toward -Z, in metres. A new model goes through `tools/bake_models.py`, then `tools/measure_sights.py` for the muzzle and aim numbers in `AwWeaponArt.WEAPONS` (the aim puts the eye just above the gun's rear top and keeps the stock 0.15 m clear of it; the view runtime scales a written aim with the ADS rules' `view_scale`). `tools/add_sights.py` (plain Python) then seats sight parts on the model per its spec (or reuses the model's own sights) and writes `sight_rear`/`sight_front` marks on one horizontal line; it refuses a floating part; with marks the aim is `(0, -mark.y, ...)` and the selftest measures the mark.
 - Models are CC0 (Styloo, Polyy, a knife); names are by type, never the source's. Anything new needs CC0, CC-BY or MIT, a CREDITS.md row, a `licence.json` row and an `AwWeaponArt.CREDITS` row.
 - `fc_weapons_api.gd` holds the API level; raise `LEVEL` when a game could call something new.
 - Grenades: `AwGrenade` steps flight and fuse on the server, `AwGrenadeBlast.detonate` returns events for the host to apply.
-- Utility glue (level 5): `AwUtilityZones` (fire zones, victims, line of sight, damage through host callables), `AwBlindLedger` (seconds and strength), client `AwGrenadeFx` (needs dot-fx; its cloud scenes are in `addons/fc_weapons/fx/`). A game keeps only its adapters.
+- Utility glue (level 5): `AwUtilityZones` (fire zones, victims, line of sight, damage through host callables), `AwBlindLedger` (seconds and strength), client `AwGrenadeFx` (needs gs-fx; its cloud scenes are in `addons/fc_weapons/fx/`). A game keeps only its adapters.
 - Update `CHECKS` in `examples/aw_selftest.gd` with a new check. The hold and aim numbers are placement: look at them with game-fatal-contact's `tools/render_weapons.sh`.
 - No other game or engine is named in anything public here.
-- Publish the pack with `tools/publish.sh VERSION --lock FILE --token-file ...` (wraps `dot-cloud/tools/publish_pack.sh`; the repo's own lock pins the art store, so give `--lock` a file outside it).
+- Publish the pack with `tools/publish.sh VERSION --lock FILE --token-file ...` (wraps `gs-cloud/tools/publish_pack.sh`; the repo's own lock pins the art store, so give `--lock` a file outside it).
 
 ## Visual quality
 
-A visual change (a weapon model, its animation, arms or effects) is done only when a fresh judge says so: follow dot-game's brief, `../dot-game/docs/visual-judge-brief.md` (GPU capture, never llvmpipe; three consecutive zero-defect passes; `--audit` before you report). Your own reading of the sheets never counts.
+A visual change (a weapon model, its animation, arms or effects) is done only when a fresh judge says so: follow gs-game's brief, `../gs-game/docs/visual-judge-brief.md` (GPU capture, never llvmpipe; three consecutive zero-defect passes; `--audit` before you report). Your own reading of the sheets never counts.

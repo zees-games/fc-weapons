@@ -13,7 +13,7 @@ extends "aw_world_model_fit.gd"
 ## floor.
 ##
 ## [b]It is attached by duck typing, never by class.[/b] `attach_to` takes any node that
-## answers `attachment(point)` — which dot-player-char's visual does and a game's own rig
+## answers `attachment(point)` — which gs-player-char's visual does and a game's own rig
 ## can — and this file mentions no character class at all, because a script that
 ## references a `class_name` the project does not have fails to parse and takes every
 ## script that references [i]it[/i] down with it.
@@ -34,7 +34,7 @@ const RECOIL_SHARE := 0.35
 ## The attachment point on the character to hang from.
 ##
 ## Any node answering `attachment(point)`. The name is the character rig's to define;
-## `right_hand` is what dot-player-char ships.
+## `right_hand` is what gs-player-char ships.
 @export var mount: StringName = &"right_hand"
 
 @export_group("Behaviour")
@@ -116,7 +116,7 @@ var _sprint: float = 0.0
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
 
-## The person's gun-arm carry (dot-player-char API 22's `GSHumanoidFigure.carry`, duck-typed), the weapon id its class
+## The person's gun-arm carry (gs-player-char API 22's `GSHumanoidFigure.carry`, duck-typed), the weapon id its class
 ## was last set for, and whether the character is mid-switch. While there is one it draws the kick, the reload roll
 ## and the sprint, so this model adds none of its own.
 ## Whether a held gun hands its kick, reload and swap to the person's carry (off: the model's own kick and reload
@@ -365,7 +365,7 @@ func throw() -> void:
 
 
 ## The person this hand belongs to: the nearest node above it that answers both `swing(which)`
-## and `set_hold(kind)`, which dot-player-char's figure does.
+## and `set_hold(kind)`, which gs-player-char's figure does.
 ##
 ## [b]Asked for a throw only, and duck-typed for [method attach_to]'s reason.[/b] Every game
 ## already plays the slash on a swing itself, and a second call would restart it; nobody plays
@@ -682,7 +682,7 @@ func _tell_carry() -> void:
 	carry.set(&"switching", _switching)
 
 
-## The carry class (dot-player-char's `GSHumanoidCarry.CLASSES`) [param art] is held as; see [code]aw_carry_class.gd[/code].
+## The carry class (gs-player-char's `GSHumanoidCarry.CLASSES`) [param art] is held as; see [code]aw_carry_class.gd[/code].
 static func carry_class(art: AwWeaponVisual) -> Variant:
 	return CarryClass.of(art)
 

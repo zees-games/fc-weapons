@@ -1,5 +1,5 @@
 extends SceneTree
-## Writes weapons/<id>.tres and provides.json (the Workshop listing, dot-cloud docs/workshop.md) from AwWeaponPack.
+## Writes weapons/<id>.tres and provides.json (the Workshop listing, gs-cloud docs/workshop.md) from AwWeaponPack.
 ## `godot --headless --path . --script res://tools/export_defs.gd`; the code table stays the source of truth.
 
 

@@ -4,7 +4,7 @@ extends "aw_selftest_sight.gd"
 ## the provider's contract, the pack's own weapon definitions, and a base art dressed by role.
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
-const IronSight := preload("res://addons/dot_weapon/view/dot_weapon_iron_sight.gd")
+const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
 const CHECKS := 550
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
@@ -61,7 +61,7 @@ func _ready() -> void:
 	await _finish()
 
 
-## The rig's native spread switch is dot-weapon's static, both ways, and is live only with dot-sim's class loaded.
+## The rig's native spread switch is gs-weapon's static, both ways, and is live only with gs-sim's class loaded.
 func _native_spread() -> void:
 	_begin("native spread switch")
 	var was := AwWeaponRig.native_spread
@@ -74,7 +74,7 @@ func _native_spread() -> void:
 	AwWeaponRig.native_spread = false
 	var off := AwWeaponRig.native_spread_active()
 	AwWeaponRig.native_spread = was
-	_check("native_spread_active() is the switch and dot-sim's class together",
+	_check("native_spread_active() is the switch and gs-sim's class together",
 		on == ClassDB.class_exists(&"GSSimWeaponSpread") and not off)
 	_end()
 
@@ -152,7 +152,7 @@ func _reload_cues() -> void:
 	for cue in ReloadCues.all_cues():
 		if GSWeaponSound.count(StringName("cue_%s" % cue)) > 0:
 			have += 1
-	_check("an empty magazine's reload drops it (%d of %d); stock has %d of %d cues (0 when dot-audio is not linked)" % [empty_drop, empty_mags, have, ReloadCues.all_cues().size()],
+	_check("an empty magazine's reload drops it (%d of %d); stock has %d of %d cues (0 when gs-audio is not linked)" % [empty_drop, empty_mags, have, ReloadCues.all_cues().size()],
 		empty_drop == empty_mags and (have == 0 or have == ReloadCues.all_cues().size()))
 	_end()
 
@@ -615,7 +615,7 @@ func _unstyled() -> Array[String]:
 	return out
 
 
-## A person's gun-arm carry, as dot-player-char API 22 draws it: what a held gun told it.
+## A person's gun-arm carry, as gs-player-char API 22 draws it: what a held gun told it.
 class FakeCarry extends RefCounted:
 	var kinds: Array = []
 	var fires := 0

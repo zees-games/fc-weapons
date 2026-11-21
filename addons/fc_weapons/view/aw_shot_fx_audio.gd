@@ -38,10 +38,10 @@ const FALLOFF := {
 	&"handling": [2.0, 40.0, 0.04],
 }
 
-## dot-audio's PCM copies (duck-typed by path like [AwShotLayers]): starting an Ogg voice builds its decoder
+## gs-audio's PCM copies (duck-typed by path like [AwShotLayers]): starting an Ogg voice builds its decoder
 ## every time, about half a millisecond on the game thread per casing, tail or reload; a decoded copy starts
-## in microseconds. Shared with dot-audio's own voices, so one copy per sound per process.
-const PCM_PATH := "res://addons/dot_audio/sink/dot_audio_pcm.gd"
+## in microseconds. Shared with gs-audio's own voices, so one copy per sound per process.
+const PCM_PATH := "res://addons/gs_audio/sink/gs_audio_pcm.gd"
 static var _pcm: Script = null
 static var _pcm_probed := false
 
@@ -79,7 +79,7 @@ var _last_casing_msec: int = -100000
 ## The audio bus reports are played on.
 @export var bus: StringName = &"Master"
 
-## Play guns as dot-audio's layered, room-aware shot when it is linked and the class has a stock shot; off, or missing, plays the single sound.
+## Play guns as gs-audio's layered, room-aware shot when it is linked and the class has a stock shot; off, or missing, plays the single sound.
 @export var layered_shots: bool = true
 
 ## Decibels added to every report. A game's mixer is the better place for this; this is
@@ -312,7 +312,7 @@ func _play(stream: AudioStream, at: Vector3, extra_db: float, falloff: StringNam
 	voice.play()
 
 
-## True when playing an Ogg stream decodes on the game thread: dot-audio is missing or cannot decode to
+## True when playing an Ogg stream decodes on the game thread: gs-audio is missing or cannot decode to
 ## PCM off-thread (single-threaded web). Probed once.
 static func ogg_starts_slow() -> bool:
 	if _ogg_slow < 0:
@@ -334,7 +334,7 @@ func _skip_slow_impact(at: Vector3) -> bool:
 	return false
 
 
-## [param stream]'s decoded copy once dot-audio has one, else [param stream] (the first play starts the decode).
+## [param stream]'s decoded copy once gs-audio has one, else [param stream] (the first play starts the decode).
 static func _pcm_of(stream: AudioStream) -> AudioStream:
 	if not _pcm_probed:
 		_pcm_probed = true
