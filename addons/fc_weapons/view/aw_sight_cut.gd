@@ -248,7 +248,8 @@ static func _cut_mesh(mesh: Mesh, to_space: Transform3D, planes: Array, cut: Dic
 			or arrays[Mesh.ARRAY_BONES] != null or mesh.get_blend_shape_count() > 0
 		var cut_surface: Array = [] if plain else _cut_surface(arrays, to_space, planes, mesh.get_aabb())
 		if cut_surface.is_empty():
-			result.add_surface_from_arrays(mesh.surface_get_primitive_type(s), arrays)
+			# The source's own format flags: its custom channels need them to be read back as the byte arrays they are.
+			result.add_surface_from_arrays(mesh.surface_get_primitive_type(s), arrays, [], {}, mesh.surface_get_format(s))
 		else:
 			removed += int(cut_surface[1])
 			for p: Vector3 in cut_surface[2]:

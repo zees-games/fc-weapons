@@ -63,7 +63,10 @@ static func ensure(weapon: Node3D) -> void:
 		var parent: Node3D = weapon
 		if mount == GSWeaponAttachment.MOUNT_MAGAZINE:
 			# On the magazine itself, so a reload hides and carries the extension with it.
-			var mag := weapon.find_child(str(row.get("mag", "")), true, false) as Node3D
+			var mag_name := str(row.get("mag", ""))
+			var mag: Node3D = null
+			if mag_name != "":
+				mag = weapon.find_child(mag_name, true, false) as Node3D
 			if mag != null:
 				parent = mag
 				at = _to_weapon(mag, weapon).affine_inverse() * at
