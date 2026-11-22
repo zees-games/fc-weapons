@@ -621,7 +621,7 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 	_rear_rings = Describe.find_rear_rings(_weapon)
 	var camera := get_parent() as Camera3D
 	var near := (camera.near if camera != null else 0.05) + NEAR_MARGIN
-	var dot := ads_rules.sight_gs_for(art.id) if ads_rules != null else float(AwAdsRules.SPECS["sight_dot"]["default"])
+	var dot := ads_rules.sight_dot_for(art.id) if ads_rules != null else float(AwAdsRules.SPECS["sight_dot"]["default"])
 	var fitted := SightFit.fit(art, _weapon, _holder, _dressed.get("line", {}), near, dot)
 	if not fitted.is_empty():
 		_sight_line = fitted.line

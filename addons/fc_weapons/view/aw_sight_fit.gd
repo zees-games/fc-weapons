@@ -9,9 +9,9 @@ const Cut := preload("aw_sight_cut.gd")
 
 ## The front sight's glow: a small dot on the post's tip, its size in degrees from the ADS rule `sight_dot`, shown as the aim arrives.
 const DOT_COLOR := Color(0.75, 1.0, 0.35)
-const GS_NAME := "SightDot"
-const GS_FADE_FROM := 0.6
-const RED_GS_NAME := "RedDot"
+const DOT_NAME := "SightDot"
+const DOT_FADE_FROM := 0.6
+const RED_DOT_NAME := "RedDot"
 ## The red dot's reticle and lens tint show from this aim fraction on, as the sight comes to the eye; its housing (tube,
 ## mount and turrets round the window) and rim show at every fraction, filling the hole the window cuts in the gun.
 const RED_SHOW_FROM := 0.35
@@ -96,7 +96,7 @@ static func _dot(line: Dictionary, forward: Vector3, radius: float) -> Node3D:
 	var root := Node3D.new()
 	root.name = "OwnSight"
 	var dot := MeshInstance3D.new()
-	dot.name = GS_NAME
+	dot.name = DOT_NAME
 	var sphere := SphereMesh.new()
 	sphere.radius = radius
 	sphere.height = radius * 2.0
@@ -149,7 +149,7 @@ static func _red(art: AwWeaponVisual, rules: AwAdsRules) -> Dictionary:
 ## The dot, its lens, rim and housing at [param depth] along [param cone]'s axis; [method track] keeps the dot on the axis from wherever the eye is.
 static func _red_dot(cone: Dictionary, depth: float, red: Dictionary) -> Node3D:
 	var root := Node3D.new()
-	root.name = RED_GS_NAME
+	root.name = RED_DOT_NAME
 	var axis: Vector3 = cone.axis
 	var centre: Vector3 = (cone.eye as Vector3) + axis * depth
 	var window := depth * float(cone.tan)
@@ -368,10 +368,10 @@ static func fade(sight: Node3D, f: float) -> void:
 				var piece := red.get_node_or_null(part) as Node3D
 				if piece != null:
 					piece.visible = shown
-	var dot := sight.get_node_or_null(GS_NAME) as MeshInstance3D
+	var dot := sight.get_node_or_null(DOT_NAME) as MeshInstance3D
 	if dot == null:
 		return
-	var alpha := clampf((f - GS_FADE_FROM) / (1.0 - GS_FADE_FROM), 0.0, 1.0)
+	var alpha := clampf((f - DOT_FADE_FROM) / (1.0 - DOT_FADE_FROM), 0.0, 1.0)
 	dot.visible = alpha > 0.0
 	(dot.material_override as StandardMaterial3D).albedo_color.a = alpha
 
