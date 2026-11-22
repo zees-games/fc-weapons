@@ -9,7 +9,7 @@ add a small piece seated ON the surface below it (the model or an earlier part):
 the run fails (a floating part is a defect). A `rear_ring*` part is hidden at the hip by the view runtime.
 Stations are metres in the baked frame (origin at the grip, muzzle toward -Z, Y up). After a change, set each weapon's aim
 in `AwWeaponArt.WEAPONS` to `(0, -line, z)`; the selftest measures it against the rear mark.
-pump_shotgun, pistol and battle_rifle still carry the parts an earlier Blender pass of this tool built; give them a spec here
+pump_shotgun and pistol still carry the parts an earlier Blender pass of this tool built; give them a spec here
 before rerunning on them."""
 import json, math, os, struct, sys
 
@@ -52,6 +52,10 @@ SPECS = {
         ('front_post', taper((-0.0016, 0.0016, -0.104, -0.096, 0.0212), (-0.0011, 0.0011, -0.102, -0.096, 0.0360)))]),
     # Own notch (shoulders 0.1674, floor 0.1635) and own front post between ears (0.1637): marks only.
     'machine_pistol': (0.1640, -0.020, -0.202, []),
+    # Own rear peep (top 0.0786 at z 0.03) and own front post in its ears (0.073 at z -0.41): marks only, on the peep centre.
+    'burst_rifle': (0.0720, 0.033, -0.410, []),
+    # Own rear drum (top 0.1123 at z 0.01) and own hooded front post (hood 0.1257 at z -0.54): marks only.
+    'battle_rifle': (0.1120, 0.012, -0.535, []),
     # Carry handle top 0.352 at its back (z -0.23), own front post 0.300 at z -0.648: a peep on the handle and a tower over
     # with ears on the native post.
     'lmg': (0.3630, -0.232, -0.648, [

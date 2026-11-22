@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0rbaiobq4aco"
-path="res://.godot/imported/battle_rifle_2.png-dac5dcd93ea571eaee61b3d5bd98d2cd.ctex"
+uid="uid://lbbcxy54fx37"
+path="res://.godot/imported/battle_rifle_15_defaultMatc_metallicRoughness.jpg-ff4a848dde22a7ff5e828d9f5fd99c95.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "f21a07aaa1faa9930b3d0fe5c127e01f"
+"md5": "203250239941b021eacdb0f8aaf98634"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/battle_rifle_2.png"
-dest_files=["res://.godot/imported/battle_rifle_2.png-dac5dcd93ea571eaee61b3d5bd98d2cd.ctex"]
+source_file="res://addons/fc_weapons/assets/models/battle_rifle_15_defaultMatc_metallicRoughness.jpg"
+dest_files=["res://.godot/imported/battle_rifle_15_defaultMatc_metallicRoughness.jpg-ff4a848dde22a7ff5e828d9f5fd99c95.ctex"]
 
 [params]
 

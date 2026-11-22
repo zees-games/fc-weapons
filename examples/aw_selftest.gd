@@ -460,7 +460,8 @@ func _provider() -> void:
 	_check("role_art is keyed by role, not by this pack's ids", AwSpawnProvider.role_art().has(&"rifle") and not AwSpawnProvider.role_art().has(&"aw_rifle"))
 	var credit := AwSpawnProvider.credits()[0]
 	_check("the credit names Styloo, CC0 and the page", credit["author"] == "Styloo" and str(credit["licence"]).begins_with("CC0") and str(credit["url"]).begins_with("https://styloo.itch.io/"))
-	_check("every credit is CC0 with a page", AwSpawnProvider.credits().all(func(c: Dictionary) -> bool: return str(c["licence"]).begins_with("CC0") and str(c["url"]).begins_with("https://")))
+	# Free licences only: CC0, or CC BY / MIT with the author named (the credit is the attribution they ask for).
+	_check("every credit is CC0, CC BY or MIT with a page and, past CC0, an author", AwSpawnProvider.credits().all(_free_credit))
 	AwSpawnProvider.set_id_prefix("")
 	var plain := AwSpawnProvider.art_rows()
 	_check("a host that owns the plain ids gets `rifle`, not `aw_rifle`", plain.has(&"rifle") and not plain.has(&"aw_rifle") and AwSpawnProvider.role_art().is_empty())
@@ -771,3 +772,8 @@ func _finish() -> void:
 	get_tree().quit(0 if passed else 1)
 
 
+func _free_credit(c: Dictionary) -> bool:
+	var lic := str(c["licence"])
+	var named := not str(c.get("author", "")).is_empty()
+	var free := lic.begins_with("CC0") or ((lic.begins_with("CC BY") or lic.begins_with("CC-BY") or lic.begins_with("MIT")) and named)
+	return free and str(c["url"]).begins_with("https://")

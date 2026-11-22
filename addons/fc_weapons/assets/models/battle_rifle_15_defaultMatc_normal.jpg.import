@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3oavp0ucfe1b"
-path="res://.godot/imported/burst_rifle_0.jpg-2818db75b72d6f5e9b89f373a538d844.ctex"
+uid="uid://fhtpxuo81l3n"
+path="res://.godot/imported/battle_rifle_15_defaultMatc_normal.jpg-7b64d38012ba12d86bf0721cd256ef92.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "769d3491abce7c3f529b63a7fb6df52f"
+"md5": "faf8572bcadea9ee20f35ec6098ab358"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/burst_rifle_0.jpg"
-dest_files=["res://.godot/imported/burst_rifle_0.jpg-2818db75b72d6f5e9b89f373a538d844.ctex"]
+source_file="res://addons/fc_weapons/assets/models/battle_rifle_15_defaultMatc_normal.jpg"
+dest_files=["res://.godot/imported/battle_rifle_15_defaultMatc_normal.jpg-7b64d38012ba12d86bf0721cd256ef92.ctex"]
 
 [params]
 
 compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

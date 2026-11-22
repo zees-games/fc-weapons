@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xe7oqyos2hls"
-path="res://.godot/imported/battle_rifle_1.jpg-5415e850a34b81f4c74644064ca6531b.ctex"
+uid="uid://ckx37w0unfxhd"
+path="res://.godot/imported/burst_rifle_howa_type89_mags_metallicRoughness.jpg-16a60a6ddefb860e1ca8308738737ae9.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "3562aca6bcdf3dbd04ef02ff9e4dc36f"
+"md5": "98d36e7e3993c941eef6e8b1515e1047"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/battle_rifle_1.jpg"
-dest_files=["res://.godot/imported/battle_rifle_1.jpg-5415e850a34b81f4c74644064ca6531b.ctex"]
+source_file="res://addons/fc_weapons/assets/models/burst_rifle_howa_type89_mags_metallicRoughness.jpg"
+dest_files=["res://.godot/imported/burst_rifle_howa_type89_mags_metallicRoughness.jpg-16a60a6ddefb860e1ca8308738737ae9.ctex"]
 
 [params]
 
 compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
