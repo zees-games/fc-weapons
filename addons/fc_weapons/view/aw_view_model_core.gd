@@ -297,13 +297,11 @@ var _carved: Node3D = null
 ## (tools/render_reload.gd --probe). An empty array means the mesh holds no magazine to take out.
 const MAG_BOXES := {
 	"machine_pistol.glb": [-0.12, -0.175, -0.067, 0.12, -0.012, 0.031],
-	"burst_rifle.glb": [-0.12, -0.16, -0.19, 0.12, 0.02, -0.07],
 	"drum_shotgun.glb": [-0.12, -0.11, 0.20, 0.12, 0.05, 0.37],
 	"marksman.glb": [-0.12, -0.03, -0.245, 0.12, 0.03, -0.14],
 	"sniper_ph.glb": [-0.12, -0.01, -0.17, 0.12, 0.04, -0.095],
 	"lmg.glb": [-0.2, -0.125, -0.31, 0.2, 0.10, -0.155],
 	"bullpup.glb": [],
-	"battle_rifle.glb": [-0.03, -0.095, -0.152, 0.03, -0.011, -0.07],
 }
 
 func _carve_magazine(art: AwWeaponVisual) -> void:

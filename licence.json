@@ -21,6 +21,20 @@
         "title": "High-poly AK-47 (OpenGameArt, CC0; rebuilt by tools/build_own_ak.py, textured by tools/tex_pipeline.sh)"
     },
     {
+        "paths": ["addons/fc_weapons/assets/models/burst_rifle.glb"],
+        "licence": "CC-BY-4.0",
+        "author": "8sianDude",
+        "url": "https://sketchfab.com/3d-models/howa-type-89-assault-rifle-40ed169fba7d478190f1ad57a42857a3",
+        "title": "Assault rifle (Sketchfab, CC BY 4.0; decal painted out, split into nodes and rescaled by tools/build_sf_rifles.py)"
+    },
+    {
+        "paths": ["addons/fc_weapons/assets/models/battle_rifle.glb"],
+        "licence": "CC-BY-4.0",
+        "author": "Ulrik Langvandsbråten",
+        "url": "https://sketchfab.com/3d-models/hk-g3-rifle-game-ready-2cd63366353b4e8fbc9eff81b1fe922f",
+        "title": "Battle rifle (Sketchfab, CC BY 4.0; scope, suppressor and bipod left out, magazine split, rescaled by tools/build_sf_rifles.py)"
+    },
+    {
         "paths": ["tools/detail"],
         "licence": "CC0-1.0",
         "author": "ambientCG",

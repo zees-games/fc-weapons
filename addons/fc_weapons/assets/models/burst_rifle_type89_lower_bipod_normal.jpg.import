@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkni8prcmyot6"
-path="res://.godot/imported/burst_rifle_2.jpg-a79a382c9498bcb0651f2d0748681d3c.ctex"
+uid="uid://4lqqff24eptf"
+path="res://.godot/imported/burst_rifle_type89_lower_bipod_normal.jpg-2b7fb1f8d5393f058e77e457e15b0c83.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "b6a8e968fa0742f1b3a7f7562e8a47e3"
+"md5": "b49dd7eb0c617599fc0ab5af0c6c7f85"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/burst_rifle_2.jpg"
-dest_files=["res://.godot/imported/burst_rifle_2.jpg-a79a382c9498bcb0651f2d0748681d3c.ctex"]
+source_file="res://addons/fc_weapons/assets/models/burst_rifle_type89_lower_bipod_normal.jpg"
+dest_files=["res://.godot/imported/burst_rifle_type89_lower_bipod_normal.jpg-2b7fb1f8d5393f058e77e457e15b0c83.ctex"]
 
 [params]
 
