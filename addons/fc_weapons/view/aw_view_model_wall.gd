@@ -56,6 +56,10 @@ func _drawn_gun_in_world(delta: float) -> bool:
 ## How fast a pull lets go once the world is clear, as a share of the drawn distance per second (0 = at once).
 @export var world_pull_release: float = 1.5
 
+## How fast a pull closes on a world that came into reach, as a share of the drawn distance per second (0 = at once). A walk into a
+## wall used to snap the gun toward the eye in one frame (a 0.09 m pop on the launcher); the wall-free pass draws it clear while it closes.
+@export var world_pull_attack: float = 2.5
+
 ## Share of the way to the world the pulled gun stops at, so it stays a little in front of it.
 const PULL_MARGIN := 0.92
 
@@ -75,7 +79,9 @@ func _pull_out_of_world(delta: float) -> bool:
 		share = _drawn_gun_world_share()
 	var nearest := _life_share() if world_pull else 1.0
 	var target := clampf(share * PULL_MARGIN, nearest, 1.0) if share < 1.0 else 1.0
-	if target < _pull or world_pull_release <= 0.0:
+	if target < _pull:
+		_pull = target if world_pull_attack <= 0.0 else maxf(target, _pull - world_pull_attack * delta)
+	elif world_pull_release <= 0.0:
 		_pull = target
 	else:
 		_pull = move_toward(_pull, target, world_pull_release * delta)
