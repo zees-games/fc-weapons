@@ -244,6 +244,10 @@ static func _cut_mesh(mesh: Mesh, to_space: Transform3D, planes: Array, cut: Dic
 	var axis: Vector3 = cut.axis
 	for s in mesh.get_surface_count():
 		var arrays := mesh.surface_get_arrays(s)
+		# Extra glTF UV sets come back as custom channels, which add_surface_from_arrays refuses without their format
+		# flags; no weapon material reads them.
+		for custom in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3]:
+			arrays[custom] = null
 		var plain: bool = mesh.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES \
 			or arrays[Mesh.ARRAY_BONES] != null or mesh.get_blend_shape_count() > 0
 		var cut_surface: Array = [] if plain else _cut_surface(arrays, to_space, planes, mesh.get_aabb())
