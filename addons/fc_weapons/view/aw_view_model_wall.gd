@@ -63,6 +63,9 @@ func _drawn_gun_in_world(delta: float) -> bool:
 
 ## Share of the way to the world the pulled gun stops at, so it stays a little in front of it.
 const PULL_MARGIN := 0.92
+## How far the pull goes (1 - pull) before the pulled gun is cleared of the near plane by the whole of its cut, not only the
+## pull's own share: the clear fades in over it instead of shoving the gun the frame the pull starts.
+const PULL_CLEAR_RAMP := 0.2
 
 ## The drawn gun's distance from the eye now, as a share of where the pose puts it (1 = not pulled).
 var _pull: float = 1.0
@@ -98,8 +101,8 @@ func _pull_out_of_world(delta: float) -> bool:
 		var about_eye := Transform3D(Basis.from_scale(Vector3.ONE * _pull), Vector3.ZERO)
 		_animated.transform = transform.affine_inverse() * about_eye * transform * _animated.transform
 		# The pull scales the gun about the eye after the wall pass cleared the near plane, so a long gun pulled to life size
-		# against a wall (the launcher running into one) comes back through the plane: clear it again, uncapped.
-		_clear_pulled_gun_of_near_plane()
+		# against a wall (the launcher running into one) comes back through the plane: clear what the pull brought through.
+		_clear_pulled_gun_of_near_plane(_pull)
 	return share < 1.0 and _pull > share * 0.995
 
 
@@ -265,13 +268,31 @@ func _keep_off_near_plane(rest: Vector3 = Vector3.INF) -> void:
 	if deficit > 0.0:
 		_animated.global_position -= camera.global_basis.z * deficit
 
-## Slides the pulled gun away from the eye until the near plane no longer cuts it where it shows, whatever the wall pass did.
-func _clear_pulled_gun_of_near_plane() -> void:
+## Slides the gun pulled by [param pull] away from the eye until the near plane no longer cuts it, whatever the wall pass did.
+## Two shares, both smooth in the pull: what the pull itself brought each drawn mesh through the plane, and the whole cut faded
+## in over [constant PULL_CLEAR_RAMP]. The whole cut alone shoved a gun whose stock already crossed the plane unpulled (the
+## launcher) forward by that depth the frame the pull started; the pull's share alone left the smg's magazine in the plane
+## after it ran into a wall; and a check only where the gun shows snapped the smg 0.1 m the frame the magazine came into view.
+func _clear_pulled_gun_of_near_plane(pull: float) -> void:
 	var camera := get_parent() as Camera3D
-	if camera == null:
+	if camera == null or _holder == null or pull <= 0.0:
 		return
-	# Not only where it shows: the cut in view starts at once, 0.1 m in a frame, while the depth of the nearest corner moves smoothly.
-	var cut := weapon_cut_depth(camera, camera.near + NEAR_CLEAR, false)
+	var clear := camera.near + NEAR_CLEAR
+	var inverse := camera.global_transform.affine_inverse()
+	var share := 0.0
+	var whole := 0.0
+	for mesh in _drawn_meshes(_holder):
+		if mesh.mesh == null or not mesh.is_visible_in_tree():
+			continue
+		var to_eye := inverse * mesh.global_transform
+		var box := mesh.get_aabb()
+		var nearest := INF
+		for i in 8:
+			nearest = minf(nearest, -(to_eye * box.get_endpoint(i)).z)
+		whole = maxf(whole, clear - nearest)
+		# The pull scaled every depth about the eye, so this mesh sat at nearest / pull before it.
+		share = maxf(share, maxf(clear - nearest, 0.0) - maxf(clear - nearest / pull, 0.0))
+	var cut := maxf(share, whole * smoothstep(0.0, PULL_CLEAR_RAMP, 1.0 - pull))
 	if cut > 0.0:
 		_animated.global_position -= camera.global_basis.z * cut
 
