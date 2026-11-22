@@ -12,7 +12,7 @@ The pack holds the weapon definitions (stats, ammunition, reloads, view and aim 
 
 Models come from CC0 packs, baked to one contract: origin at the grip, muzzle toward -Z, metres. The code is MIT. See [CREDITS.md](CREDITS.md) for every asset.
 
-Pack id: `gamemann/fc-weapons` (it was `gamemann/arena-weapons` up to v1.3.x). The addon directory is `addons/fc_weapons` (it was `addons/arena_weapons` up to API level 31) and its classes still start with `Aw`.
+Pack id: `gamemann/fc-weapons` (it was `gamemann/fc-weapons` up to v1.3.x). The addon directory is `addons/fc_weapons` (it was `addons/fc_weapons` up to API level 31) and its classes still start with `Aw`.
 
 <!-- gen_readme:summary -->
 | | Weapon | Class | Damage | Fire rate |

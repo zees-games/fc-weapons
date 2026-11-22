@@ -58,7 +58,7 @@ extends RefCounted
 # 30: AwShotFxRules.crowd_frame (cl_shotfx_crowd_frame): most other shooters' shots drawn in one frame across the crowd.
 # 31: AwWeaponRig.native_spread (and native_spread_active()): the hitscan spread tick in gs-sim's native class or in
 #     GDScript, bit-exact either way; GS_WEAPON_MIN, which AwWeaponRig.setup() checks and fails on.
-# 32: the addon directory is addons/fc_weapons (was addons/arena_weapons) and its cfg cfg/addons/fc_weapons;
+# 32: the addon directory is addons/fc_weapons (was addons/fc_weapons) and its cfg cfg/addons/fc_weapons;
 #     this file is fc_weapons_api.gd. Nothing a game calls changed meaning, so OLDEST stays.
 # 33: AwWeaponRig.simulate_idle_row(command, tick, row, still): simulate_idle with the idle posture as a packed row and the
 #     carrier's stillness as a bool, one native call per idle weapon on gs-weapon API 44 (else simulate_idle). Additive.
