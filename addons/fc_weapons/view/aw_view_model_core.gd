@@ -361,6 +361,42 @@ func _animate_sequence(f: float) -> void:
 	_set_bolt(_seq.bolt_back(f) if f > 0.0 and f < 1.0 else 0.0)
 
 
+## A bolt-action's cycle after a shot: seconds since the shot, -1 when none runs. It waits a beat for
+## the recoil, draws the bolt back, holds, and closes it. A reload cuts it short.
+var _bolt_cycle_t := -1.0
+const BOLT_CYCLE_WAIT := 0.3
+const BOLT_CYCLE_SPLIT: Array[float] = [0.4, 0.5, 1.0]
+
+
+func _start_bolt_cycle() -> void:
+	if _art != null and _art.bolt_cycle > 0.0 and _art.bolt_node != &"" and _seq == null:
+		_bolt_cycle_t = 0.0
+
+
+func _advance_bolt_cycle(delta: float) -> void:
+	if _bolt_cycle_t < 0.0:
+		return
+	if _seq != null or _art == null:
+		_bolt_cycle_t = -1.0
+		return
+	_bolt_cycle_t += delta
+	var f := (_bolt_cycle_t - BOLT_CYCLE_WAIT) / maxf(_art.bolt_cycle, 0.01)
+	_set_bolt(bolt_cycle_back(f))
+	if f >= 1.0:
+		_bolt_cycle_t = -1.0
+
+
+## How far back the bolt is [param f] (0 to 1) through the cycle: drawn back by 40%, held to 50%, closed by the end.
+static func bolt_cycle_back(f: float) -> float:
+	if f <= 0.0 or f >= 1.0:
+		return 0.0
+	if f < BOLT_CYCLE_SPLIT[0]:
+		return smoothstep(0.0, BOLT_CYCLE_SPLIT[0], f)
+	if f < BOLT_CYCLE_SPLIT[1]:
+		return 1.0
+	return 1.0 - smoothstep(BOLT_CYCLE_SPLIT[1], BOLT_CYCLE_SPLIT[2], f)
+
+
 ## Draws the art's [member AwWeaponVisual.bolt_node] [param back] (0 rest, 1 fully charged)
 ## of [member AwWeaponVisual.bolt_travel] toward the stock. The rest position is kept on the
 ## node the first time it moves, so a sequence cut short puts it back where it was.

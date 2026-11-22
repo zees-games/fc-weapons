@@ -253,6 +253,11 @@ static var _dress_script: Script = null
 ## How far [member bolt_node] travels back when charged, in the model's own metres.
 @export var bolt_travel: float = 0.0
 
+## Seconds a bolt-action's cycle takes after each shot (the bolt drawn back and closed again, by
+## [member bolt_node] and [member bolt_travel]), starting a beat after the recoil. 0 is a
+## self-loading gun, whose action is not shown.
+@export var bolt_cycle: float = 0.0
+
 ## A part built in code instead of a file (`&"cell"`, `&"ammo_box"`: `view/aw_reload_parts.gd`),
 ## used when [member magazine_path] is empty. Built, not vendored, because every game that
 ## draws this pack carries its own copy of `assets/`, and a new file there is a copy in seven

@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
-const CHECKS := 550
+const CHECKS := 551
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -226,6 +226,7 @@ func _reload_drop_charge() -> void:
 	_check("cl_vm_reload_drop and cl_vm_reload_charge default to 1 and set to 0 (%s %s)" % [defaults, set_ok],
 		defaults and set_ok and feel.reload_drop == 0.0 and feel.reload_charge == 0.0)
 	_reload_bolt(rows)
+	_shot_bolt(rows)
 	_end()
 
 
@@ -252,6 +253,20 @@ func _reload_bolt(rows: Dictionary) -> void:
 		model.free()
 	_check("the rifle's bolt node (%s, %s) is drawn back with the charge and home at both ends (peak %.2f, start %.2f, end %.2f, uncharged %.2f)" % [rifle.bolt_node, has_bolt, peak, start_back, end_back, still_peak],
 		has_bolt and rifle.bolt_travel > 0.0 and peak > 0.95 and start_back == 0.0 and end_back == 0.0 and still_peak == 0.0)
+
+
+## The sniper cycles its bolt after each shot: home at both ends, fully back between, and only it does.
+func _shot_bolt(rows: Dictionary) -> void:
+	var sniper := AwWeaponVisual.make(&"sniper")
+	AwArtDress.apply(sniper, rows[&"sniper"])
+	var rifle := AwWeaponVisual.make(&"rifle")
+	AwArtDress.apply(rifle, rows[&"rifle"])
+	var peak := 0.0
+	for k in 201:
+		peak = maxf(peak, AwViewModel.bolt_cycle_back(float(k) / 200.0))
+	var ends := AwViewModel.bolt_cycle_back(0.0) == 0.0 and AwViewModel.bolt_cycle_back(1.0) == 0.0
+	_check("the sniper's bolt cycles after a shot and the rifle's does not (cycle %.2f s, peak %.2f, ends home %s, rifle %.2f s)" % [sniper.bolt_cycle, peak, ends, rifle.bolt_cycle],
+		sniper.bolt_cycle > 0.0 and sniper.bolt_node != &"" and sniper.bolt_travel > 0.0 and peak > 0.99 and ends and rifle.bolt_cycle == 0.0)
 
 
 ## The hand spans of every model (IronSight.spans: bare faces and one TriangleMesh) equal the per-triangle

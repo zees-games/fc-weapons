@@ -202,6 +202,8 @@ func on_used(outcome: GSWeaponOutcome) -> void:
 	_pose.punch(outcome.recoil, outcome.recoil_signed)
 	if _belt != null and outcome.kind == GSWeaponOutcome.KIND_SHOT:
 		_belt.step()
+	if outcome.kind == GSWeaponOutcome.KIND_SHOT:
+		_start_bolt_cycle()
 	match outcome.kind:
 		GSWeaponOutcome.KIND_SWING:
 			_pose.swing()
@@ -336,6 +338,7 @@ func advance(delta: float) -> void:
 		_belt.advance(delta)
 
 	_strafe_now = _strafe_speed(delta)
+	_advance_bolt_cycle(delta)
 	_pose.advance(delta, _look_delta(), _speed, _on_floor, _crouched, _strafe_now)
 	_sprint = move_toward(_sprint, 1.0 if _sprinting and sprint_pose else 0.0, delta / SPRINT_SECONDS)
 	_pose.set_sprint(_ease(_sprint))
