@@ -35,7 +35,7 @@ Nothing with an unclear licence was committed.
 
 The pack has no web size budget file and `ci/efficiency/size.tsv` gates code lines only, so no gate trips either way; 1K is the default because the web download is the limit. For 2K, bake, copy the glb in as `<name>_2k.glb`, and point the row's `model` at it.
 
-Since fc-weapons-textures-hires-1 the guns held closest to the eye ship at 2K: `pistol_ph` (2.6 MB) and `knife_ph` (3.0 MB) from the Poly Haven 2K bake, `revolver` and `derringer` (3.7 MB each) from `tools/tex_pipeline.sh` at 2048. The grenades and ammo can ship at 1K (0.7-1.0 MB), the bullpup and burst rifle at 1K welded and smart-unwrapped (1.5-1.7 MB); every normal map is JPEG q92, not PNG. The web export re-encodes each map as lossy WebP at import quality 0.7, so its download grows less than the glb bytes do.
+Since fc-weapons-textures-hires-1 the guns held closest to the eye ship at 2K: `pistol_ph` (2.6 MB) and `knife_ph` (3.0 MB) from the Poly Haven 2K bake, `revolver` and `derringer` (3.7 MB each) from `addons/gs_weapon/tools/texbake/tex_pipeline.sh` at 2048. The grenades and ammo can ship at 1K (0.7-1.0 MB), the bullpup and burst rifle at 1K welded and smart-unwrapped (1.5-1.7 MB); every normal map is JPEG q92, not PNG. The web export re-encodes each map as lossy WebP at import quality 0.7, so its download grows less than the glb bytes do.
 
 ## Placement (three render rounds, frames in ~/wt/.3dm-shots/r2..r6)
 

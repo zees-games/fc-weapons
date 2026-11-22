@@ -18,7 +18,7 @@
         "licence": "CC0-1.0",
         "author": "Lamoot",
         "url": "https://opengameart.org/content/high-poly-ak-47",
-        "title": "High-poly AK-47 (OpenGameArt, CC0; rebuilt by tools/build_own_ak.py, textured by tools/tex_pipeline.sh)"
+        "title": "High-poly AK-47 (OpenGameArt, CC0; rebuilt by tools/build_own_ak.py, textured by addons/gs_weapon/tools/texbake/tex_pipeline.sh)"
     },
     {
         "paths": ["addons/fc_weapons/assets/models/burst_rifle.glb"],

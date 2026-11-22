@@ -1,5 +1,5 @@
 """Builds the source GLB of the own rifle model (the `rifle` weapon) from the CC0 high-poly AK-47 by Lamoot
-(https://opengameart.org/content/high-poly-ak-47, file highpoly_ak47.blend). The result goes through tools/tex_pipeline.sh like
+(https://opengameart.org/content/high-poly-ak-47, file highpoly_ak47.blend). The result goes through addons/gs_weapon/tools/texbake/tex_pipeline.sh like
 every other own model: blender -b <highpoly_ak47.blend> -P tools/build_own_ak.py -- <out dir>/rifle.glb [subsurf level] [max tris]
 Nodes (origins all at the model origin, so a node's mesh sits where it sits on the gun):
   body      receiver, barrel, gas block, sights, trigger group, mag catch: steel
@@ -68,7 +68,7 @@ for part in sorted(joined):
 	me = bpy.data.meshes.new(part)
 	bm.to_mesh(me)
 	bm.free()
-	me.uv_layers.new(name='UVMap')  # flat colour, but tools/tex_bake.py reads the colour through a source UV layer
+	me.uv_layers.new(name='UVMap')  # flat colour, but addons/gs_weapon/tools/texbake/tex_bake.py reads the colour through a source UV layer
 	me.materials.clear()
 	me.materials.append(wood if part == 'furniture' else steel)
 	for p in me.polygons:
