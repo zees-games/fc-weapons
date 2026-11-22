@@ -13,8 +13,8 @@ const SOCKETS := {
 	&"carbine": {"muzzle": Vector3(0.0, 0.031, -0.548), "optic": Vector3(0.0, 0.079, -0.186), "underbarrel": Vector3(0.0, 0.021, -0.386), "side": Vector3(0.007, 0.031, -0.361), "magazine": Vector3(0.0, -0.179, -0.188), "mag": "akmagazine_low_001"},
 	&"rifle": {"muzzle": Vector3(0.0, 0.029, -0.573), "optic": Vector3(0.0, 0.077, -0.077), "underbarrel": Vector3(0.0, 0.003, -0.350), "side": Vector3(0.017, 0.029, -0.316), "magazine": Vector3(0.0, -0.170, -0.190), "mag": "magazine"},
 	&"bullpup": {"muzzle": Vector3(0.0, 0.093, -0.451), "underbarrel": Vector3(0.0, 0.024, -0.256), "side": Vector3(0.048, 0.093, -0.226)},
-	&"battle_rifle": {"muzzle": Vector3(0.000, 0.062, -0.672), "optic": Vector3(0.000, 0.115, -0.078), "underbarrel": Vector3(0.000, 0.030, -0.406), "side": Vector3(0.024, 0.062, -0.365), "magazine": Vector3(0.000, -0.129, -0.163)},  # 1.025 long
-	&"burst_rifle": {"muzzle": Vector3(-0.000, 0.015, -0.579), "optic": Vector3(-0.000, 0.079, -0.047), "underbarrel": Vector3(-0.000, -0.001, -0.341), "side": Vector3(0.017, 0.015, -0.304), "magazine": Vector3(-0.000, -0.108, -0.070)},  # 0.916 long
+	&"battle_rifle": {"muzzle": Vector3(0.000, 0.062, -0.672), "optic": Vector3(0.000, 0.115, -0.078), "underbarrel": Vector3(0.000, 0.030, -0.406), "side": Vector3(0.024, 0.062, -0.365), "magazine": Vector3(0.000, -0.129, -0.163), "mag": "magazine"},  # 1.025 long
+	&"burst_rifle": {"muzzle": Vector3(-0.000, 0.015, -0.579), "optic": Vector3(-0.000, 0.079, -0.047), "underbarrel": Vector3(-0.000, -0.001, -0.341), "side": Vector3(0.017, 0.015, -0.304), "magazine": Vector3(-0.000, -0.108, -0.070), "mag": "magazine"},  # 0.916 long
 	&"pump_shotgun": {"muzzle": Vector3(0.0, 0.059, -0.444), "optic": Vector3(0.0, 0.127, 0.071), "side": Vector3(0.017, 0.059, -0.178)},
 	&"drum_shotgun": {"muzzle": Vector3(0.0, 0.172, -0.384), "optic": Vector3(0.0, 0.279, 0.111), "underbarrel": Vector3(0.0, 0.070, -0.162), "side": Vector3(0.081, 0.172, -0.128)},
 	&"marksman": {"muzzle": Vector3(0.0, 0.090, -0.882), "underbarrel": Vector3(0.0, 0.040, -0.595), "side": Vector3(0.121, 0.090, -0.551)},
@@ -63,7 +63,8 @@ static func ensure(weapon: Node3D) -> void:
 		var parent: Node3D = weapon
 		if mount == GSWeaponAttachment.MOUNT_MAGAZINE:
 			# On the magazine itself, so a reload hides and carries the extension with it.
-			var mag := weapon.find_child(str(row.get("mag", "")), true, false) as Node3D
+			var mag_name := str(row.get("mag", ""))
+			var mag: Node3D = weapon.find_child(mag_name, true, false) as Node3D if not mag_name.is_empty() else null
 			if mag != null:
 				parent = mag
 				at = _to_weapon(mag, weapon).affine_inverse() * at
