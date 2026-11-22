@@ -29,6 +29,7 @@ func _notification(what: int) -> void:
 		NOTIFICATION_VISIBILITY_CHANGED, NOTIFICATION_DISABLED, NOTIFICATION_PAUSED, NOTIFICATION_EXIT_TREE, NOTIFICATION_PARENTED, NOTIFICATION_UNPARENTED:
 			if not _drawn_live():
 				_clip_left = 0.0
+				_pull_primed = false
 				if _overlay != null:
 					_overlay.update(false, null)
 
@@ -66,6 +67,10 @@ const PULL_MARGIN := 0.92
 ## The drawn gun's distance from the eye now, as a share of where the pose puts it (1 = not pulled).
 var _pull: float = 1.0
 
+## False until the first pull after the gun was drawn: that one takes the target at once, so a gun drawn beside a wall starts
+## already pulled instead of closing on it over the first frames (a 0.03 m jump at the start of the launcher's walk clip).
+var _pull_primed: bool = false
+
 
 ## The drawn gun's pull toward the eye now (1 = not pulled).
 func world_pull_share() -> float:
@@ -81,8 +86,10 @@ func _pull_out_of_world(delta: float) -> bool:
 	if _art != null and nearest < 1.0:
 		nearest = maxf(nearest, _art.view_pull_min)
 	var target := clampf(share * PULL_MARGIN, nearest, 1.0) if share < 1.0 else 1.0
+	var primed := _pull_primed
+	_pull_primed = true
 	if target < _pull:
-		_pull = target if world_pull_attack <= 0.0 else maxf(target, _pull - world_pull_attack * delta)
+		_pull = target if world_pull_attack <= 0.0 or not primed else maxf(target, _pull - world_pull_attack * delta)
 	elif world_pull_release <= 0.0:
 		_pull = target
 	else:
