@@ -2,7 +2,8 @@ extends Node
 
 ## Smoke check: instantiate the viewer, select every weapon, play fire, draw and reload to the end. Exit 1 on any failure.
 ##   godot --headless --path . res://tools/weapon_viewer_check.tscn
-## With -- <out dir> <id> it renders that weapon mid-reload to a PNG instead (needs a display).
+## With -- <out dir> <id> it renders that weapon mid-reload to a PNG instead (needs a display); a third argument N
+## renders a filmstrip instead: N frames 0.2 s apart from the reload's start, <id>_reload_NN.png.
 
 
 func _ready() -> void:
@@ -22,11 +23,20 @@ func _run() -> void:
 	if args.size() >= 2:
 		viewer.select(viewer.ids.find(StringName(args[1])))
 		viewer.play(&"reload")
+		DirAccess.make_dir_recursive_absolute(args[0])
+		if args.size() >= 3:
+			for f in int(args[2]):
+				await get_tree().process_frame
+				await get_tree().process_frame
+				get_viewport().get_texture().get_image().save_png("%s/%s_reload_%02d.png" % [args[0], args[1], f])
+				for i in 4:
+					viewer.step(0.05)
+			get_tree().quit(0)
+			return
 		for i in 28:
 			viewer.step(0.05)
 		await get_tree().process_frame
 		await get_tree().process_frame
-		DirAccess.make_dir_recursive_absolute(args[0])
 		get_viewport().get_texture().get_image().save_png("%s/%s_reload.png" % [args[0], args[1]])
 		get_tree().quit(0)
 		return
