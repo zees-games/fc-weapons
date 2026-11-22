@@ -130,6 +130,9 @@ static var _dress_script: Script = null
 ## into a floating piece, such as the launcher's rear sight leaf. The world model keeps them.
 @export var view_drop: PackedStringArray = []
 
+## The least share of its drawn distance the world pull may bring the first-person gun to (0 = as near as life size); a long gun pulled all the way in against a wall swallows the screen and the hands.
+@export var view_pull_min: float = 0.0
+
 ## Whether the sight is a red dot: a glowing dot on the aim axis in a lens window cut through the housing (ADS rules `red_dot_*`).
 @export var sight_red_dot: bool = false
 

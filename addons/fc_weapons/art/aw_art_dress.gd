@@ -58,6 +58,7 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 	art.aim_rotation = Vector3.ZERO
 	art.view_scale = float(view.get("scale", 1.0))
 	art.view_drop = PackedStringArray(view.get("drop", []))
+	art.view_pull_min = float(view.get("pull_min", 0.0))
 	art.view_rotation = view.get("rot", Vector3.ZERO)
 
 	if view.has("hold"):

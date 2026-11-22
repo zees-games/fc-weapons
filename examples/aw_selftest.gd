@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
-const CHECKS := 551
+const CHECKS := 552
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -464,6 +464,7 @@ func _provider() -> void:
 	_check("a pistol keeps the runtime's wall defaults", AwWeaponArt.wall_row(&"pistol").is_empty())
 	_check("a rifle retreats deeper from a wall than the 0.34 m default", float(AwWeaponArt.wall_row(&"rifle")["wall_max"]) > 0.34)
 	_check("a launcher retreats deeper than a rifle", float(AwWeaponArt.wall_row(&"launcher")["wall_max"]) > float(AwWeaponArt.wall_row(&"rifle")["wall_max"]))
+	_check("the launcher keeps the world pull from shrinking it below 0.9 so a wall no longer swallows the hands", is_equal_approx(float(AwWeaponArt.row_of(&"launcher")["view"]["pull_min"]), 0.9))
 	_check("a knife shortens its wall reach", float(AwWeaponArt.wall_row(&"knife")["wall_reach"]) < 1.0)
 	var rifle_def := AwWeaponPack.weapons({}, "", false).filter(func(d: GSWeaponDef) -> bool: return d.id == &"rifle")[0] as GSWeaponDef
 	_check("the rifle def carries its wall row in params.ads", (rifle_def.params["ads"] as Dictionary).has("wall_max"))

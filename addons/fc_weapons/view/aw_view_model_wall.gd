@@ -78,6 +78,8 @@ func _pull_out_of_world(delta: float) -> bool:
 	if _animated != null and _animated.visible and is_inside_tree() and get_world_3d() != null and get_parent() is Camera3D:
 		share = _drawn_gun_world_share()
 	var nearest := _life_share() if world_pull else 1.0
+	if _art != null and nearest < 1.0:
+		nearest = maxf(nearest, _art.view_pull_min)
 	var target := clampf(share * PULL_MARGIN, nearest, 1.0) if share < 1.0 else 1.0
 	if target < _pull:
 		_pull = target if world_pull_attack <= 0.0 else maxf(target, _pull - world_pull_attack * delta)
@@ -88,6 +90,9 @@ func _pull_out_of_world(delta: float) -> bool:
 	if _pull < 1.0 and _animated != null:
 		var about_eye := Transform3D(Basis.from_scale(Vector3.ONE * _pull), Vector3.ZERO)
 		_animated.transform = transform.affine_inverse() * about_eye * transform * _animated.transform
+		# The pull scales the gun about the eye after the wall pass cleared the near plane, so a long gun pulled to life size
+		# against a wall (the launcher running into one) comes back through the plane: clear it again, uncapped.
+		_clear_pulled_gun_of_near_plane()
 	return share < 1.0 and _pull > share * 0.995
 
 
@@ -253,9 +258,19 @@ func _keep_off_near_plane(rest: Vector3 = Vector3.INF) -> void:
 	if deficit > 0.0:
 		_animated.global_position -= camera.global_basis.z * deficit
 
+## Slides the pulled gun away from the eye until the near plane no longer cuts it where it shows, whatever the wall pass did.
+func _clear_pulled_gun_of_near_plane() -> void:
+	var camera := get_parent() as Camera3D
+	if camera == null:
+		return
+	# Not only where it shows: the cut in view starts at once, 0.1 m in a frame, while the depth of the nearest corner moves smoothly.
+	var cut := weapon_cut_depth(camera, camera.near + NEAR_CLEAR, false)
+	if cut > 0.0:
+		_animated.global_position -= camera.global_basis.z * cut
+
 ## How far (metres) the weapon must move away from [param camera] so no drawn mesh's bounds cross the plane [param clear] in front of
 ## the eye inside the view (with a margin); 0 when none does.
-func weapon_cut_depth(camera: Camera3D, clear: float) -> float:
+func weapon_cut_depth(camera: Camera3D, clear: float, in_view_only: bool = true) -> float:
 	if _holder == null:
 		return 0.0
 	var half_h := clear * tan(deg_to_rad(camera.fov) * 0.5) * 1.25
@@ -274,7 +289,7 @@ func weapon_cut_depth(camera: Camera3D, clear: float) -> float:
 		for i in 8:
 			corners.append(to_eye * box.get_endpoint(i))
 			nearest = minf(nearest, -corners[i].z)
-		if nearest < clear and _section_meets(corners, clear, view_rect):
+		if nearest < clear and (not in_view_only or _section_meets(corners, clear, view_rect)):
 			worst = maxf(worst, clear - nearest)
 	return worst
 
