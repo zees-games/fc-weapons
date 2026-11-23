@@ -47,16 +47,15 @@
  ],
  "weapon-battle_rifle": [
   "addons/fc_weapons/assets/models/battle_rifle.*",
-  "addons/fc_weapons/assets/models/battle_rifle_?.*",
+  "addons/fc_weapons/assets/models/battle_rifle_*.*",
   "_imported/battle_rifle.glb-*",
-  "_imported/battle_rifle_?.jpg-*",
-  "_imported/battle_rifle_?.png-*"
+  "_imported/battle_rifle_*.jpg-*"
  ],
  "weapon-burst_rifle": [
   "addons/fc_weapons/assets/models/burst_rifle.*",
-  "addons/fc_weapons/assets/models/burst_rifle_?.*",
+  "addons/fc_weapons/assets/models/burst_rifle_*.*",
   "_imported/burst_rifle.glb-*",
-  "_imported/burst_rifle_?.jpg-*"
+  "_imported/burst_rifle_*.jpg-*"
  ],
  "weapon-shotgun": [
   "addons/fc_weapons/assets/models/pump_shotgun.*",
