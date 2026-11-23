@@ -9,7 +9,7 @@ const Cut := preload("aw_sight_cut.gd")
 
 ## The front sight's glow: a small dot on the post's tip, its size in degrees from the ADS rule `sight_dot`, shown as the aim arrives.
 const DOT_COLOR := Color(0.75, 1.0, 0.35)
-const DOT_NAME := "SightDot"
+const GLOW_NODE_NAME := "SightDot"
 const DOT_FADE_FROM := 0.6
 const RED_DOT_NAME := "RedDot"
 ## The red dot's reticle and lens tint show from this aim fraction on, as the sight comes to the eye; its housing (tube,
@@ -96,7 +96,7 @@ static func _dot(line: Dictionary, forward: Vector3, radius: float) -> Node3D:
 	var root := Node3D.new()
 	root.name = "OwnSight"
 	var dot := MeshInstance3D.new()
-	dot.name = DOT_NAME
+	dot.name = GLOW_NODE_NAME
 	var sphere := SphereMesh.new()
 	sphere.radius = radius
 	sphere.height = radius * 2.0
@@ -368,7 +368,7 @@ static func fade(sight: Node3D, f: float) -> void:
 				var piece := red.get_node_or_null(part) as Node3D
 				if piece != null:
 					piece.visible = shown
-	var dot := sight.get_node_or_null(DOT_NAME) as MeshInstance3D
+	var dot := sight.get_node_or_null(GLOW_NODE_NAME) as MeshInstance3D
 	if dot == null:
 		return
 	var alpha := clampf((f - DOT_FADE_FROM) / (1.0 - DOT_FADE_FROM), 0.0, 1.0)
