@@ -49,3 +49,10 @@ art-src/reference/
 
 # make_fire_sounds.py downloads its CC0 rocket recordings here; the generated layers are what ship.
 /tools/sound_sources/
+
+# Sibling addons linked for local suites (absolute links must never be tracked; CI resolves them from addons.lock):
+/addons/godot-sqlite
+/addons/gs_bot
+/addons/gs_bot_record
+/addons/gs_sim
+/addons/gs_sql
