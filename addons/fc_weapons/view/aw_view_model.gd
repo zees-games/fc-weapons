@@ -386,21 +386,6 @@ func is_aim_held() -> bool:
 	return _aim_held
 
 
-## The range at which the hip barrel crosses the screen's centre (metres), 0 when it is stood up by `hip_lean` instead.
-func hip_zero() -> float:
-	var id := _art.id if _art != null else &""
-	return ads_rules.hip_zero_for(id) if ads_rules != null else float(AwAdsRules.SPECS["hip_zero"]["default"])
-
-
-func _toggles() -> bool:
-	return ads_rules != null and _art != null and ads_rules.toggle_for(_art.id)
-
-
-## Whether the weapon in hand can be aimed at all (melee and throwables cannot).
-func can_aim() -> bool:
-	return _art != null and _art.aim_enabled and (ads_rules == null or ads_rules.enabled_for(_art.id))
-
-
 ## How big a muzzle flash is drawn: 1 at the hip, the scope's own zoom through a scope, which cancels the magnification.
 func flash_scale() -> float:
 	return clampf(aim_fov_scale(), 0.1, 1.0) if is_scoped() else 1.0

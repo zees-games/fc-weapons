@@ -708,3 +708,18 @@ func _set_reach_state(r: Array) -> void:
 	if _arms != null:
 		_arms.fit_glove_to(_weapon)
 	_place_hands()
+
+
+## The range at which the hip barrel crosses the screen's centre (metres), 0 when it is stood up by `hip_lean` instead.
+func hip_zero() -> float:
+	var id := _art.id if _art != null else &""
+	return ads_rules.hip_zero_for(id) if ads_rules != null else float(AwAdsRules.SPECS["hip_zero"]["default"])
+
+
+func _toggles() -> bool:
+	return ads_rules != null and _art != null and ads_rules.toggle_for(_art.id)
+
+
+## Whether the weapon in hand can be aimed at all (melee and throwables cannot).
+func can_aim() -> bool:
+	return _art != null and _art.aim_enabled and (ads_rules == null or ads_rules.enabled_for(_art.id))
