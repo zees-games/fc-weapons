@@ -7,7 +7,8 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="$HERE/build/nightly"
-heavy -- timeout 300 godot --headless --path "$HERE" --script res://tools/export_nightly_attachments.gd -- "$OUT" build/nightly 2>&1 | grep -E "export_nightly|ERROR|SCRIPT" || true
+# The export writes into this checkout, so it must run here and not be handed to the build VM.
+GPU_OFFLOAD=0 HEAVY_PIN_LOCAL=1 heavy -- timeout 300 godot --headless --path "$HERE" --script res://tools/export_nightly_attachments.gd -- "$OUT" build/nightly 2>&1 | grep -E "export_nightly|ERROR|SCRIPT" || true
 [ -s "$OUT/attachments.json" ] || { echo "publish_nightly: export wrote nothing" >&2; exit 1; }
 [ "${1:-}" = "--dry-run" ] && { echo "publish_nightly: dry run, $OUT/attachments.json"; exit 0; }
 [ -n "${NIGHTLY_URL:-}" ] || { echo "publish_nightly: exported to $OUT (set NIGHTLY_URL and NIGHTLY_TOKEN to publish)"; exit 0; }
