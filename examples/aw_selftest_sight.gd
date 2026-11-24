@@ -101,6 +101,29 @@ func _scope_modes() -> void:
 	_check("running, the picture goes part clear", view.scope_clear() > 0.4 and view.scope_clear() < 1.0)
 	view.scope_walk_clear = 0.0
 	_check("a clear of 0 keeps it solid at a run", view.scope_clear() == 0.0)
+	view.scope_walk_clear = 0.6
+	_check("zoom: the first level is the AWP's 40 degrees", is_equal_approx(view.aim_fov_scale(), 40.0 / 90.0) and view.zoom_level() == 0)
+	_check("zoom: cycling steps to 10 degrees", view.cycle_zoom() == 1 and is_equal_approx(view.aim_fov_scale(), 10.0 / 90.0))
+	_check("zoom: cycling wraps to the first level", view.cycle_zoom() == 0)
+	var zrules := AwAdsRules.new()
+	var _zok := zrules.set_value(&"sniper", "zoom_level_2", 5.0)
+	view.ads_rules = zrules  # a new rule re-equips: the look starts again
+	view.aim(true)
+	for _i in 80:
+		view.drive(Vector2.ZERO, 0.0, true)
+		view._process(0.02)
+	view.cycle_zoom()
+	_check("zoom: an ADS rule replaces a level", is_equal_approx(view.aim_fov_scale(), 5.0 / 90.0))
+	view.aim(false)
+	for _i in 80:
+		view._process(0.02)
+	_check("zoom: lowering the scope resets to the widest level", view.zoom_level() == 0)
+	view.ads_rules = null
+	view.aim(true)
+	for _i in 80:
+		view.drive(Vector2.ZERO, 0.0, true)
+		view._process(0.02)
+	view.scope_walk_clear = 0.0
 	view.scope_mode = AwViewModel.SCOPE_FULL
 	view._process(0.02)
 	_check("full: the camera takes the whole zoom", is_equal_approx(view.view_fov_scale(), view.aim_fov_scale()))

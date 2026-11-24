@@ -67,10 +67,12 @@ extends RefCounted
 #     its tunables catch_keys / catch_seconds. Additive.
 # 35: AwViewModel keeps the weapons it puts away and puts them back on a switch (cache_equips, equip_cache_limit,
 #     equip_cache_size(), clear_equip_cache()). Looks the same; on by default. Additive.
-const LEVEL := 35
+# 36: scope zoom levels: art `zoom_levels` (field-of-view degrees, widest first; sniper 40/10, marksman 40/15), AwViewModel.zoom_scales(),
+#     zoom_level() and cycle_zoom(), ADS rules `zoom_level_1` and `zoom_level_2` (AwAdsRules.zoom_levels_for). Needs gs-weapon API 49. Additive.
+const LEVEL := 36
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
 ## or older than GS_SIM_MIN, the spread tick stays in GDScript).
-const GS_WEAPON_MIN := 42
+const GS_WEAPON_MIN := 49
 const GS_SIM_MIN := "1a28540"

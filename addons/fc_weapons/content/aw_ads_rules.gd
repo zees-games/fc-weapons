@@ -25,6 +25,9 @@ const SPECS := {
 	"enabled": {"default": true},
 	"aim_time": {"default": 0.0, "min": 0.0, "max": 2.0},
 	"zoom": {"default": 0.0, "min": 0.0, "max": 1.0},
+	# A scope's two zoom levels as fields of view in degrees (the art's AWP 40 and 10, scout 40 and 15); 0 takes the art's.
+	"zoom_level_1": {"default": 0.0, "min": 0.0, "max": 90.0},
+	"zoom_level_2": {"default": 0.0, "min": 0.0, "max": 90.0},
 	"move_speed_multiplier": {"default": 0.8, "min": 0.05, "max": 1.0},
 	"spread_multiplier": {"default": 0.6, "min": 0.0, "max": 1.0},
 	"recoil_multiplier": {"default": 0.6, "min": 0.0, "max": 1.0},
@@ -194,6 +197,19 @@ func aim_time_for(id: StringName, art_time: float) -> float:
 func zoom_for(id: StringName, art_zoom: float) -> float:
 	var z := float(value_for(id, "zoom"))
 	return z if z > 0.0 else art_zoom
+
+
+## The scope's zoom levels in degrees: the art's [param art_levels], each replaced by the profile's `zoom_level_1` and `zoom_level_2` when above 0.
+func zoom_levels_for(id: StringName, art_levels: Array) -> Array:
+	var out := art_levels.duplicate()
+	for i in 2:
+		var d := float(value_for(id, "zoom_level_%d" % (i + 1)))
+		if d <= 0.0:
+			continue
+		while out.size() <= i:
+			out.append(d)
+		out[i] = d
+	return out
 
 
 ## The walk speed multiplier while aiming (1 when this weapon cannot aim).

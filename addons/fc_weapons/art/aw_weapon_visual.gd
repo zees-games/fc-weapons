@@ -97,6 +97,9 @@ static var _dress_script: Script = null
 ## of view (a player setting, usually) and an aim that set an absolute one would zoom a
 ## 110-degree player less than a 70-degree one.
 @export_range(0.05, 1.0, 0.01) var aim_zoom: float = 0.8
+## A scope's zoom levels as fields of view in degrees against the 90 degree hip, widest first (an AWP 40 then 10, a scout 40 then 15);
+## empty keeps the single [member aim_zoom]. The aim key `zoom_cycle` steps through them ([method AwViewModel.cycle_zoom]).
+@export var aim_zoom_levels: Array = []
 
 ## Whether full aim looks through a scope: the model is hidden and the game draws a scope
 ## over the screen ([AwScopeOverlay]). For the long-range weapons.

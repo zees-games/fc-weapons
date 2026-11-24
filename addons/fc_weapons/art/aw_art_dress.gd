@@ -76,6 +76,8 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 
 	if view.has("zoom"):
 		art.aim_zoom = float(view["zoom"])
+	if view.get("zoom_levels") is Array:
+		art.aim_zoom_levels = (view["zoom_levels"] as Array).duplicate()
 
 	art.aim_scoped = bool(view.get("scoped", false))
 	# The gun's own scope look (`scope`: overlay exports such as lens_circle and reticle_colour), set on the overlay by its follow().

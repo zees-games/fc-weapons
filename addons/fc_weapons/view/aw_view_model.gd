@@ -110,6 +110,7 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 	_pose.aim_shift = Vector3.ZERO  # aim is the Aim node's (_apply_aim); a new weapon starts at the hip
 	_aim_fraction = 0.0
 	_aim_node.transform = Transform3D.IDENTITY
+	_zoom_level = 0
 
 	if _arms != null:
 		_arms.set_pose(art.pose)
@@ -400,6 +401,8 @@ const SCOPE_FULL := ScopeView.FULL
 ## The scope view the player chose (a game sets it from its cvar, through [method AwAdsRules.resolve_scope_mode]).
 var scope_mode: int = SCOPE_LENS
 
+var _zoom_level := 0
+
 ## The scope drawn as its own body (lens view only): the gun stays up at full aim, grown about the eye until its ocular
 ## is the lens circle, and [AwScopeOverlay] draws the zoomed picture into that ocular. Off (the default) keeps the flat lens.
 var scope_body := false
@@ -442,7 +445,31 @@ func aim_fov_scale() -> float:
 	var base := float(_dressed.get("zoom", 0.0))
 	base = base if base > 0.0 else _art.aim_zoom
 	var zoom := base if ads_rules == null else ads_rules.zoom_for(_art.id, base)
+	zoom = ScopeView.scale_at(zoom_scales(), _zoom_level, zoom)
 	return lerpf(1.0, zoom, _ease(_aim_fraction))
+
+
+## The camera multipliers of the equipped scope's zoom levels, widest first; empty when it has one zoom.
+func zoom_scales() -> PackedFloat32Array:
+	if _art == null:
+		return PackedFloat32Array()
+	var levels: Array = _art.aim_zoom_levels
+	if ads_rules != null:
+		levels = ads_rules.zoom_levels_for(_art.id, levels)
+	return ScopeView.level_scales(levels)
+
+
+## The zoom level now looked through (0 the widest).
+func zoom_level() -> int:
+	return _zoom_level
+
+
+## Steps a scope with two zoom levels to the next, wrapping; returns the new level. Does nothing off a scope.
+func cycle_zoom() -> int:
+	if _art == null or not has_scope():
+		return _zoom_level
+	_zoom_level = ScopeView.next_level(_zoom_level, zoom_scales().size())
+	return _zoom_level
 
 
 ## Whether the view is through a scope right now: a scoped weapon at (nearly) full aim.
@@ -534,6 +561,8 @@ func _advance_aim(delta: float) -> void:
 	if not can_aim():
 		_aim_held = false
 	_aim_fraction = move_toward(_aim_fraction, target, delta / maxf(time, 0.01))
+	if _aim_fraction <= 0.0:
+		_zoom_level = 0  # every new look through the scope starts at its widest
 	_pose.set_aim(_ease(_aim_fraction))
 	_apply_aim(_ease(_aim_fraction))
 
