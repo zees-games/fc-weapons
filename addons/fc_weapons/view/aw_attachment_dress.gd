@@ -22,7 +22,7 @@ static func art_parts(art: AwWeaponVisual, parent: Node3D) -> Array[Node3D]:
 ## Replaces [param before] with [param fitting]'s models on [param weapon]'s sockets; a mount with no socket or no art draws nothing.
 static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, before: Dictionary) -> Dictionary:
 	clear(before)
-	var out := {"parts": [], "hidden": [], "reach": 0.0, "scoped": false, "zoom": 0.0, "line": {}}
+	var out := {"parts": [], "hidden": [], "reach": 0.0, "scoped": false, "zoom": 0.0, "line": {}, "replaced": false}
 	if weapon == null or fitting == null:
 		return out
 	AwAttachmentSockets.ensure(weapon)
@@ -40,6 +40,13 @@ static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, be
 			if node != null:
 				node.visible = false
 				out.hidden.append(node)
+		if mount == GSWeaponAttachment.MOUNT_OPTIC:
+			for built in AwAttachmentSockets.replaced_by_optic(weapon.scene_file_path):
+				var old := weapon.find_child(String(built), true, false) as Node3D
+				if old != null:
+					old.visible = false
+					out.hidden.append(old)
+					out.replaced = true
 		if mount == GSWeaponAttachment.MOUNT_MUZZLE:
 			out.reach = muzzle_reach_in(weapon, part, f)
 		var aim: StringName = entry.get("aim", &"")

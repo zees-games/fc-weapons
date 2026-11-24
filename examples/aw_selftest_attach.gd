@@ -20,11 +20,12 @@ func _attachments() -> void:
 
 	var rifle := _def(defs, &"aw_rifle")
 	var sniper := _def(defs, &"aw_sniper")
+	var marksman := _def(defs, &"aw_marksman")
 	var pistol := _def(defs, &"aw_pistol")
 	_check("a rifle has all five mounts", rifle.mounts.size() == 5)
 	_check("the single-missile launcher has only its warhead", _def(defs, &"aw_launcher").mounts == [AwAttachmentSockets.MOUNT_WARHEAD])
 	_check("the quad launcher, the minigun and the knife have none", [&"aw_quad_launcher", &"aw_minigun", &"aw_knife", &"aw_frag"].all(func(i: StringName) -> bool: return _def(defs, i).mounts.is_empty()))
-	_check("a built-in scope leaves no optic mount", not sniper.mounts.has(GSWeaponAttachment.MOUNT_OPTIC) and sniper.mounts.has(GSWeaponAttachment.MOUNT_MUZZLE))
+	_check("a scope baked into the gun's one mesh leaves no optic mount", not marksman.mounts.has(GSWeaponAttachment.MOUNT_OPTIC) and marksman.mounts.has(GSWeaponAttachment.MOUNT_MUZZLE))
 	var pistol_optics: Array = cat.choices_for(pistol).get(GSWeaponAttachment.MOUNT_OPTIC, [])
 	_check("a sidearm takes a red dot but no magnified optic", pistol_optics.has(&"red_dot") and not pistol_optics.has(&"prism_3x") and not pistol_optics.has(&"scope_6x"))
 
@@ -50,9 +51,9 @@ func _attachments() -> void:
 		and fitted.tuning.recoil_pitch < rifle.tuning.recoil_pitch and fitted.params.get(GSWeaponAttachment.PARAM_SUPPRESSED, false) == true)
 	_check("the suppressor picks the suppressed report", fitted != null and AwSpawnProvider.sound_class_for(fitted, &"rifle") == AwWeaponSound.SUPPRESSED and AwSpawnProvider.sound_class_for(rifle, &"rifle") == &"rifle")
 	_check("the base def is untouched", not rifle.params.has(GSWeaponAttachment.PARAM_SUPPRESSED))
-	var bad := GSWeaponFitting.make(sniper.id)
+	var bad := GSWeaponFitting.make(marksman.id)
 	bad.fit(GSWeaponAttachment.MOUNT_OPTIC, &"red_dot")
-	_check("the server refuses an optic on a gun with no optic mount", not cat.validate_fitting(sniper, bad).ok and cat.conform(sniper, bad).is_empty())
+	_check("the server refuses an optic on a gun with no optic mount", not cat.validate_fitting(marksman, bad).ok and cat.conform(marksman, bad).is_empty())
 	_check("a fitting survives the wire", cat.decode(rifle, cat.encode(rifle, full)).key() == full.key())
 	_check("art for an id the pack does not draw is empty", AwAttachmentArt.of(&"no_such").is_empty() and AwAttachmentArt.of(&"holo").get("zoom", 0.0) == 0.75)
 
@@ -82,6 +83,18 @@ func _attachments() -> void:
 			skew.append("%s %.3f" % [optic, off / maxf(absf(ray.z), 0.0001)])
 	_check("every optic's sight line runs along the bore, not skewed by its lens (%s)" % [", ".join(skew)], skew.is_empty())
 	gun.free()
+	var sniper_art := AwWeaponVisual.new()
+	AwArtDress.apply(sniper_art, AwWeaponArt.row_of(&"sniper"))
+	var sniper_gun := AwModelCache.instantiate(sniper_art.model_path)
+	var sniper_dot := GSWeaponFitting.make(sniper.id)
+	sniper_dot.fit(GSWeaponAttachment.MOUNT_OPTIC, &"red_dot")
+	var sd := Dress.apply(sniper_gun, sniper_dot, sniper_art.model_forward, {})
+	var own_scope := sniper_gun.find_child("scope", true, false) as Node3D
+	_check("the sniper has an optic mount; a fitted optic hides the built-in scope and takes over the sight picture", sniper.mounts.has(GSWeaponAttachment.MOUNT_OPTIC)
+		and sd.parts.size() == 1 and sd.replaced and own_scope != null and not own_scope.visible and not sd.scoped and sd.line.has("front"))
+	Dress.clear(sd)
+	_check("clearing the fitting brings the built-in scope back", own_scope.visible)
+	sniper_gun.free()
 	_end()
 
 

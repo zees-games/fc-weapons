@@ -481,9 +481,14 @@ func cycle_zoom() -> int:
 	return _zoom_level
 
 
+## Whether the weapon's view is a scope: its own, unless a fitted optic replaced the built-in one, then that optic's.
+func _aim_scoped() -> bool:
+	return bool(_dressed.get("scoped", false)) or (_art.aim_scoped and not bool(_dressed.get("replaced", false)))
+
+
 ## Whether the view is through a scope right now: a scoped weapon at (nearly) full aim.
 func is_scoped() -> bool:
-	return _art != null and (_art.aim_scoped or _dressed.get("scoped", false)) and _aim_fraction >= 0.95
+	return _art != null and _aim_scoped() and _aim_fraction >= 0.95
 
 
 ## The aim fraction the arms hide at: the override, else the weapon's art key, else [member scope_arms_hide].
@@ -495,12 +500,12 @@ func scope_arms_hide_at() -> float:
 
 ## Whether a scoped weapon's arms are hidden: from [method scope_arms_hide_at] of the aim-in on.
 func arms_hidden_by_scope() -> bool:
-	return _art != null and (_art.aim_scoped or _dressed.get("scoped", false)) and _aim_fraction >= scope_arms_hide_at()
+	return _art != null and _aim_scoped() and _aim_fraction >= scope_arms_hide_at()
 
 
 ## Whether the weapon in hand is looked through (a scope), at any point of the aim-in.
 func has_scope() -> bool:
-	return _art != null and (_art.aim_scoped or _dressed.get("scoped", false))
+	return _art != null and _aim_scoped()
 
 
 ## The weapon's overrides of the default scope look, applied by [method AwScopeOverlay.follow].

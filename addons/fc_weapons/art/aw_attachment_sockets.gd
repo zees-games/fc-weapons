@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Where each gun model takes its attachments:
 ## model name -> mount -> position in the model's space (origin at the grip, muzzle toward -Z), measured by tools/measure_sockets.gd. A mount a gun lacks is left out:
-## a built-in sight or scope has no optic mount, a pump or a tube no underbarrel, a launcher none but the single-missile launcher's `warhead`, on its missile's nose. `mag` names the model's magazine, which the magazine socket rides on.
+## a built-in sight or scope has no optic mount (unless its parts are separate nodes: `replaces` names them, and the optic fitted hides them, as the sniper's), a pump or a tube no underbarrel, a launcher none but the single-missile launcher's `warhead`, on its missile's nose. `mag` names the model's magazine, which the magazine socket rides on.
 const SOCKETS := {
 	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.060, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
 	&"revolver": {"optic": Vector3(0.0, 0.132, -0.045), "side": Vector3(0.018, 0.106, -0.135)},
@@ -19,12 +19,17 @@ const SOCKETS := {
 	&"drum_shotgun": {"muzzle": Vector3(0.0, 0.172, -0.384), "optic": Vector3(0.0, 0.279, 0.111), "underbarrel": Vector3(0.0, 0.070, -0.162), "side": Vector3(0.081, 0.172, -0.128)},
 	&"marksman": {"muzzle": Vector3(0.0, 0.090, -0.882), "underbarrel": Vector3(0.0, 0.040, -0.595), "side": Vector3(0.121, 0.090, -0.551)},
 	&"lmg": {"muzzle": Vector3(0.0, 0.161, -0.795), "optic": Vector3(0.0, 0.240, -0.181), "underbarrel": Vector3(0.0, 0.120, -0.520), "side": Vector3(0.172, 0.161, -0.477)},
-	&"sniper_ph": {"muzzle": Vector3(0.0, 0.078, -0.804), "underbarrel": Vector3(0.0, 0.060, -0.532), "side": Vector3(0.013, 0.078, -0.490)},
+	&"sniper_ph": {"optic": Vector3(0.0, 0.084, -0.074), "replaces": ["scope", "scope_lens", "scope_reticle", "scope_eyecup", "scope_eyecup_lip"], "muzzle": Vector3(0.0, 0.078, -0.804), "underbarrel": Vector3(0.0, 0.060, -0.532), "side": Vector3(0.013, 0.078, -0.490)},
 	&"grenade_launcher": {"side": Vector3(0.132, 0.101, -0.281)},
 	&"plasma_rifle": {"underbarrel": Vector3(0.0, -0.052, -0.375), "side": Vector3(0.081, 0.074, -0.341)},
 	&"rail_rifle": {"underbarrel": Vector3(0.0, 0.0, -0.601), "side": Vector3(0.034, 0.096, -0.566)},
 	&"rocket_launcher": {"warhead": Vector3(0.0, -0.015, -0.756)},
 }
+
+## The built-in optic nodes of [param model_path]'s gun that a fitted optic replaces (`replaces` in its row); empty for a gun without.
+static func replaced_by_optic(model_path: String) -> Array:
+	return (SOCKETS.get(model_key(model_path), {}) as Dictionary).get("replaces", [])
+
 
 ## The tip of a launcher's loaded missile: the Rocketjump goes there.
 const MOUNT_WARHEAD := &"warhead"
