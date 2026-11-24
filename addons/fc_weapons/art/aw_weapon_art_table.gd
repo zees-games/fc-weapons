@@ -342,7 +342,7 @@ static func launcher() -> AwWeaponVisual:
 # tools, so they take the same forward axis.
 
 static func frag() -> AwWeaponVisual:
-	return _thrown(AwWeaponIds.FRAG, BLASTERS + "grenade-a.glb")
+	return _thrown(AwWeaponIds.FRAG, FRAG_GRENADE)
 
 
 # --- Builders ---------------------------------------------------------------
@@ -394,7 +394,7 @@ static func _gun(id: StringName, model: String, pose: StringName) -> AwWeaponVis
 
 
 static func _blaster(id: StringName, model: String, pose: StringName) -> AwWeaponVisual:
-	var art := AwWeaponVisual.make(id, BLASTERS + model + ".glb")
+	var art := AwWeaponVisual.make(id, model)
 	art.model_forward = Vector3.FORWARD
 	art.pose = pose
 	art.view_offset = pose_offset(pose)
