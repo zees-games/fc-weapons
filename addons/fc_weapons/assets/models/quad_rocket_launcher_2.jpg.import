@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bouhmn20bs3qr"
-path="res://.godot/imported/quad_rocket_launcher_2.png-2d29dbe519bbc030161c08833ebad524.ctex"
+uid="uid://dqf8d8v7yv1hj"
+path="res://.godot/imported/quad_rocket_launcher_2.jpg-888976090bd430c4f7e8d99803b0cc9b.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "4125a15fd04b4f01dfcd5f55b6112ec3"
+"md5": "6c7485ec884eaa7d53e9689dbb89ce50"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/quad_rocket_launcher_2.png"
-dest_files=["res://.godot/imported/quad_rocket_launcher_2.png-2d29dbe519bbc030161c08833ebad524.ctex"]
+source_file="res://addons/fc_weapons/assets/models/quad_rocket_launcher_2.jpg"
+dest_files=["res://.godot/imported/quad_rocket_launcher_2.jpg-888976090bd430c4f7e8d99803b0cc9b.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

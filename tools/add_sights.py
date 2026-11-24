@@ -13,7 +13,9 @@ pump_shotgun and pistol still carry the parts an earlier Blender pass of this to
 before rerunning on them."""
 import json, math, os, struct, sys
 
-STRIP = ('rear_', 'front_', 'sight_', 'feed_cover', 'bipod_')
+STRIP = ('rear_', 'front_', 'sight_', 'muzzle_bore', 'feed_cover', 'bipod_')
+# A model whose far end is not its bore (the quad launcher's hanging guard juts past its tubes) gets a `muzzle_bore` empty here: AwModelCache.muzzle_bore reads it.
+BORE = {'quad_rocket_launcher': (0.0, 0.04, -0.413)}
 
 
 def box(x0, x1, y0, y1, z0, z1):
@@ -327,6 +329,9 @@ def run(path, name):
         add_parts(j, bin_, parts, T, name)
     for mark, z in (('sight_rear', rz), ('sight_front', fz)):
         j['nodes'].append({'name': mark, 'translation': [0.0, line, z]})
+        j['scenes'][0]['nodes'].append(len(j['nodes']) - 1)
+    if name in BORE:
+        j['nodes'].append({'name': 'muzzle_bore', 'translation': list(BORE[name])})
         j['scenes'][0]['nodes'].append(len(j['nodes']) - 1)
     save(path, j, bin_)
     print('SIGHTED %s line y %.4f rear z %.3f front z %.3f parts %s' % (name, line, rz, fz, ','.join(p for p, _ in parts) or 'own'))
