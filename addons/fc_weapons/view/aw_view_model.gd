@@ -24,8 +24,8 @@ signal model_ready(id: StringName, weapon: Node3D)
 
 @export_group("Behaviour")
 
-## How far into the aim-in a scoped weapon's arms are hidden: past it the raised gun is out of the arms' reach and the scope covers the view.
-@export_range(0.0, 1.0, 0.01) var scope_arms_hide: float = 0.6
+## How far into the aim-in a scoped weapon's arms are hidden: by default only once the aim is complete, so the support hand stays on the gun while it rises and the scope picture (which hides the gun and arms together) takes over.
+@export_range(0.0, 1.0, 0.01) var scope_arms_hide: float = 1.0
 ## A game's setting (a cvar) that beats the weapon's art and [member scope_arms_hide]; below 0 is off.
 const ChargeFx := preload("aw_charge_fx.gd")
 ## The [method scope_fraction] from which the gun model is no longer drawn: the lens is up and the gun would show through it.

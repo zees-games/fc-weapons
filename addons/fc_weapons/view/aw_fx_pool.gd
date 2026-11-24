@@ -187,7 +187,7 @@ func fill_flashes(each: int = 8, categories: PackedStringArray = PackedStringArr
 			var flash: Node3D = _flash_script.new()
 			flash.set("size", size)
 			flash.set("first_person", false)
-			flash.set("variant", AwShotFx.WARM_VARIANTS[ring.size() % AwShotFx.WARM_VARIANTS.size()])
+			flash.set("variant", GSWeaponMuzzle.WARM_VARIANTS[ring.size() % GSWeaponMuzzle.WARM_VARIANTS.size()])
 			flash.top_level = true
 			# Built under a cover that may have the tree paused.
 			flash.process_mode = Node.PROCESS_MODE_ALWAYS
