@@ -8,7 +8,7 @@ const SOCKETS := {
 	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.056, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
 	&"revolver": {"optic": Vector3(0.0, 0.114, -0.045), "side": Vector3(0.018, 0.106, -0.135)},
 	&"machine_pistol": {"muzzle": Vector3(0.0, 0.128, -0.274), "optic": Vector3(0.0, 0.156, -0.023), "optic_scale": 1.2, "side": Vector3(0.032, 0.128, -0.144)},
-	&"derringer": {"side": Vector3(0.016, 0.030, -0.072)},
+	&"derringer": {"optic": Vector3(0.0, 0.062, -0.074), "replaces": ["rear_notch-1", "rear_notch1", "front_blade"], "side": Vector3(0.016, 0.030, -0.072)},
 	&"smg": {"muzzle": Vector3(0.0, -0.003, -0.143), "optic": Vector3(0.0, 0.015, 0.014), "optic_scale": 0.65, "underbarrel": Vector3(0.0, -0.022, -0.072), "side": Vector3(0.016, -0.003, -0.062), "magazine": Vector3(0.0, -0.204, 0.025), "mag": "mac10magazine_low"},
 	&"carbine": {"muzzle": Vector3(0.0, 0.031, -0.548), "optic": Vector3(0.0, 0.079, -0.186), "underbarrel": Vector3(0.0, 0.021, -0.386), "side": Vector3(0.007, 0.031, -0.361), "magazine": Vector3(0.0, -0.179, -0.188), "mag": "akmagazine_low_001"},
 	&"rifle": {"muzzle": Vector3(0.0, 0.029, -0.573), "optic": Vector3(0.0, 0.058, -0.077), "underbarrel": Vector3(0.0, 0.003, -0.350), "side": Vector3(0.017, 0.029, -0.316), "magazine": Vector3(0.0, -0.170, -0.190), "mag": "magazine"},
