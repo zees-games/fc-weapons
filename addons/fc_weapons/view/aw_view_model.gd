@@ -205,7 +205,7 @@ func on_used(outcome: GSWeaponOutcome) -> void:
 	if _belt != null and outcome.kind == GSWeaponOutcome.KIND_SHOT:
 		_belt.step()
 	if outcome.kind == GSWeaponOutcome.KIND_SHOT:
-		_start_bolt_cycle()
+		_start_cycle(fire_interval)
 	match outcome.kind:
 		GSWeaponOutcome.KIND_SWING:
 			_pose.swing()
@@ -340,7 +340,7 @@ func advance(delta: float) -> void:
 		_belt.advance(delta)
 
 	_strafe_now = _strafe_speed(delta)
-	_advance_bolt_cycle(delta)
+	_advance_cycle(delta)
 	_pose.advance(delta, _look_delta(), _speed, _on_floor, _crouched, _strafe_now)
 	_sprint = move_toward(_sprint, 1.0 if _sprinting and sprint_pose else 0.0, delta / SPRINT_SECONDS)
 	_pose.set_sprint(_ease(_sprint))
@@ -561,7 +561,9 @@ func scope_lens_scale() -> float:
 func _advance_aim(delta: float) -> void:
 	# A reload lowers the aim: the keys turn the gun about the rear sight, centimetres from the eye, and swing it out of view.
 	var reloading := _reload_fraction > 0.0 and _reload_fraction < 1.0
-	var target := 1.0 if (_aim_held and can_aim() and not reloading) else 0.0
+	# A scoped weapon leaves the scope while its action cycles and looks through it again after.
+	var cycling := _cycle_t >= 0.0 and has_scope()
+	var target := 1.0 if (_aim_held and can_aim() and not reloading and not cycling) else 0.0
 	var time := _art.aim_time if _art != null else 0.16
 	if ads_rules != null and _art != null:
 		time = ads_rules.aim_time_for(_art.id, time)

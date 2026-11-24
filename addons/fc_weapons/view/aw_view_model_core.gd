@@ -361,45 +361,49 @@ func _animate_sequence(f: float) -> void:
 	_set_bolt(_seq.bolt_back(f) if f > 0.0 and f < 1.0 else 0.0)
 
 
-## A bolt-action's cycle after a shot: seconds since the shot, -1 when none runs. It waits a beat for
-## the recoil, draws the bolt back, holds, and closes it. A reload cuts it short.
-var _bolt_cycle_t := -1.0
-const BOLT_CYCLE_WAIT := 0.3
-const BOLT_CYCLE_SPLIT: Array[float] = [0.4, 0.5, 1.0]
+## The cycle a bolt or pump gun works after a shot ([member AwWeaponVisual.cycle_style]): seconds since the shot, -1 when none
+## runs. It waits a beat for the recoil, works the part back, holds, and closes it, all inside the fire interval so the gun is
+## ready again as the next shot is. A reload cuts it short.
+func _start_cycle(interval: float) -> void:
+	if _art == null or _art.cycle_style == &"" or _art.cycle_time <= 0.0 or _art.bolt_node == &"" or _seq != null:
+		return
+	var gap := interval if interval > 0.0 else _art.cycle_time + CYCLE_WAIT
+	_cycle_wait = minf(CYCLE_WAIT, gap * 0.25)
+	_cycle_len = maxf(minf(_art.cycle_time, gap - _cycle_wait - 0.02), 0.05)
+	_cycle_t = 0.0
+	_cycle_heard = 0
 
 
-func _start_bolt_cycle() -> void:
-	if _art != null and _art.bolt_cycle > 0.0 and _art.bolt_node != &"" and _seq == null:
-		_bolt_cycle_t = 0.0
-
-
-func _advance_bolt_cycle(delta: float) -> void:
-	if _bolt_cycle_t < 0.0:
+func _advance_cycle(delta: float) -> void:
+	if _cycle_t < 0.0:
 		return
 	if _seq != null or _art == null:
-		_bolt_cycle_t = -1.0
+		_end_cycle()
 		return
-	_bolt_cycle_t += delta
-	var f := (_bolt_cycle_t - BOLT_CYCLE_WAIT) / maxf(_art.bolt_cycle, 0.01)
-	_set_bolt(bolt_cycle_back(f))
+	_cycle_t += delta
+	var f := (_cycle_t - _cycle_wait) / _cycle_len
+	_set_bolt(cycle_back(f))
+	var cues: Array = CYCLE_CUES.get(_art.cycle_style, [])
+	if cues.size() == 2:
+		if _cycle_heard == 0 and f >= 0.0:
+			_cycle_heard = 1
+			cycle_cue.emit(cues[0], -3.0)
+		elif _cycle_heard == 1 and f >= CYCLE_SPLIT[1]:
+			_cycle_heard = 2
+			cycle_cue.emit(cues[1], -3.0)
 	if f >= 1.0:
-		_bolt_cycle_t = -1.0
+		_end_cycle()
 
 
-## How far back the bolt is [param f] (0 to 1) through the cycle: drawn back by 40%, held to 50%, closed by the end.
-static func bolt_cycle_back(f: float) -> float:
-	if f <= 0.0 or f >= 1.0:
-		return 0.0
-	if f < BOLT_CYCLE_SPLIT[0]:
-		return smoothstep(0.0, BOLT_CYCLE_SPLIT[0], f)
-	if f < BOLT_CYCLE_SPLIT[1]:
-		return 1.0
-	return 1.0 - smoothstep(BOLT_CYCLE_SPLIT[1], BOLT_CYCLE_SPLIT[2], f)
+func _end_cycle() -> void:
+	_cycle_t = -1.0
+	_cycle_back = 0.0
+	_cycle_shift = Vector3.ZERO
 
 
-## Draws the art's [member AwWeaponVisual.bolt_node] [param back] (0 rest, 1 fully charged)
-## of [member AwWeaponVisual.bolt_travel] toward the stock. The rest position is kept on the
-## node the first time it moves, so a sequence cut short puts it back where it was.
+## Draws the art's [member AwWeaponVisual.bolt_node] [param back] (0 rest, 1 fully charged) of [member AwWeaponVisual.bolt_travel]
+## along [member AwWeaponVisual.bolt_axis] toward the stock. The rest position is kept on the node the first time it moves, so a
+## sequence cut short puts it back where it was. The way it moved, in the holder's space, is left in [member _cycle_shift].
 func _set_bolt(back: float) -> void:
 	if _art == null or _art.bolt_node == &"" or _art.bolt_travel <= 0.0 or not is_instance_valid(_weapon):
 		return
@@ -408,7 +412,18 @@ func _set_bolt(back: float) -> void:
 		return
 	if not bolt.has_meta(&"aw_bolt_rest"):
 		bolt.set_meta(&"aw_bolt_rest", bolt.position)
-	bolt.position = (bolt.get_meta(&"aw_bolt_rest") as Vector3) + Vector3(0.0, 0.0, _art.bolt_travel * clampf(back, 0.0, 1.0))
+	var rest: Vector3 = bolt.get_meta(&"aw_bolt_rest")
+	back = clampf(back, 0.0, 1.0)
+	bolt.position = rest + _art.bolt_axis * (_art.bolt_travel * back)
+	_cycle_back = back
+	_cycle_shift = _shift_of(bolt, rest)
+
+
+## [method _set_bolt]'s shift for a part deeper in the model: the node's own move, taken through the parents up to the holder.
+func _shift_of(bolt: Node3D, rest: Vector3) -> Vector3:
+	var parent := bolt.get_parent() as Node3D
+	var moved := parent.global_transform * bolt.position - parent.global_transform * rest
+	return _holder.transform.basis * (_holder.global_transform.basis.inverse() * moved)
 
 
 ## The scale that draws the hands at [member hands_fov]. See there.

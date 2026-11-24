@@ -259,10 +259,21 @@ static var _dress_script: Script = null
 ## How far [member bolt_node] travels back when charged, in the model's own metres.
 @export var bolt_travel: float = 0.0
 
-## Seconds a bolt-action's cycle takes after each shot (the bolt drawn back and closed again, by
-## [member bolt_node] and [member bolt_travel]), starting a beat after the recoil. 0 is a
-## self-loading gun, whose action is not shown.
-@export var bolt_cycle: float = 0.0
+## What the weapon's action does after each shot: `&"bolt"` (a bolt-action's handle drawn back and closed),
+## `&"pump"` (a pump-action's fore-end racked), or empty for a self-loading gun, whose action is not shown.
+## [member bolt_node] is the part that moves; the support hand works it (see [member cycle_at]).
+@export var cycle_style: StringName = &""
+
+## Seconds the cycle takes at most, starting a beat after the recoil; the view model shortens it to
+## fit inside the fire interval, so the action is closed before the next shot can leave.
+@export var cycle_time: float = 0.0
+
+## Which way [member bolt_node] slides, in its parent's space: toward the stock for a bolt (+Z in a model made muzzle -Z).
+@export var bolt_axis: Vector3 = Vector3(0.0, 0.0, 1.0)
+
+## Where the support hand takes hold of a bolt's handle, in the model's own space; zero keeps the hand
+## on the fore-end (a pump's fore-end is where the hand already is).
+@export var cycle_at: Vector3 = Vector3.ZERO
 
 ## A part built in code instead of a file (`&"cell"`, `&"ammo_box"`: `view/aw_reload_parts.gd`),
 ## used when [member magazine_path] is empty. Built, not vendored, because every game that

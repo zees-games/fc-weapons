@@ -59,6 +59,7 @@ func _ready() -> void:
 	preload("aw_selftest_throw.gd").new(self).run()
 	preload("aw_selftest_lens.gd").new(self).run()
 	await preload("aw_selftest_equip_cache.gd").new(self).run()
+	preload("aw_selftest_cycle.gd").new(self).run()
 	await _finish()
 
 
@@ -256,18 +257,24 @@ func _reload_bolt(rows: Dictionary) -> void:
 		has_bolt and rifle.bolt_travel > 0.0 and peak > 0.95 and start_back == 0.0 and end_back == 0.0 and still_peak == 0.0)
 
 
-## The sniper cycles its bolt after each shot: home at both ends, fully back between, and only it does.
+## The sniper cycles its bolt and the shotgun its pump after each shot: home at both ends, fully back between, the hand on the part
+## through the stroke and off it at both ends, and only they do.
 func _shot_bolt(rows: Dictionary) -> void:
 	var sniper := AwWeaponVisual.make(&"sniper")
 	AwArtDress.apply(sniper, rows[&"sniper"])
+	var shotgun := AwWeaponVisual.make(&"shotgun")
+	AwArtDress.apply(shotgun, rows[&"shotgun"])
 	var rifle := AwWeaponVisual.make(&"rifle")
 	AwArtDress.apply(rifle, rows[&"rifle"])
 	var peak := 0.0
 	for k in 201:
-		peak = maxf(peak, AwViewModel.bolt_cycle_back(float(k) / 200.0))
-	var ends := AwViewModel.bolt_cycle_back(0.0) == 0.0 and AwViewModel.bolt_cycle_back(1.0) == 0.0
-	_check("the sniper's bolt cycles after a shot and the rifle's does not (cycle %.2f s, peak %.2f, ends home %s, rifle %.2f s)" % [sniper.bolt_cycle, peak, ends, rifle.bolt_cycle],
-		sniper.bolt_cycle > 0.0 and sniper.bolt_node != &"" and sniper.bolt_travel > 0.0 and peak > 0.99 and ends and rifle.bolt_cycle == 0.0)
+		peak = maxf(peak, AwViewModel.cycle_back(float(k) / 200.0))
+	var ends := AwViewModel.cycle_back(0.0) == 0.0 and AwViewModel.cycle_back(1.0) == 0.0
+	_check("the sniper's bolt cycles with a handle to reach and the rifle's does not (%s %.2f s, peak %.2f, ends home %s, handle %s, rifle %s)" % [sniper.cycle_style, sniper.cycle_time, peak, ends, sniper.cycle_at, rifle.cycle_style],
+		sniper.cycle_style == &"bolt" and sniper.cycle_time > 0.0 and sniper.bolt_node != &"" and sniper.bolt_travel > 0.0 and sniper.cycle_at != Vector3.ZERO and peak > 0.99 and ends and rifle.cycle_style == &"")
+	var reach := AwViewModel.cycle_reach(0.5, 0.3)
+	_check("the shotgun's pump cycles after a shot and the hand is on it mid-stroke, off it at both ends (%s %.2f s, reach %.2f, before %.2f, after %.2f)" % [shotgun.cycle_style, shotgun.cycle_time, reach, AwViewModel.cycle_reach(-0.3, 0.3), AwViewModel.cycle_reach(1.0, 0.3)],
+		shotgun.cycle_style == &"pump" and shotgun.cycle_time > 0.0 and shotgun.bolt_node != &"" and shotgun.bolt_travel > 0.0 and reach > 0.99 and AwViewModel.cycle_reach(-0.3, 0.3) == 0.0 and AwViewModel.cycle_reach(1.0, 0.3) == 0.0)
 
 
 ## The hand spans of every model (IronSight.spans: bare faces and one TriangleMesh) equal the per-triangle

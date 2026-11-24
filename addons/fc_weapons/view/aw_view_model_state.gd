@@ -160,3 +160,40 @@ var sprint_pose: bool = true
 
 var _sprinting: bool = false
 var _sprint: float = 0.0
+
+
+## What a bolt or pump gun's cycle after a shot keeps: its clock and the part's move (the cycle itself runs in AwViewModel's core).
+var _cycle_t := -1.0
+var _cycle_wait := 0.0
+var _cycle_len := 0.0
+var _cycle_heard := 0
+## How far the part is back and where the support hand stands on it this frame (in the hands' space), for [method _support_hand].
+var _cycle_back := 0.0
+var _cycle_shift := Vector3.ZERO
+const CYCLE_WAIT := 0.12
+const CYCLE_SPLIT: Array[float] = [0.4, 0.5, 1.0]
+## The cycle of each style as {cue back, cue forward}: the sounds gs-audio ships.
+const CYCLE_CUES := {&"bolt": [&"bolt_back", &"bolt_fwd"], &"pump": [&"pump_back", &"pump_fwd"]}
+
+## A cycled gun's part moved: the handling sound of the bolt or the pump, to play at the gun.
+signal cycle_cue(cue: StringName, db: float)
+
+
+## How far back the part is [param f] (0 to 1) through the cycle: drawn back by 40%, held to 50%, closed by the end.
+static func cycle_back(f: float) -> float:
+	if f <= 0.0 or f >= 1.0:
+		return 0.0
+	if f < CYCLE_SPLIT[0]:
+		return smoothstep(0.0, CYCLE_SPLIT[0], f)
+	if f < CYCLE_SPLIT[1]:
+		return 1.0
+	return 1.0 - smoothstep(CYCLE_SPLIT[1], CYCLE_SPLIT[2], f)
+
+
+## How much of the support hand is on the cycled part [param f] (the cycle's own 0 to 1, below 0 before it starts): it reaches
+## over the wait and the first twentieth, stays through the stroke, lets go over the last fifth.
+static func cycle_reach(f: float, lead: float) -> float:
+	if f >= 1.0:
+		return 0.0
+	var rise := smoothstep(-lead, 0.05, f)
+	return rise * (1.0 - smoothstep(0.8, 1.0, f))

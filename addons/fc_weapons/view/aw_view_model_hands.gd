@@ -93,6 +93,8 @@ func _support_hand() -> Vector3:
 	var f := _reload_fraction
 	if _seq != null and f > 0.0 and f < 1.0:
 		return _seq.left_hand(f)
+	if _cycle_t >= 0.0 and _art != null:
+		return _cycle_hand()
 	if not _has_well or f <= 0.0 or f >= 1.0:
 		return _fore_at.lerp(_fore_aimed_at, clampf(_aim_fraction, 0.0, 1.0)) if is_finite(_aim_fraction) else _fore_at
 	if _feeds:
@@ -111,6 +113,17 @@ func _support_hand() -> Vector3:
 		[1.0, _fore_at, Vector3.ZERO],
 	]
 	return AwWeaponPose.sample_keys(keys, f)[0]
+
+## The support hand through a bolt's or pump's cycle: from the fore-end to the handle, riding it back and home, and away again. A pump's
+## handle is the fore-end itself ([member AwWeaponVisual.cycle_at] empty), so the hand stays and travels with it.
+func _cycle_hand() -> Vector3:
+	var rest := _fore_at.lerp(_fore_aimed_at, clampf(_aim_fraction, 0.0, 1.0)) if is_finite(_aim_fraction) else _fore_at
+	var handle := rest
+	if _art.cycle_at.length_squared() > 0.000001:
+		handle = _holder.transform * _art.cycle_at
+	var f := (_cycle_t - _cycle_wait) / _cycle_len
+	var w := cycle_reach(f, _cycle_wait / _cycle_len)
+	return rest.lerp(handle + _cycle_shift, w)
 
 ## The support hand's keys for a gun fed by hand ([member AwWeaponVisual.load_from]): bolt back, each round fetched, carried and pushed home, bolt closed. Built once per weapon.
 ## The round is drawn at the hand ([constant FEED_CARRY] above it) for the whole trip, because [method _animate_magazine] reads the hand and the two must not part.

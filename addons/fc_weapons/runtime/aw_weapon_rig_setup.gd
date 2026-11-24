@@ -95,6 +95,9 @@ func _resolve_presentation() -> void:
 		if view.ok and view.value is AwViewModel:
 			_view = view.value
 			_view.ads_rules = ads_rules
+			# The bolt's and the pump's own sounds, after a shot.
+			if not _view.cycle_cue.is_connected(_on_reload_cue):
+				_view.cycle_cue.connect(_on_reload_cue)
 			# Cvars bound before the view model existed keep their object.
 			if _standalone_feel != null:
 				_view.feel_rules = _standalone_feel

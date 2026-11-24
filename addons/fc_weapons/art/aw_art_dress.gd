@@ -22,7 +22,10 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 	art.hide_during_reload = StringName(str(row.get("mag_node", "")))
 	art.bolt_node = StringName(str(row.get("bolt_node", "")))
 	art.bolt_travel = float(row.get("bolt_travel", 0.0))
-	art.bolt_cycle = float(row.get("bolt_cycle", 0.0))
+	art.cycle_style = StringName(str(row.get("cycle_style", "")))
+	art.cycle_time = float(row.get("cycle_time", 0.0))
+	art.bolt_axis = row.get("bolt_axis", Vector3(0.0, 0.0, 1.0))
+	art.cycle_at = row.get("cycle_at", Vector3.ZERO)
 	art.attachments = []
 	art.reload = (row.get("reload", {}) as Dictionary).duplicate(true)
 
