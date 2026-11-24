@@ -34,6 +34,8 @@ static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, be
 		if part == null:
 			continue
 		socket.add_child(part)
+		if mount == GSWeaponAttachment.MOUNT_OPTIC:
+			part.scale = Vector3.ONE * AwAttachmentSockets.optic_scale(weapon.scene_file_path)
 		out.parts.append(part)
 		for hide: StringName in entry.get("hides", []):
 			var node := weapon.find_child(String(hide), true, false) as Node3D
