@@ -2,31 +2,28 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c43lqjfamowj5"
-path="res://.godot/imported/frag_grenade_2.png-9f0baa6ea64460fc17d0405d75c9a385.ctex"
+uid="uid://b3c8qjundk065"
+path="res://.godot/imported/banner.png-672a735a86fa364e099be10842c8f5ad.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "e37fe4edee79072181ed53aee4de1d07"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/frag_grenade_2.png"
-dest_files=["res://.godot/imported/frag_grenade_2.png-9f0baa6ea64460fc17d0405d75c9a385.ctex"]
+source_file="res://docs/banner.png"
+dest_files=["res://.godot/imported/banner.png-672a735a86fa364e099be10842c8f5ad.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
