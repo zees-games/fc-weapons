@@ -23,6 +23,7 @@ class ScopedView:
 
 func _ready() -> void:
 	print("fc-weapons aimed-motion self-test")
+	AwWeaponPose.breathing = false
 	_cvars()
 	_strafe()
 	_bob()
@@ -138,6 +139,28 @@ func _scope() -> void:
 	calm.punch(Vector2(2.0, 0.0))
 	calm.advance(STEP, Vector2.ZERO, 5.0, true, false, 6.0)
 	_check("mp_vm_scope_sway and mp_vm_scope_shake 0 hold it centred", calm.scope_offset().is_zero_approx())
+
+	# Idle breath: the held gun drifts slowly at the hip, and the scoped view takes it as a small turn of the camera.
+	AwWeaponPose.breathing = true
+	var idle := _pose(0.0)
+	var lo := Vector3(INF, INF, INF)
+	var hi := -lo
+	for i in int(8.0 / STEP):
+		idle.advance(STEP, Vector2.ZERO, 0.0, true)
+		var at := idle.offset().origin
+		lo = Vector3(minf(lo.x, at.x), minf(lo.y, at.y), minf(lo.z, at.z))
+		hi = Vector3(maxf(hi.x, at.x), maxf(hi.y, at.y), maxf(hi.z, at.z))
+	_check("at the hip, idle, the gun breathes (not frozen)", (hi - lo).length() > 0.002 and (hi - lo).length() < 0.05, "%.4f m" % (hi - lo).length())
+	var scoped := _pose(1.0)
+	var biggest := 0.0
+	for i in int(8.0 / STEP):
+		scoped.advance(STEP, Vector2.ZERO, 0.0, true)
+		var turn := scoped.view_breath(1.0)
+		biggest = maxf(biggest, turn.length())
+	_check("scoped, the breath turns the view a fraction of a degree", biggest > 0.05 and biggest < 0.6, "%.3f deg" % biggest)
+	_check("no scope fraction, no view breath", scoped.view_breath(0.0) == Vector2.ZERO)
+	_check("mp_vm_scope_sway 0 holds the view still", calm.view_breath(1.0) == Vector2.ZERO)
+	AwWeaponPose.breathing = false
 
 	var overlay := AwScopeOverlay.new()
 	var view := ScopedView.new()

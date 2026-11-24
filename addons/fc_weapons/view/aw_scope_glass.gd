@@ -24,11 +24,13 @@ void vertex() { uv_at = UV; }
 void fragment() {
 	vec2 p = (uv_at - 0.5) * 2.0;
 	float r = length(p);
-	vec3 col = texture(picture, vec2(uv_at.x, uv_at.y)).rgb * tint.rgb;
-	col *= 1.0 - vignette * smoothstep(0.55, 1.0, r);
 	float px = fwidth(r) * 1.5;
-	// Lines at least a pixel and a half wide, so the reticle reads on the small hip lens.
-	float hw = max(0.004, px * 0.75);
+	// How small the lens is on screen: near 1 for the hip lens (a few dozen pixels), 0 once the scope fills the view. A small lens is a window, not a decal:
+	// the tint, vignette, glint and heavy lip fade out so the world shows through undimmed, and only a faint thin cross stays.
+	float small = 1.0 - smoothstep(0.012, 0.04, fwidth(r));
+	vec3 col = texture(picture, uv_at).rgb * mix(tint.rgb, vec3(1.0), small);
+	col *= 1.0 - vignette * (1.0 - small) * smoothstep(0.55, 1.0, r);
+	float hw = max(0.004, px * 0.5);
 	float line = max(1.0 - smoothstep(hw, hw + px, abs(p.x)), 1.0 - smoothstep(hw, hw + px, abs(p.y)));
 	line *= step(0.06, r);
 	float ticks = 0.0;
@@ -37,12 +39,12 @@ void fragment() {
 		ticks = max(ticks, (1.0 - smoothstep(0.012, 0.012 + px, length(p - vec2(d, 0.0)))) + (1.0 - smoothstep(0.012, 0.012 + px, length(p + vec2(d, 0.0)))));
 		ticks = max(ticks, (1.0 - smoothstep(0.012, 0.012 + px, length(p - vec2(0.0, d)))) + (1.0 - smoothstep(0.012, 0.012 + px, length(p + vec2(0.0, d)))));
 	}
-	float mark = clamp(max(line, ticks), 0.0, 1.0) * reticle_colour.a;
+	float mark = clamp(max(line, ticks * (1.0 - small)), 0.0, 1.0) * reticle_colour.a * mix(1.0, 0.45, small);
 	col = mix(col, reticle_colour.rgb, mark);
-	// Glass: a soft diagonal glint across the upper left and a dark metal lip at the edge.
-	float glint = smoothstep(0.35, 0.0, abs(p.x * 0.7 + p.y * 0.7 + 0.45)) * (1.0 - smoothstep(0.7, 0.95, r)) * 0.22;
+	// Glass: a soft diagonal glint across the upper left (large lens only) and a dark metal lip at the edge, thin on the small lens.
+	float glint = smoothstep(0.35, 0.0, abs(p.x * 0.7 + p.y * 0.7 + 0.45)) * (1.0 - smoothstep(0.7, 0.95, r)) * 0.22 * (1.0 - small);
 	col += vec3(0.85, 0.95, 1.0) * glint;
-	col = mix(col, vec3(0.03, 0.04, 0.05), smoothstep(0.86, 0.96, r));
+	col = mix(col, vec3(0.03, 0.04, 0.05), smoothstep(mix(0.86, 0.94, small), 0.98, r));
 	ALBEDO = col;
 }
 """

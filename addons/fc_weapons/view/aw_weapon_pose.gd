@@ -52,6 +52,15 @@ var _roll: float = 0.0
 
 ## Distance travelled, in metres. Drives the bob phase.
 var _bob_distance: float = 0.0
+## Seconds of idle breath, wrapped; drives [method breath].
+var _breath_time: float = 0.0
+## Breath's slow cycle in hertz, and how far it turns the held weapon (degrees) and the scoped view (degrees).
+const BREATH_HZ := 0.23
+## Whether poses breathe at all. A suite that measures exact motion turns it off for determinism; the game leaves it on.
+static var breathing := true
+const BREATH_HIP_DEGREES := 0.7
+const BREATH_HIP_REACH := 0.004
+const BREATH_VIEW_DEGREES := 0.35
 
 ## Smoothed sideways speed over [member Tunables.strafe_reference], -1 (left) to 1 (right).
 var _strafe: float = 0.0
@@ -172,6 +181,7 @@ func advance(
 	# target and comes back, which reads as the weapon snapping.
 	var step := minf(delta, 0.1)
 
+	_breath_time = fposmod(_breath_time + step, 1000.0)
 	_advance_sway(step, look_delta)
 	_advance_strafe(step, strafe if on_floor else 0.0)
 	_advance_bob(step, speed, on_floor, crouched)
@@ -499,6 +509,11 @@ func offset() -> Transform3D:
 	var stride := TAU * run_phase()
 	# Forward and up together, back and down: the running arm's arc.
 	position += Vector3(0.0, sin(stride), -sin(stride)) * tunables.sprint_pump * run_amount()
+	# Idle breath: the held weapon drifts slowly at the hip (so a see-through lens shows the world moving behind it); aiming hands it to the view (scope_breath_angles).
+	var breathing := breath() * (1.0 - _aim) * clampf(rules.sway, 0.0, 2.0) * maxf(0.0, feel)
+	position += Vector3(breathing.x, breathing.y, 0.0) * BREATH_HIP_REACH
+	acted.x += breathing.y * BREATH_HIP_DEGREES
+	acted.y += breathing.x * BREATH_HIP_DEGREES
 	var hand := Basis.from_euler(Vector3(
 		lens_turn(deg_to_rad(acted.x), lens_share), lens_turn(deg_to_rad(acted.y), lens_share), deg_to_rad(acted.z)
 	))
@@ -549,6 +564,22 @@ func scope_offset() -> Vector2:
 	y -= clampf((_kick_rotation.x + _extra_pitch) * SCOPE_KICK_PER_DEGREE, -0.3, 0.3) * shake * maxf(0.0, rules.kick)
 	var shown := Vector2(clampf(x, -0.3, 0.3), clampf(y, -0.3, 0.3))
 	return shown if shown.is_finite() else Vector2.ZERO
+
+
+## The slow idle breath, each axis in [-1, 1] (x right, y up): two incommensurate sines so it never repeats visibly. Zero when not finite.
+func breath() -> Vector2:
+	if not breathing:
+		return Vector2.ZERO
+	var t := _breath_time * TAU * BREATH_HZ
+	var v := Vector2(sin(t * 0.83 + 1.3) * 0.7 + sin(t * 1.9) * 0.3, sin(t) * 0.75 + sin(t * 2.3 + 0.6) * 0.25)
+	return v if v.is_finite() else Vector2.ZERO
+
+
+## The breath as a turn of the scoped view, in degrees (x yaw, y pitch), for the camera to add on top of the aim: presentation only, the server's aim never sees it.
+## [param strength] scales it (the scope fraction); sway rules scale it like the rest of the hands' motion.
+func view_breath(strength: float) -> Vector2:
+	var out := breath() * BREATH_VIEW_DEGREES * clampf(strength, 0.0, 1.0) * clampf(rules.scope_sway, 0.0, 2.0) * maxf(0.0, feel)
+	return out if out.is_finite() else Vector2.ZERO
 
 
 ## The deploy fraction, for a caller that wants to hide the model entirely at zero.

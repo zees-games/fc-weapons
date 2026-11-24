@@ -9,6 +9,8 @@ const CHECKS := 622
 
 func _ready() -> void:
 	print("fc-weapons self-test")
+	# The idle breath moves every pose a little; the motion checks below measure exact positions.
+	AwWeaponPose.breathing = false
 	_models()
 	_download_groups()
 	_no_uid_loads()

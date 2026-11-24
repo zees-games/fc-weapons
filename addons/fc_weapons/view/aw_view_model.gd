@@ -257,6 +257,12 @@ func scope_offset() -> Vector2:
 	return _pose.scope_offset()
 
 
+## How far the held breath turns the scoped view this frame, in degrees (x yaw, y pitch); zero unless a scope is up.
+## Like [method view_punch] the node cannot apply it: the game adds it where it writes the camera. Presentation only: the aim the server reads is untouched.
+func scope_breath_angles() -> Vector2:
+	return _pose.view_breath(scope_fraction())
+
+
 ## A charged weapon's draw, 0 to 1.
 func on_charge(fraction: float) -> void:
 	_pose.set_charge(fraction)
