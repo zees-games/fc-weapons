@@ -4,10 +4,11 @@ scope_lens (a tinted glass disc), scope_reticle (crosshair, mil dots and a ring)
 In the game, AwScopeGlass (addons/fc_weapons/view/aw_scope_glass.gd) hides all three and draws live glass and housing instead.
 Run: python3 -I tools/add_scope_lens.py <in.glb> <out.glb> [--ocular X Y Z RADIUS]
 The default ocular is the sniper's (sniper_ph.glb: the eyepiece end of the scope tube, tube axis along -Z, eye toward +Z). Run on a copy of the
-baked file; running on a file that already has the nodes replaces them."""
+baked file; re-running on an already baked file drops the old parts and gives identical bytes."""
 import json, math, struct, sys
 
 NAMES = ("scope_lens", "scope_reticle", "scope_eyecup", "scope_eyecup_lip")
+MATERIALS = ("scope_glass", "scope_reticle", "scope_rubber", "scope_lip")
 SIDES = 48
 
 
@@ -76,7 +77,17 @@ def main():
     jlen = struct.unpack("<I", data[12:16])[0]
     g = json.loads(data[20:20 + jlen])
     blob = bytearray(data[28 + jlen:28 + jlen + struct.unpack("<I", data[20 + jlen:24 + jlen])[0]])
-    # Drop any earlier run's nodes (their mesh data stays in the buffer, unreferenced).
+    # Drop any earlier run completely, so a re-run on an already baked file gives the same bytes: a run appends its meshes, accessors,
+    # buffer views, buffer bytes and materials last, so cutting each list at the first of ours removes exactly them.
+    mine = [i for i, m in enumerate(g["meshes"]) if m.get("name") in NAMES]
+    if mine:
+        m0 = mine[0]
+        assert all(m.get("name") in NAMES for m in g["meshes"][m0:]), "a mesh after the scope parts is not ours; refusing to cut"
+        a0 = g["meshes"][m0]["primitives"][0]["attributes"]["POSITION"]
+        v0 = g["accessors"][a0]["bufferView"]
+        del blob[g["bufferViews"][v0]["byteOffset"]:]
+        del g["meshes"][m0:], g["accessors"][a0:], g["bufferViews"][v0:]
+    g["materials"] = [m for m in g["materials"] if m.get("name") not in MATERIALS]
     g["nodes"] = [nd for nd in g["nodes"] if nd.get("name") not in NAMES]
     g["scenes"][0]["nodes"] = list(range(len(g["nodes"])))  # every node of these weapon GLBs is a scene root
 

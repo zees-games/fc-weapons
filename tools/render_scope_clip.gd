@@ -24,6 +24,7 @@ func _initialize() -> void:
 	root.add_child(_cam)
 	_cam.current = true
 	_view = AwViewModel.new()
+	_view.ads_rules = AwAdsRules.load_config()  # the game sets it: it sizes the hip pose and holds the zoom levels
 	_view.hands_fov = 55.0
 	_cam.add_child(_view)
 	var art := AwWeaponVisual.make(id)
@@ -31,13 +32,18 @@ func _initialize() -> void:
 	_view.equip(art)
 	for _i in 60:
 		await _step(false)
-	await _clip(out, id, "hip_idle", 90, func(_f: int) -> void: _view.aim(false))
-	await _clip(out, id, "aim_in", 75, func(_f: int) -> void: _view.aim(true))
-	await _clip(out, id, "zoom_cycle", 150, func(f: int) -> void:
-		_view.aim(true)
-		if f == 40 or f == 100:
-			_view.cycle_zoom())
-	await _clip(out, id, "lower", 60, func(_f: int) -> void: _view.aim(false))
+	var only := a[2] if a.size() > 2 else ""  # one clip name, default all
+	if only.is_empty() or only == "hip_idle":
+		await _clip(out, id, "hip_idle", 90, func(_f: int) -> void: _view.aim(false))
+	if only.is_empty() or only == "aim_in":
+		await _clip(out, id, "aim_in", 75, func(_f: int) -> void: _view.aim(true))
+	if only.is_empty() or only == "zoom_cycle":
+		await _clip(out, id, "zoom_cycle", 150, func(f: int) -> void:
+			_view.aim(true)
+			if f == 40 or f == 100:
+				_view.cycle_zoom())
+	if only.is_empty() or only == "lower":
+		await _clip(out, id, "lower", 60, func(_f: int) -> void: _view.aim(false))
 	print("RESULT scope clips %s zoom_levels=%s" % [id, str(_view.zoom_scales())])
 	quit()
 
