@@ -61,6 +61,7 @@ func _ready() -> void:
 	preload("aw_selftest_lens.gd").new(self).run()
 	await preload("aw_selftest_equip_cache.gd").new(self).run()
 	preload("aw_selftest_cycle.gd").new(self).run()
+	preload("aw_selftest_bake.gd").new(self).run()
 	await _finish()
 
 
