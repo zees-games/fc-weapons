@@ -2,12 +2,19 @@ extends SceneTree
 ## Prints each gun's attachment sockets in model space, for AwAttachmentSockets.SOCKETS: muzzle at the bore's tip,
 ## optic on the receiver top, underbarrel and side on the fore-end, magazine under the mag node.
 ## godot --headless --path . --script res://tools/measure_sockets.gd [-- id ...]
+## `-- --optic-top [id ...]` instead prints each gun's mesh height at its optic socket's x and z (the receiver top the optic's rail sits on) next to the table's y.
 
 const SKIP := [&"knife", &"frag", &"sticky", &"flash", &"smoke", &"incendiary"]
 
 
 func _initialize() -> void:
 	var ids: Array = OS.get_cmdline_user_args()
+	var tops := ids.has("--optic-top")
+	ids.erase("--optic-top")
+	if tops:
+		_print_optic_tops(ids)
+		quit()
+		return
 	if ids.is_empty():
 		ids = AwWeaponArt.WEAPONS.keys().filter(func(id: StringName) -> bool: return not SKIP.has(id))
 	for id: Variant in ids:
@@ -20,6 +27,25 @@ func _initialize() -> void:
 		print(_row(StringName(str(id)), art, gun))
 		gun.free()
 	quit()
+
+
+## Per optic-socket gun: the highest mesh vertex within a rail's footprint around the socket, and the socket's y.
+func _print_optic_tops(ids: Array) -> void:
+	for key: StringName in AwAttachmentSockets.SOCKETS:
+		var row: Dictionary = AwAttachmentSockets.SOCKETS[key]
+		if not row.has("optic") or (not ids.is_empty() and not ids.has(str(key))):
+			continue
+		var gun := AwModelCache.instantiate(AwWeaponArt.model_path(str(key)))
+		if gun == null:
+			print("# %s: no model" % key)
+			continue
+		var at: Vector3 = row["optic"]
+		var top := -INF
+		for p in _verts(gun, gun):
+			if absf(p.x - at.x) <= 0.012 and absf(p.z - at.z) <= 0.025:
+				top = maxf(top, p.y)
+		print("%s: receiver top y %.3f, socket y %.3f, gap %.3f" % [key, top, at.y, at.y - top])
+		gun.free()
 
 
 func _row(id: StringName, art: AwWeaponVisual, gun: Node3D) -> String:

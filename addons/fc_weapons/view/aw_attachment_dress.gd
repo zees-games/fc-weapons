@@ -2,7 +2,7 @@ extends RefCounted
 
 ## Puts a fitting's models on a gun's sockets, in the view model and the world model alike. No `class_name`: both preload it by path.
 ## The state it returns is a Dictionary: `parts` and `hidden` (nodes to undo), `reach` (the muzzle's end along the gun's forward),
-## `scoped` and `zoom` (an optic's), and `line` (`rear` and `front` through an optic's glass, in the gun's space).
+## `scoped` and `zoom` (an optic's), `ocular` ([x, y, z, radius] of a scoped optic's eye end in the gun's space, for the scope body view), and `line` (`rear` and `front` through an optic's glass, in the gun's space).
 
 
 ## Draws [param art]'s own extra models (its `attachments` rows) on [param parent].
@@ -19,10 +19,13 @@ static func art_parts(art: AwWeaponVisual, parent: Node3D) -> Array[Node3D]:
 	return out
 
 
+## The eye-end peephole of a fitted scope in model metres, the built-in scopes' size: the lens view fills the screen through it, so the gun stays up as without a fitting.
+const OCULAR_RADIUS := 0.006
+
 ## Replaces [param before] with [param fitting]'s models on [param weapon]'s sockets; a mount with no socket or no art draws nothing.
 static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, before: Dictionary) -> Dictionary:
 	clear(before)
-	var out := {"parts": [], "hidden": [], "reach": 0.0, "scoped": false, "zoom": 0.0, "line": {}, "replaced": false}
+	var out := {"parts": [], "hidden": [], "reach": 0.0, "scoped": false, "zoom": 0.0, "line": {}, "replaced": false, "ocular": []}
 	if weapon == null or fitting == null:
 		return out
 	AwAttachmentSockets.ensure(weapon)
@@ -59,6 +62,9 @@ static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, be
 			middle -= f * middle.dot(f)
 			out.line = {"rear": middle + f * _near_end(box, f), "front": middle + f * _far_end(box, f)}
 			out.scoped = aim == &"scoped"
+			if out.scoped:
+				var rear: Vector3 = out.line.rear
+				out.ocular = [rear.x, rear.y, rear.z, OCULAR_RADIUS]
 			out.zoom = float(entry.get("zoom", 0.0))
 	return out
 

@@ -514,14 +514,23 @@ func has_scope() -> bool:
 
 
 ## The weapon's overrides of the default scope look, applied by [method AwScopeOverlay.follow].
+## A fitted scoped optic brings its own `ocular`, so the gun stays up behind it as behind a built-in scope.
 func scope_style() -> Dictionary:
-	return _art.scope_style if _art != null else {}
+	if _art == null:
+		return {}
+	var ocular: Array = _dressed.get("ocular", [])
+	if ocular.is_empty():
+		return _art.scope_style
+	var style := _art.scope_style.duplicate()
+	style["ocular"] = ocular
+	return style
 
 
 ## Whether the scope is drawn as its body this frame: [member scope_body] on, the lens view, and an `ocular` in the weapon's scope style.
-## Not with a fitted optic that replaced the built-in scope: its ocular is hidden, so the flat lens is used.
+## A fitted optic that replaced the built-in scope has its own ocular, or else the flat lens is used.
 func scope_body_active() -> bool:
-	return scope_body and scope_is_lens() and not bool(_dressed.get("replaced", false)) and not Describe.scope_ocular(scope_style()).is_empty()
+	var own: bool = not (_dressed.get("ocular", []) as Array).is_empty()
+	return scope_body and scope_is_lens() and (own or not bool(_dressed.get("replaced", false))) and not Describe.scope_ocular(scope_style()).is_empty()
 
 
 ## The ocular's centre and a point on its edge, in global space, for [AwScopeOverlay]; empty unless [method scope_body_active] and drawn.

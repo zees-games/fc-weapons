@@ -5,20 +5,20 @@ extends RefCounted
 ## model name -> mount -> position in the model's space (origin at the grip, muzzle toward -Z), measured by tools/measure_sockets.gd. A mount a gun lacks is left out:
 ## a built-in sight or scope has no optic mount (unless its parts are separate nodes: `replaces` names them, and the optic fitted hides them, as the sniper's), a pump or a tube no underbarrel, a launcher none but the single-missile launcher's `warhead`, on its missile's nose. `mag` names the model's magazine, which the magazine socket rides on.
 const SOCKETS := {
-	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.025, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
+	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.056, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
 	&"revolver": {"optic": Vector3(0.0, 0.114, -0.045), "side": Vector3(0.018, 0.106, -0.135)},
-	&"machine_pistol": {"muzzle": Vector3(0.0, 0.128, -0.274), "optic": Vector3(0.0, 0.160, -0.023), "optic_scale": 0.65, "side": Vector3(0.032, 0.128, -0.144)},
+	&"machine_pistol": {"muzzle": Vector3(0.0, 0.128, -0.274), "optic": Vector3(0.0, 0.156, -0.023), "optic_scale": 1.2, "side": Vector3(0.032, 0.128, -0.144)},
 	&"derringer": {"side": Vector3(0.016, 0.030, -0.072)},
-	&"smg": {"muzzle": Vector3(0.0, -0.003, -0.143), "optic": Vector3(0.0, 0.022, 0.014), "optic_scale": 0.65, "underbarrel": Vector3(0.0, -0.022, -0.072), "side": Vector3(0.016, -0.003, -0.062), "magazine": Vector3(0.0, -0.204, 0.025), "mag": "mac10magazine_low"},
-	&"carbine": {"muzzle": Vector3(0.0, 0.031, -0.548), "optic": Vector3(0.0, 0.050, -0.186), "underbarrel": Vector3(0.0, 0.021, -0.386), "side": Vector3(0.007, 0.031, -0.361), "magazine": Vector3(0.0, -0.179, -0.188), "mag": "akmagazine_low_001"},
-	&"rifle": {"muzzle": Vector3(0.0, 0.029, -0.573), "optic": Vector3(0.0, 0.048, -0.077), "underbarrel": Vector3(0.0, 0.003, -0.350), "side": Vector3(0.017, 0.029, -0.316), "magazine": Vector3(0.0, -0.170, -0.190), "mag": "magazine"},
+	&"smg": {"muzzle": Vector3(0.0, -0.003, -0.143), "optic": Vector3(0.0, 0.015, 0.014), "optic_scale": 0.65, "underbarrel": Vector3(0.0, -0.022, -0.072), "side": Vector3(0.016, -0.003, -0.062), "magazine": Vector3(0.0, -0.204, 0.025), "mag": "mac10magazine_low"},
+	&"carbine": {"muzzle": Vector3(0.0, 0.031, -0.548), "optic": Vector3(0.0, 0.079, -0.186), "underbarrel": Vector3(0.0, 0.021, -0.386), "side": Vector3(0.007, 0.031, -0.361), "magazine": Vector3(0.0, -0.179, -0.188), "mag": "akmagazine_low_001"},
+	&"rifle": {"muzzle": Vector3(0.0, 0.029, -0.573), "optic": Vector3(0.0, 0.058, -0.077), "underbarrel": Vector3(0.0, 0.003, -0.350), "side": Vector3(0.017, 0.029, -0.316), "magazine": Vector3(0.0, -0.170, -0.190), "mag": "magazine"},
 	&"bullpup": {"muzzle": Vector3(0.0, 0.093, -0.451), "underbarrel": Vector3(0.0, 0.024, -0.256), "side": Vector3(0.048, 0.093, -0.226)},
-	&"battle_rifle": {"muzzle": Vector3(0.000, 0.062, -0.672), "optic": Vector3(0.000, 0.098, -0.078), "underbarrel": Vector3(0.000, 0.030, -0.406), "side": Vector3(0.024, 0.062, -0.365), "magazine": Vector3(0.000, -0.129, -0.163), "mag": "magazine"},  # 1.025 long
-	&"burst_rifle": {"muzzle": Vector3(-0.000, 0.015, -0.579), "optic": Vector3(-0.000, 0.045, -0.047), "underbarrel": Vector3(-0.000, -0.001, -0.341), "side": Vector3(0.017, 0.015, -0.304), "magazine": Vector3(-0.000, -0.108, -0.070), "mag": "magazine"},  # 0.916 long
-	&"pump_shotgun": {"muzzle": Vector3(0.0, 0.059, -0.444), "optic": Vector3(0.0, 0.040, 0.071), "side": Vector3(0.017, 0.059, -0.178)},
-	&"drum_shotgun": {"muzzle": Vector3(0.0, 0.172, -0.384), "optic": Vector3(0.0, 0.240, 0.111), "underbarrel": Vector3(0.0, 0.070, -0.162), "side": Vector3(0.081, 0.172, -0.128)},
+	&"battle_rifle": {"muzzle": Vector3(0.000, 0.062, -0.672), "optic": Vector3(0.000, 0.101, -0.078), "underbarrel": Vector3(0.000, 0.030, -0.406), "side": Vector3(0.024, 0.062, -0.365), "magazine": Vector3(0.000, -0.129, -0.163), "mag": "magazine"},  # 1.025 long
+	&"burst_rifle": {"muzzle": Vector3(-0.000, 0.015, -0.579), "optic": Vector3(-0.000, 0.047, -0.047), "underbarrel": Vector3(-0.000, -0.001, -0.341), "side": Vector3(0.017, 0.015, -0.304), "magazine": Vector3(-0.000, -0.108, -0.070), "mag": "magazine"},  # 0.916 long
+	&"pump_shotgun": {"muzzle": Vector3(0.0, 0.059, -0.444), "optic": Vector3(0.0, 0.092, 0.071), "side": Vector3(0.017, 0.059, -0.178)},
+	&"drum_shotgun": {"muzzle": Vector3(0.0, 0.172, -0.384), "optic": Vector3(0.0, 0.225, 0.111), "optic_scale": 2.0, "underbarrel": Vector3(0.0, 0.070, -0.162), "side": Vector3(0.081, 0.172, -0.128)},
 	&"marksman": {"muzzle": Vector3(0.0, 0.090, -0.882), "underbarrel": Vector3(0.0, 0.040, -0.595), "side": Vector3(0.121, 0.090, -0.551)},
-	&"lmg": {"muzzle": Vector3(0.0, 0.161, -0.795), "optic": Vector3(0.0, 0.300, -0.181), "underbarrel": Vector3(0.0, 0.120, -0.520), "side": Vector3(0.172, 0.161, -0.477)},
+	&"lmg": {"muzzle": Vector3(0.0, 0.161, -0.795), "optic": Vector3(0.0, 0.310, -0.181), "optic_scale": 2.0, "underbarrel": Vector3(0.0, 0.120, -0.520), "side": Vector3(0.172, 0.161, -0.477)},
 	&"sniper_ph": {"optic": Vector3(0.0, 0.084, -0.074), "replaces": ["scope", "scope_lens", "scope_reticle", "scope_eyecup", "scope_eyecup_lip"], "muzzle": Vector3(0.0, 0.078, -0.804), "underbarrel": Vector3(0.0, 0.060, -0.532), "side": Vector3(0.013, 0.078, -0.490)},
 	&"grenade_launcher": {"side": Vector3(0.132, 0.101, -0.281)},
 	&"plasma_rifle": {"underbarrel": Vector3(0.0, -0.052, -0.375), "side": Vector3(0.081, 0.074, -0.341)},

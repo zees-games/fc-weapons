@@ -65,6 +65,7 @@ func _attachments() -> void:
 	var mag_socket := gun.find_child("socket_magazine", true, false)
 	_check("the magazine extension rides on the magazine", mag_socket != null and mag_socket.get_parent().name == &"magazine")
 	_check("the scope gives the sight picture: scoped, its zoom, a line through the glass", dressed.scoped and is_equal_approx(dressed.zoom, 0.17) and dressed.line.has("front"))
+	_check("a fitted scope brings its own ocular (the gun stays up through it)", (dressed.ocular as Array).size() == 4 and is_equal_approx(float(dressed.ocular[3]), Dress.OCULAR_RADIUS))
 	var socket_z := absf((gun.find_child("socket_muzzle", true, false) as Node3D).position.z)
 	_check("the suppressor moves the muzzle out (%.3f past %.3f)" % [dressed.reach, socket_z], dressed.reach > socket_z + 0.1)
 	_check("the server measures the same reach", is_equal_approx(Dress.muzzle_reach(art, full), dressed.reach))
@@ -72,6 +73,7 @@ func _attachments() -> void:
 	dot.fit(GSWeaponAttachment.MOUNT_OPTIC, &"red_dot")
 	dressed = Dress.apply(gun, dot, art.model_forward, dressed)
 	_check("a red dot swaps in unscoped at its own zoom", dressed.parts.size() == 1 and not dressed.scoped and is_equal_approx(dressed.zoom, 0.83))
+	_check("a red dot has no ocular: it is no lens view", (dressed.ocular as Array).is_empty())
 	var skew := PackedStringArray()
 	for optic: StringName in [&"red_dot", &"holo", &"prism_3x", &"scope_6x"]:
 		var one := GSWeaponFitting.make(rifle.id)
