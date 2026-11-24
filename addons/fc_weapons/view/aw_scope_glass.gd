@@ -27,7 +27,9 @@ void fragment() {
 	vec3 col = texture(picture, vec2(uv_at.x, uv_at.y)).rgb * tint.rgb;
 	col *= 1.0 - vignette * smoothstep(0.55, 1.0, r);
 	float px = fwidth(r) * 1.5;
-	float line = max(1.0 - smoothstep(0.004, 0.004 + px, abs(p.x)), 1.0 - smoothstep(0.004, 0.004 + px, abs(p.y)));
+	// Lines at least a pixel and a half wide, so the reticle reads on the small hip lens.
+	float hw = max(0.004, px * 0.75);
+	float line = max(1.0 - smoothstep(hw, hw + px, abs(p.x)), 1.0 - smoothstep(hw, hw + px, abs(p.y)));
 	line *= step(0.06, r);
 	float ticks = 0.0;
 	for (int i = 1; i < 5; i++) {
@@ -37,6 +39,10 @@ void fragment() {
 	}
 	float mark = clamp(max(line, ticks), 0.0, 1.0) * reticle_colour.a;
 	col = mix(col, reticle_colour.rgb, mark);
+	// Glass: a soft diagonal glint across the upper left and a dark metal lip at the edge.
+	float glint = smoothstep(0.35, 0.0, abs(p.x * 0.7 + p.y * 0.7 + 0.45)) * (1.0 - smoothstep(0.7, 0.95, r)) * 0.22;
+	col += vec3(0.85, 0.95, 1.0) * glint;
+	col = mix(col, vec3(0.03, 0.04, 0.05), smoothstep(0.86, 0.96, r));
 	ALBEDO = col;
 }
 """

@@ -33,6 +33,8 @@ const SCOPE_GUN_HIDE_FRACTION := 0.5
 ## On the way out the gun stays hidden until the surround is this nearly gone, so it never shows through a half-faded scope.
 const SCOPE_GUN_SHOW_FRACTION := 0.02
 var _gun_covered := false
+## The shortest time (seconds) a scope takes to lower from full aim.
+const SCOPE_LOWER_TIME := 0.3
 var _charge_fx: Node3D = null
 ## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
 ## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
@@ -580,6 +582,9 @@ func _advance_aim(delta: float) -> void:
 		_pose.gun_strafe = ads_rules.strafe_for(_art.id)
 	if not can_aim():
 		_aim_held = false
+	# Lowering out of a scope takes at least SCOPE_LOWER_TIME, so the overlay and the zoom ease out over several frames, not two.
+	if target <= 0.0 and has_scope() and _aim_fraction > 0.0:
+		time = maxf(time, SCOPE_LOWER_TIME)
 	_aim_fraction = move_toward(_aim_fraction, target, delta / maxf(time, 0.01))
 	var surround := scope_fraction()
 	if surround >= SCOPE_GUN_HIDE_FRACTION:
