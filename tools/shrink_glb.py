@@ -32,7 +32,7 @@ for im in list(bpy.data.images):
     else:
         seen[key] = im
 for im in bpy.data.images:
-    if im.size[0] > opt["--tex"]:
+    if im.size[0] >= opt["--tex"]:  # equal too: scaling re-encodes the original bytes at --quality
         im.scale(opt["--tex"], opt["--tex"])
 
 if opt["--ratio"] < 1.0:

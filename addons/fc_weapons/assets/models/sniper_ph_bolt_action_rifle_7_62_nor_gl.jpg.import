@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgvonjctq8lyl"
-path="res://.godot/imported/sniper_ph_2.png-87932287509013f14e44f33b60fcfb44.ctex"
+uid="uid://daoxkgxi17e7k"
+path="res://.godot/imported/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg-532c33ca23673d043ba8868bc1ff451f.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "47eeb8164611f206b61148492b1b5ac7"
+"md5": "4740ff18dc65b15a81a2396e9caab4f8"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/sniper_ph_2.png"
-dest_files=["res://.godot/imported/sniper_ph_2.png-87932287509013f14e44f33b60fcfb44.ctex"]
+source_file="res://addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg"
+dest_files=["res://.godot/imported/sniper_ph_bolt_action_rifle_7_62_nor_gl.jpg-532c33ca23673d043ba8868bc1ff451f.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

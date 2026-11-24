@@ -48,3 +48,8 @@ Pistol: `hold (0.12, -0.06, -0.36)`, view `scale 1.4`, `support_grip` as the old
 - Stick grenade, fish knife and machete are CC0 and small (2.7k to 6k tris) but not wired: each needs its own hold/aim rounds.
 - `tools/render_weapons.sh` crashes on dev02 llvmpipe without `--rendering-method gl_compatibility --rendering-driver opengl3`.
 - Weapons with no equivalent yet (SMG, carbine, shotgun, LMG, launchers) need other sources; see the OpenGameArt leads.
+
+
+## sniper_ph at 2K (fc-weapons-modeldetail)
+
+`sniper_ph` ships at 2048 px maps and the full 18.3k-triangle mesh (was 1K and 50 % decimated, 9.1k): `bake_polyhaven.py`, then `shrink_glb.py --tex 2048 --ratio 1.0` (Blender with numpy on its path). Source: Poly Haven `bolt_action_rifle_7_62` by Mateusz Sadek, CC0 (https://polyhaven.com/a/bolt_action_rifle_7_62), already in `CREDITS.md`. The glb is 11.9 MB; its maps are extracted beside it. Before/after: `screenshots/modeldetail/`.

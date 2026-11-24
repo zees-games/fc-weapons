@@ -412,7 +412,7 @@ func _download_groups() -> void:
 		if not groups.has(name):
 			stray.append(name)
 	_check("every group the code names is in groups.json", stray.is_empty())
-	_check("the sniper's textures are extracted, so its model is a few hundred KB, not 4.8 MB", FileAccess.file_exists("res://addons/fc_weapons/assets/models/sniper_ph_0.jpg"))
+	_check("the sniper's textures are extracted, so its model is a few hundred KB, not 4.8 MB", FileAccess.file_exists("res://addons/fc_weapons/assets/models/sniper_ph_bolt_action_rifle_7_62_diff.jpg"))
 	_end()
 
 
