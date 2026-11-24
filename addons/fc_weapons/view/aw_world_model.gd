@@ -346,7 +346,9 @@ func on_fired(
 			_charge_fx.note_fired()
 		_shot_fx().play_remote(kind, muzzle_transform(), muzzle_direction(), _id, _last_charge)
 		if kind == AwWeaponNet.KIND_SHOT and _art != null and _art.ejects and _weapon != null:
-			_shot_fx().play_eject(eject_transform(), _id, _art.eject_speed)
+			var drawn := _weapon.global_transform.basis.get_scale()
+			_shot_fx().play_eject(eject_transform(), _id, _art.eject_speed,
+					(absf(drawn.x) + absf(drawn.y) + absf(drawn.z)) / 3.0)
 
 
 ## Plays [constant SWING_KEYS] from the top: what [method on_fired] does with a swing. A swing
