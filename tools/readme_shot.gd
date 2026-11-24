@@ -152,7 +152,7 @@ func _build_stage(size: Vector2i) -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.ambient_light_energy = float(_cfg.get_value("look", "ambient", 0.55))
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_mode = int(_cfg.get_value("look", "tonemap", Environment.TONE_MAPPER_AGX))
 	env.tonemap_exposure = float(_cfg.get_value("look", "exposure", 1.0))
 	env.ssao_enabled = true
 	env.ssao_radius = 0.25
