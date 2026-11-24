@@ -140,6 +140,12 @@ func _scope_modes() -> void:
 	view.ads_rules = rules
 	_check("the view model applies the server's pin", view.resolve_scope_mode(1) == 2)
 
+	_scope_overlay(view, art)
+	_end()
+
+
+## The scope overlay follows the view: mode, clear, lens size and zoom, then the next gun drops the last gun's lens. Frees [param view].
+func _scope_overlay(view: AwViewModel, art: AwWeaponVisual) -> void:
 	var overlay := AwScopeOverlay.new()
 	add_child(overlay)
 	overlay.fraction = 1.0
@@ -167,7 +173,6 @@ func _scope_modes() -> void:
 	camera.queue_free()
 	overlay.queue_free()
 	view.queue_free()
-	_end()
 
 
 func _red_dot_parts() -> void:

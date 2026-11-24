@@ -19,7 +19,6 @@ func _attachments() -> void:
 	_check("every attachment model loads; each optic has its glass", atts.all(_model_ok))
 
 	var rifle := _def(defs, &"aw_rifle")
-	var sniper := _def(defs, &"aw_sniper")
 	var marksman := _def(defs, &"aw_marksman")
 	var pistol := _def(defs, &"aw_pistol")
 	_check("a rifle has all five mounts", rifle.mounts.size() == 5)
@@ -85,6 +84,13 @@ func _attachments() -> void:
 			skew.append("%s %.3f" % [optic, off / maxf(absf(ray.z), 0.0001)])
 	_check("every optic's sight line runs along the bore, not skewed by its lens (%s)" % [", ".join(skew)], skew.is_empty())
 	gun.free()
+	_sniper_optic(_def(defs, &"aw_sniper"))
+	_mounts_valid(defs, cat)
+	_end()
+
+
+## A fitted optic on the sniper hides its built-in scope and takes over the sight picture; clearing the fitting brings the scope back.
+func _sniper_optic(sniper: GSWeaponDef) -> void:
 	var sniper_art := AwWeaponVisual.new()
 	AwArtDress.apply(sniper_art, AwWeaponArt.row_of(&"sniper"))
 	var sniper_gun := AwModelCache.instantiate(sniper_art.model_path)
@@ -97,8 +103,6 @@ func _attachments() -> void:
 	Dress.clear(sd)
 	_check("clearing the fitting brings the built-in scope back", own_scope.visible)
 	sniper_gun.free()
-	_mounts_valid(defs, cat)
-	_end()
 
 
 ## Every weapon x offered attachment: the gun has the mount's socket, the socket sits on the gun, and the part drawn there touches the gun, is bore-centred (muzzle) and of sane size.
