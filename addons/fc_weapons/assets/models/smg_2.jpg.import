@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bnhwyrr2x8ox6"
-path="res://.godot/imported/pump_shotgun_2.png-0034c1f6b9233e87885eeebcda94bbbc.ctex"
+uid="uid://dcsjq4v2ndyba"
+path="res://.godot/imported/smg_2.jpg-cd03505fb25ee6819ee570e07bac356f.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "213978a60ff47d4a5c0efff4c7818688"
+"md5": "4f3ec271a0544a2f9a8aee18ea3a6712"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/pump_shotgun_2.png"
-dest_files=["res://.godot/imported/pump_shotgun_2.png-0034c1f6b9233e87885eeebcda94bbbc.ctex"]
+source_file="res://addons/fc_weapons/assets/models/smg_2.jpg"
+dest_files=["res://.godot/imported/smg_2.jpg-cd03505fb25ee6819ee570e07bac356f.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
