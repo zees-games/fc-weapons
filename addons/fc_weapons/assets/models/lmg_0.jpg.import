@@ -2,13 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://fw7scd6qihoo"
+uid="uid://b1pucf8yaaaer"
 path="res://.godot/imported/lmg_0.jpg-0a5cc99c1dd14b202fa01e400fa8414a.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "6315c9c95efc9c56ef62ec72b2506236"
+"md5": "95aca58c1bea289de6002a1f1e15bccc"
 }
 
 [deps]
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/lmg_0.jpg-0a5cc99c1dd14b202fa01e400fa8414a.ct
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

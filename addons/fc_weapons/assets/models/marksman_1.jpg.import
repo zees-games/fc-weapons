@@ -2,13 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dh0xqt27w1gt8"
+uid="uid://bwfhjavpyipta"
 path="res://.godot/imported/marksman_1.jpg-9160a5eedab0ca61b43e0daa51db9c39.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "7e515ffb3dd80dcbaceed115196810a2"
+"md5": "76368f729c2834fc406f9ea1ceda8b2a"
 }
 
 [deps]
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/marksman_1.jpg-9160a5eedab0ca61b43e0daa51db9c
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

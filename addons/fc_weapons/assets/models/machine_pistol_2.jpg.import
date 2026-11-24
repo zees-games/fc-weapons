@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dd4pvdcar3nio"
-path="res://.godot/imported/rifle_2.png-60ecc3adb6ac2205ea1f64f0feac5cdd.ctex"
+uid="uid://qaxrx2685qvb"
+path="res://.godot/imported/machine_pistol_2.jpg-5f924e6211b541cfdf946ee7ba4e59bf.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "417e0a504515fb243026c62f1ec0cfcf"
+"md5": "a2836b0b67ec7d36e6d0db2c54fdad3d"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/rifle_2.png"
-dest_files=["res://.godot/imported/rifle_2.png-60ecc3adb6ac2205ea1f64f0feac5cdd.ctex"]
+source_file="res://addons/fc_weapons/assets/models/machine_pistol_2.jpg"
+dest_files=["res://.godot/imported/machine_pistol_2.jpg-5f924e6211b541cfdf946ee7ba4e59bf.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

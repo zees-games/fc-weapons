@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b2ici62kg7f6w"
-path="res://.godot/imported/rocket_launcher_2.png-c42685a509a1cccc9634d480eec642a9.ctex"
+uid="uid://cv3gbdloxo27n"
+path="res://.godot/imported/marksman_2.jpg-5f1b2d452dd4c0cabbb109579be079b6.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "192b379f5a172c8ad93aaad527b7d9e4"
+"md5": "2d6b21045a290a51397a590bc5d2de4d"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/rocket_launcher_2.png"
-dest_files=["res://.godot/imported/rocket_launcher_2.png-c42685a509a1cccc9634d480eec642a9.ctex"]
+source_file="res://addons/fc_weapons/assets/models/marksman_2.jpg"
+dest_files=["res://.godot/imported/marksman_2.jpg-5f1b2d452dd4c0cabbb109579be079b6.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

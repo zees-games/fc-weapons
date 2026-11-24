@@ -2,10 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cw0sy3ehmi8dn"
+uid="uid://cp24877eg54dm"
 path="res://.godot/imported/lmg_2.jpg-b9e3484d3bf07058681afdb7c3ac350e.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "d192484da1741c196b3879c895d600b4"
 }
 
 [deps]
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bnkhiue6rp6xn"
-path="res://.godot/imported/machine_pistol_2.png-e06e81900c70a94fad93cb84a4aa0f48.ctex"
+uid="uid://bpnnogb0o35mf"
+path="res://.godot/imported/rocket_launcher_2.jpg-d3d7b18050ff44fcd022364009ec82e0.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "304efff2b8aca0bd5e2f95fe9154e3bc"
+"md5": "b5a950a2fac2e85e7abd400ae2e7fc14"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/machine_pistol_2.png"
-dest_files=["res://.godot/imported/machine_pistol_2.png-e06e81900c70a94fad93cb84a4aa0f48.ctex"]
+source_file="res://addons/fc_weapons/assets/models/rocket_launcher_2.jpg"
+dest_files=["res://.godot/imported/rocket_launcher_2.jpg-d3d7b18050ff44fcd022364009ec82e0.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1

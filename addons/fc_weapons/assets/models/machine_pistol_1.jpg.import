@@ -2,13 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cq4vce338sp1m"
+uid="uid://bqpfiivtowwcx"
 path="res://.godot/imported/machine_pistol_1.jpg-c3874e9dd31404c7396ee4151d28fe19.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "7221bf86897464362b77c64907f18509"
+"md5": "034b10d3a8a025db81bc140ce5bc48a3"
 }
 
 [deps]
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/machine_pistol_1.jpg-c3874e9dd31404c7396ee415
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
