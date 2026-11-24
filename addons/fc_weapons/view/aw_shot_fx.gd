@@ -239,7 +239,7 @@ func play_use(outcome: GSWeaponOutcome, muzzle: Transform3D, id: StringName, fol
 			if drawn >= MAX_TRACERS_PER_USE:
 				break
 			drawn += 1
-			_trace(muzzle.origin, shot.origin, direction, shot.max_range, beam, rail, weapon_class)
+			_trace(muzzle.origin, shot.origin, direction, shot.max_range, beam, rail, weapon_class, follow)
 
 
 ## A use somebody else made, known only by its kind: a watcher's view, from the world
@@ -505,6 +505,11 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 			# along it reads as something that was fired.
 			var from: Vector3 = fx["from"]
 			var to: Vector3 = fx["to"]
+			var tail_on: Variant = fx.get("follow")
+			if tail_on is Callable and (tail_on as Callable).is_valid():
+				var now: Variant = (tail_on as Callable).call()
+				if now is Transform3D:
+					from = (now as Transform3D).origin
 			var length: float = fx["length"]
 			var total := from.distance_to(to)
 			var head := minf(total, total * through * 1.15 + length * 0.5)
@@ -591,7 +596,7 @@ func _advance_marks(delta: float) -> void:
 
 func _trace(
 	muzzle: Vector3, eye: Vector3, direction: Vector3, reach: float, beam: bool,
-	rail: bool = false, weapon_class: StringName = &""
+	rail: bool = false, weapon_class: StringName = &"", follow: Callable = Callable()
 ) -> void:
 	var dir := direction.normalized()
 	if not dir.is_finite() or dir.is_zero_approx():
@@ -622,13 +627,15 @@ func _trace(
 	elif beam:
 		_beam(muzzle, end)
 	else:
-		_tracer(muzzle, end, weapon_class)
+		_tracer(muzzle, end, weapon_class, follow)
 
 	if hit:
 		play_impact(end, normal, collider, weapon_class, shape)
 
 
-func _tracer(from: Vector3, to: Vector3, weapon_class: StringName = &"") -> void:
+## [param follow] (first person): the muzzle's current transform; the tracer's tail stays on the barrel while the shot's kick moves it, instead of
+## starting where the muzzle was before the kick (a streak below and left of the bore).
+func _tracer(from: Vector3, to: Vector3, weapon_class: StringName = &"", follow: Callable = Callable()) -> void:
 	var total := from.distance_to(to)
 	if total < 0.05:
 		return
@@ -640,8 +647,11 @@ func _tracer(from: Vector3, to: Vector3, weapon_class: StringName = &"") -> void
 	var life := clampf(total / 420.0, 0.045, 0.11)
 	var look := round_profile(weapon_class)
 	var length := minf(clampf(total * 0.3, 0.6, 5.0) * float(look["length"]), total)
-	_add(node, {"kind": &"tracer", "life": life, "from": from, "to": to,
-		"length": length, "width": float(look["width"])})
+	var fx := {"kind": &"tracer", "life": life, "from": from, "to": to,
+		"length": length, "width": float(look["width"])}
+	if follow.is_valid():
+		fx["follow"] = follow
+	_add(node, fx)
 	_place_along(node, from, to - from, 0.001, 0.001)
 
 

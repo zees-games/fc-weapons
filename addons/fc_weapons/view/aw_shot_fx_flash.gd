@@ -240,6 +240,27 @@ static func is_unfaded(flash: Node) -> bool:
 			return false
 	return true
 
+## The Binbun big and wide flashes 02 and 03 are pink-white, which reads as a pink star on a rifle; a flash gs-weapon hashed onto one is rebuilt on a warm variant.
+const PINK_VARIANTS: Array[int] = [2, 3]
+const WARM_VARIANTS: Array[int] = [1, 4, 5, 6]
+
+
+func _warm_variant(flash: Node3D, first_person: bool) -> Node3D:
+	var picked: int = int(flash.get("variant"))
+	if picked > 0 and not PINK_VARIANTS.has(picked):
+		return flash
+	var parent := flash.get_parent()
+	var size: int = int(flash.get("size"))
+	var rebuilt: Node3D = flash.get_script().new()
+	rebuilt.set("size", size)
+	rebuilt.set("first_person", first_person)
+	rebuilt.set("variant", WARM_VARIANTS[size % WARM_VARIANTS.size()])
+	rebuilt.process_mode = Node.PROCESS_MODE_INHERIT
+	flash.queue_free()
+	parent.add_child(rebuilt)
+	return rebuilt
+
+
 ## One pooled flash per size and view, moved to the muzzle for each shot. False only when gs-fx is not linked; size none, quality off and a headless server draw nothing and count as handled.
 func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id: StringName, first_person: bool) -> bool:
 	if not ResourceLoader.exists(GSWeaponMuzzle.SCRIPT_PATH):
@@ -261,6 +282,7 @@ func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id:
 	if not _pack_flashes.has(key) or (_pack_flashes[key] != null and not is_instance_valid(_pack_flashes[key])):
 		var made := GSWeaponMuzzle.attach(self, category, def, first_person, weapon_class == AwWeaponSound.SUPPRESSED)
 		if made != null:
+			made = _warm_variant(made, first_person)
 			made.top_level = true
 		_pack_flashes[key] = made
 		fresh = true
