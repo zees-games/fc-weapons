@@ -2,31 +2,28 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0bgb5f4odmdd"
-path="res://.godot/imported/plasma_rifle_2.png-c948e4dcd88cb891a2ede634ceb5c3ff.ctex"
+uid="uid://bhyie6y63cnr4"
+path="res://.godot/imported/drum_shotgun_2.jpg-9568ecce29e99aa8ae08d4268c6c6a37.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "185fc88f7f7cd5a1c6d57be7c649dfcb"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/plasma_rifle_2.png"
-dest_files=["res://.godot/imported/plasma_rifle_2.png-c948e4dcd88cb891a2ede634ceb5c3ff.ctex"]
+source_file="res://addons/fc_weapons/assets/models/drum_shotgun_2.jpg"
+dest_files=["res://.godot/imported/drum_shotgun_2.jpg-9568ecce29e99aa8ae08d4268c6c6a37.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
