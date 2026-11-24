@@ -95,7 +95,58 @@ func _attachments() -> void:
 	Dress.clear(sd)
 	_check("clearing the fitting brings the built-in scope back", own_scope.visible)
 	sniper_gun.free()
+	_mounts_valid(defs, cat)
 	_end()
+
+
+## Every weapon x offered attachment: the gun has the mount's socket, the socket sits on the gun, and the part drawn there touches the gun, is bore-centred (muzzle) and of sane size.
+func _mounts_valid(defs: Array[GSWeaponDef], cat: GSWeaponAttachments) -> void:
+	var rows := AwSpawnProvider.art_rows()
+	var bad := PackedStringArray()
+	var no_socket := PackedStringArray()
+	var combos := 0
+	for def in defs:
+		if def.mounts.is_empty() or not rows.has(def.id):
+			continue
+		var art := AwWeaponVisual.new()
+		AwArtDress.apply(art, rows[def.id])
+		var choices := cat.choices_for(def)
+		for mount: StringName in choices:
+			for id: StringName in choices[mount]:
+				combos += 1
+				var gun := AwModelCache.instantiate(art.model_path)
+				var gun_box: AABB = Dress._bounds(gun, gun).grow(0.02)
+				var fit := GSWeaponFitting.make(def.id)
+				fit.fit(mount, id)
+				var d := Dress.apply(gun, fit, art.model_forward, {})
+				var socket := gun.find_child(String(AwAttachmentArt.socket_name(mount)), true, false) as Node3D
+				var tag := "%s/%s" % [def.id, id]
+				if socket == null or d.parts.size() != 1:
+					no_socket.append(tag)
+				else:
+					var box: AABB = Dress._bounds(d.parts[0], gun)
+					var sp := Transform3D.IDENTITY
+					var up: Node = socket
+					while up != null and up != gun:
+						sp = (up as Node3D).transform * sp
+						up = up.get_parent()
+					var pos := sp.origin
+					var why := ""
+					if not gun_box.has_point(pos):
+						why = "socket %s off the gun %s" % [pos, gun_box]
+					elif not gun_box.intersects(box):
+						why = "floats clear of the gun"
+					elif box.size.length() > 0.8 or box.size.length() < 0.01:
+						why = "size %.2f" % box.size.length()
+					elif mount == GSWeaponAttachment.MOUNT_MUZZLE and (absf(box.get_center().x - pos.x) > 0.03 or absf(box.get_center().y - pos.y) > 0.04):
+						why = "off the bore"
+					elif mount == GSWeaponAttachment.MOUNT_OPTIC and (box.position.y > pos.y + 0.03 or box.end.y < pos.y):
+						why = "optic not seated on its socket"
+					if why != "":
+						bad.append("%s %s" % [tag, why])
+				gun.free()
+	_check("every weapon x attachment has a socket and a part (%d combos; %s)" % [combos, ", ".join(no_socket)], combos > 100 and no_socket.is_empty())
+	_check("every mount sits on its gun, touching it, bore-centred, sane size (%s)" % [", ".join(bad)], bad.is_empty())
 
 
 func _model_ok(a: GSWeaponAttachment) -> bool:

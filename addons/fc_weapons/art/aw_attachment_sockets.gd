@@ -7,7 +7,7 @@ extends RefCounted
 const SOCKETS := {
 	&"pistol_ph": {"muzzle": Vector3(0.0, 0.050, -0.151), "optic": Vector3(0.0, 0.060, -0.048), "side": Vector3(0.010, 0.050, -0.098), "magazine": Vector3(0.0, -0.042, -0.003), "mag": "magazine"},
 	&"revolver": {"optic": Vector3(0.0, 0.132, -0.045), "side": Vector3(0.018, 0.106, -0.135)},
-	&"machine_pistol": {"muzzle": Vector3(0.0, 0.128, -0.274), "optic": Vector3(0.0, 0.196, -0.023), "side": Vector3(0.032, 0.128, -0.144)},
+	&"machine_pistol": {"muzzle": Vector3(0.0, 0.128, -0.274), "optic": Vector3(0.0, 0.168, -0.023), "side": Vector3(0.032, 0.128, -0.144)},
 	&"derringer": {"side": Vector3(0.016, 0.030, -0.072)},
 	&"smg": {"muzzle": Vector3(0.0, -0.003, -0.143), "optic": Vector3(0.0, 0.033, 0.014), "underbarrel": Vector3(0.0, -0.022, -0.072), "side": Vector3(0.016, -0.003, -0.062), "magazine": Vector3(0.0, -0.204, 0.025), "mag": "mac10magazine_low"},
 	&"carbine": {"muzzle": Vector3(0.0, 0.031, -0.548), "optic": Vector3(0.0, 0.079, -0.186), "underbarrel": Vector3(0.0, 0.021, -0.386), "side": Vector3(0.007, 0.031, -0.361), "magazine": Vector3(0.0, -0.179, -0.188), "mag": "akmagazine_low_001"},
