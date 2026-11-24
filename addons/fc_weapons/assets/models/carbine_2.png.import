@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qaxrx2685qvb"
-path="res://.godot/imported/machine_pistol_2.jpg-5f924e6211b541cfdf946ee7ba4e59bf.ctex"
+uid="uid://c6buewkumtvwc"
+path="res://.godot/imported/carbine_2.png-5343ce69dcdff4b8f7147e944fa57bfe.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "a2836b0b67ec7d36e6d0db2c54fdad3d"
+"md5": "4ce9db30c42cacbdf681270f62b943e1"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/machine_pistol_2.jpg"
-dest_files=["res://.godot/imported/machine_pistol_2.jpg-5f924e6211b541cfdf946ee7ba4e59bf.ctex"]
+source_file="res://addons/fc_weapons/assets/models/carbine_2.png"
+dest_files=["res://.godot/imported/carbine_2.png-5343ce69dcdff4b8f7147e944fa57bfe.ctex"]
 
 [params]
 

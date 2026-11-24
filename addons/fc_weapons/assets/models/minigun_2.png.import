@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cv3gbdloxo27n"
-path="res://.godot/imported/marksman_2.jpg-5f1b2d452dd4c0cabbb109579be079b6.ctex"
+uid="uid://ebgwnecre8eu"
+path="res://.godot/imported/minigun_2.png-868102a18df4444124bab15846014a5b.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "2d6b21045a290a51397a590bc5d2de4d"
+"md5": "368f3ca5026ac4ef35c823d34aa6eca6"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/marksman_2.jpg"
-dest_files=["res://.godot/imported/marksman_2.jpg-5f1b2d452dd4c0cabbb109579be079b6.ctex"]
+source_file="res://addons/fc_weapons/assets/models/minigun_2.png"
+dest_files=["res://.godot/imported/minigun_2.png-868102a18df4444124bab15846014a5b.ctex"]
 
 [params]
 

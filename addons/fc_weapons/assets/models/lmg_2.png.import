@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dka4u17to5gs4"
-path="res://.godot/imported/carbine_2.jpg-225a0d9704252b15494aa5af867f15d6.ctex"
+uid="uid://dtor6270ynaw4"
+path="res://.godot/imported/lmg_2.png-790d0761eea4c008caa97a9090ec9325.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "61eb838fe42da2a147a037bb243aacc7"
+"md5": "369b611160b64920f73365330e6b68f1"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/carbine_2.jpg"
-dest_files=["res://.godot/imported/carbine_2.jpg-225a0d9704252b15494aa5af867f15d6.ctex"]
+source_file="res://addons/fc_weapons/assets/models/lmg_2.png"
+dest_files=["res://.godot/imported/lmg_2.png-790d0761eea4c008caa97a9090ec9325.ctex"]
 
 [params]
 
