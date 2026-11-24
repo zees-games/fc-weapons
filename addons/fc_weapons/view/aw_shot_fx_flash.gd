@@ -63,6 +63,9 @@ var _pack_flashes: Dictionary = {}
 ## The last [method _pack_flash] put a flash on screen (and its light), so the core is drawn without a second light.
 var _pack_drew := false
 
+## The pack flash node the last [method _pack_flash] drew, so a first-person flash can follow the muzzle.
+var _pack_node: Node3D = null
+
 ## Reused flash lights and quads (gs-fx), so a shot builds and frees no node.
 var _lights: GSFxLightPool = null
 var _meshes: GSFxMeshPool = null
@@ -76,8 +79,9 @@ func _lights_live() -> int:
 	return count
 
 func _flash(muzzle: Transform3D, size: float, weapon_class: StringName = AwWeaponSound.RIFLE,
-		id: StringName = &"", first_person: bool = false) -> void:
+		id: StringName = &"", first_person: bool = false, follow: Callable = Callable()) -> void:
 	_pack_drew = false
+	_pack_node = null
 	if binbun_flash and _pack_flash(muzzle, size, weapon_class, id, first_person) and not _pack_drew:
 		return
 	# A pack flash drawn still gets the core and petals below: alone it was lost on a pale barrel (renders 2026-11).
@@ -120,9 +124,21 @@ func _flash(muzzle: Transform3D, size: float, weapon_class: StringName = AwWeapo
 		fx["energy"] = light.light_energy
 		fx["has_light"] = true
 
+	# A first-person flash rides the muzzle for its life: the view kicks ~20 degrees within two frames, and a flash left where the muzzle was sat well below it.
+	if first_person and follow.is_valid():
+		fx["follow"] = follow
+		fx["rel"] = muzzle.affine_inverse() * node.global_transform
+		if _pack_drew and is_instance_valid(_pack_node):
+			fx["pack"] = _pack_node
+		if light != null:
+			fx["light_rel"] = muzzle.affine_inverse() * light.global_transform
 	_add(node, fx)
 	for petal in petals:
-		_add(petal, {"kind": &"petal", "life": 0.05})
+		var pfx := {"kind": &"petal", "life": 0.05}
+		if first_person and follow.is_valid():
+			pfx["follow"] = follow
+			pfx["rel"] = muzzle.affine_inverse() * petal.global_transform
+		_add(petal, pfx)
 
 
 ## The dynamic muzzle light: short, shadowless, capped by [member max_flash_lights]. Null when off or at the cap.
@@ -213,6 +229,7 @@ func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id:
 		# Not this node's child, so this node's being hidden has to be asked.
 		if is_visible_in_tree():
 			shared.global_transform = muzzle
+			_pack_node = shared
 			GSWeaponMuzzle.fire(shared)
 			_pack_flash_light(muzzle, size, weapon_class, shared)
 			_pack_drew = true
@@ -229,6 +246,7 @@ func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id:
 	if flash == null:
 		return true
 	flash.global_transform = muzzle
+	_pack_node = flash
 	var grow: float = float(PACK_GROW.get(weapon_class, 1.0)) if first_person else 1.0
 	flash.scale = Vector3.ONE * (first_person_flash_scale * grow if first_person else 1.0)
 	GSWeaponMuzzle.fire(flash)

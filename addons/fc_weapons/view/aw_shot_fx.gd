@@ -205,7 +205,8 @@ func exclude_carrier(carrier: Node) -> void:
 ##
 ## [param muzzle] is where the effect leaves from — the view model's muzzle in first
 ## person — and [param id] is the weapon, for its sound.
-func play_use(outcome: GSWeaponOutcome, muzzle: Transform3D, id: StringName) -> void:
+## [param follow] (first person): returns the muzzle's current transform, so the flash stays on a kicking barrel.
+func play_use(outcome: GSWeaponOutcome, muzzle: Transform3D, id: StringName, follow: Callable = Callable()) -> void:
 	if outcome == null or not outcome.used or not is_inside_tree():
 		return
 
@@ -219,12 +220,12 @@ func play_use(outcome: GSWeaponOutcome, muzzle: Transform3D, id: StringName) -> 
 		GSWeaponOutcome.KIND_SWING, GSWeaponOutcome.KIND_THROW:
 			return
 		GSWeaponOutcome.KIND_SPAWN:
-			_flash(muzzle, 1.4, AwWeaponSound.LAUNCHER, id, true)
+			_flash(muzzle, 1.4, AwWeaponSound.LAUNCHER, id, true, follow)
 			return
 
 	var beam := kind == GSWeaponOutcome.KIND_BEAM
 	if not beam:
-		_flash(muzzle, 1.0, AwWeaponSound.class_for(id, kind), id, true)
+		_flash(muzzle, 1.0, AwWeaponSound.class_for(id, kind), id, true, follow)
 
 	var weapon_class := AwWeaponSound.class_for(id, kind)
 	var rail := rail_charge >= CHARGE_READY and weapon_class == AwWeaponSound.CHARGE
@@ -512,15 +513,19 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 			var span := maxf(0.001, head - tail)
 			_place_along(node, mid, to - from, span, _screen_width(mid, float(fx["width"])))
 		&"beam", &"petal":
+			_follow(fx, node)
 			node.transparency = through
 		&"flashlight":
 			(node as OmniLight3D).light_energy = float(fx["energy"]) * (1.0 - through)
 		&"flash":
+			_follow(fx, node)
 			var grow := 1.0 + through * 0.6
 			node.scale = Vector3.ONE * float(fx["size"]) * grow
 			node.transparency = through * through
 			var light: Variant = fx.get("light")
 			if light is OmniLight3D and is_instance_valid(light):
+				if fx.has("light_rel") and (fx["follow"] as Callable).is_valid():
+					(light as OmniLight3D).global_transform = (fx["follow"] as Callable).call() * (fx["light_rel"] as Transform3D)
 				(light as OmniLight3D).light_energy = float(fx["energy"]) * (1.0 - through)
 		&"spark":
 			var near := _distance_scale(node.global_position)
@@ -541,6 +546,20 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 			node.global_position = (fx["origin"] as Vector3) + (fx["drift"] as Vector3) * float(fx["age"])
 			node.scale = Vector3.ONE * float(fx["size"]) * far * (0.5 + through * 1.2)
 			node.transparency = 0.3 + through * 0.7
+
+
+## Re-seats a first-person flash piece on the muzzle's current transform.
+func _follow(fx: Dictionary, node: Node3D) -> void:
+	var follow: Variant = fx.get("follow")
+	if follow is Callable and (follow as Callable).is_valid():
+		var now: Variant = (follow as Callable).call()
+		if now is Transform3D:
+			node.global_transform = (now as Transform3D) * (fx["rel"] as Transform3D)
+			var pack: Variant = fx.get("pack")
+			if is_instance_valid(pack):
+				var kept := (pack as Node3D).scale
+				(pack as Node3D).global_transform = now as Transform3D
+				(pack as Node3D).scale = kept
 
 
 func _advance_marks(delta: float) -> void:
