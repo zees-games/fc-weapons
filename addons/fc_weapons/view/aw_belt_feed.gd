@@ -5,6 +5,8 @@ extends Node3D
 const COUNT := 6
 ## Rounds per second the belt can be pulled at: a gun firing faster than this shows a belt at its limit, not a blur.
 const MAX_RATE := 14.0
+## Sides of every lathed part: round enough that a close-up shows no flats, cheap enough for six instances.
+const SIDES := 16
 
 var _from := Vector3.ZERO
 var _to := Vector3.ZERO
@@ -17,22 +19,10 @@ var _target := 0.0
 func build(from: Vector3, to: Vector3) -> void:
 	_from = from
 	_to = to
-	var prim := CylinderMesh.new()
-	prim.top_radius = 0.0065
-	prim.bottom_radius = 0.0065
-	prim.height = 0.05
-	prim.radial_segments = 6
-	# An ArrayMesh: the sight cut walks every mesh under the gun and cannot read a primitive one.
-	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, prim.get_mesh_arrays())
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.85, 0.65, 0.22)
-	mat.metallic = 0.8
-	mat.roughness = 0.35
+	var mesh := _round_mesh()
 	for i in COUNT:
 		var node := MeshInstance3D.new()
 		node.mesh = mesh
-		node.material_override = mat
 		node.rotation_degrees = Vector3(0.0, 0.0, 90.0)
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(node)
@@ -69,3 +59,61 @@ func _place() -> void:
 		node.position = at
 		# The round that has just wrapped is hidden: it is in the receiver, and a new one is at the box.
 		node.scale = Vector3.ONE * clampf(minf(t, 1.0 - t) * 12.0, 0.0, 1.0)
+
+
+## One cartridge on its link, along +Y with the base at the origin side: a brass case (rim, body, shoulder, neck), a
+## copper-jacketed ogive bullet and a steel link band. An ArrayMesh with three surfaces: the sight cut walks every mesh
+## under the gun and cannot read a primitive one.
+static func _round_mesh() -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	# (height, radius) profiles, base to tip; each is a lathe turned SIDES times, flat-shaded along the profile only.
+	var case_profile: Array[Vector2] = [
+		Vector2(-0.025, 0.0), Vector2(-0.025, 0.0070), Vector2(-0.0225, 0.0070), Vector2(-0.0225, 0.0058),
+		Vector2(-0.0205, 0.0058), Vector2(-0.0205, 0.0064), Vector2(0.004, 0.0060), Vector2(0.0085, 0.0040),
+		Vector2(0.0125, 0.0037), Vector2(0.0125, 0.0)]
+	var bullet_profile: Array[Vector2] = [Vector2(0.0125, 0.0)]
+	# An ogive: radius falls off as a circular arc to a rounded point.
+	for k in 7:
+		var u := float(k) / 6.0
+		bullet_profile.append(Vector2(0.0125 + 0.016 * u, 0.0037 * sqrt(maxf(1.0 - u * u * 0.94, 0.0))))
+	bullet_profile.append(Vector2(0.0285, 0.0))
+	var link_profile: Array[Vector2] = [
+		Vector2(-0.0085, 0.0064), Vector2(-0.0085, 0.0077), Vector2(-0.0020, 0.0077), Vector2(-0.0020, 0.0064)]
+	_lathe(mesh, case_profile, Color(0.86, 0.62, 0.2), 0.9, 0.28)
+	_lathe(mesh, bullet_profile, Color(0.62, 0.34, 0.2), 0.85, 0.32)
+	_lathe(mesh, link_profile, Color(0.42, 0.44, 0.47), 0.95, 0.45)
+	return mesh
+
+
+## Turns [param profile] about Y into one surface of [param mesh] with its own material.
+static func _lathe(mesh: ArrayMesh, profile: Array[Vector2], colour: Color, metallic: float, rough: float) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in profile.size() - 1:
+		var a := profile[i]
+		var b := profile[i + 1]
+		var tangent := b - a
+		if tangent.length() < 0.00001:
+			continue
+		# Outward normal of the segment in (height, radius) space.
+		var n2 := Vector2(-tangent.y, tangent.x).normalized()
+		for s in SIDES:
+			var a0 := TAU * float(s) / float(SIDES)
+			var a1 := TAU * float(s + 1) / float(SIDES)
+			var p00 := Vector3(cos(a0) * a.y, a.x, sin(a0) * a.y)
+			var p01 := Vector3(cos(a1) * a.y, a.x, sin(a1) * a.y)
+			var p10 := Vector3(cos(a0) * b.y, b.x, sin(a0) * b.y)
+			var p11 := Vector3(cos(a1) * b.y, b.x, sin(a1) * b.y)
+			var n0 := Vector3(cos(a0) * n2.y, n2.x, sin(a0) * n2.y)
+			var n1 := Vector3(cos(a1) * n2.y, n2.x, sin(a1) * n2.y)
+			var corners: Array[Vector3] = [p00, p11, p10, p00, p01, p11]
+			var normals: Array[Vector3] = [n0, n1, n0, n0, n1, n1]
+			for c in corners.size():
+				st.set_normal(normals[c])
+				st.add_vertex(corners[c])
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = colour
+	mat.metallic = metallic
+	mat.roughness = rough
+	st.set_material(mat)
+	st.commit(mesh)
