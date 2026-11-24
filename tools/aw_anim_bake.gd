@@ -66,6 +66,7 @@ func bake(host: Node, id: StringName, def: GSWeaponDef) -> Dictionary:
 		"version": VERSION,
 		"weapon": String(id),
 		"model": art.model_path.get_file().get_basename(),
+		"asset": "fc-weapons__" + art.model_path.trim_prefix("res://").get_basename().replace("/", "__"),
 		"fps": FPS,
 		"lens": {
 			"viewmodel_fov_h": VIEWMODEL_FOV_H, "world_fov_h": WORLD_FOV_H,

@@ -1,9 +1,10 @@
 extends SceneTree
 
 ## Bakes each weapon's procedural first-person animations into <model>.anim.json (see aw_anim_bake.gd): the sidecar Nightly's asset
-## viewer plays next to the model. Args: out_dir [id,id ...]; no ids bakes every weapon in AwWeaponArt.
+## viewer plays next to the model. Args: out_dir [id,id ...] [pack]; the file is named like Nightly's GLB for the model (pack__path__with__underscores) so the viewer finds it beside the asset. No ids bakes every weapon in AwWeaponArt.
 ## godot --headless --path . --script tools/export_anim_tracks.gd -- out_dir sniper
 const Bake := preload("aw_anim_bake.gd")
+const PACK := "fc-weapons"
 
 
 func _initialize() -> void:
@@ -29,7 +30,7 @@ func _initialize() -> void:
 		if sidecar.is_empty():
 			print("SKIP %s (no model)" % id)
 			continue
-		var path := "%s/%s.anim.json" % [out, sidecar.model]
+		var path := "%s/%s.anim.json" % [out, sidecar.asset]
 		var f := FileAccess.open(path, FileAccess.WRITE)
 		if f == null:
 			failed += 1
