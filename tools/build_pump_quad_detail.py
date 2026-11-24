@@ -106,6 +106,8 @@ if weapon == 'pump_shotgun':
             for sx in (1, -1):
                 cyl((.0186 * sx, y, z), .0026, .0022, 'x', 'M', 10)
     cyl((0, .05, .12), .0038, .040, 'x', 'D', 12)
+    # post under the rear sight ring so it stands on the receiver instead of floating above it
+    box((0, .0765, .08), (.011, .0385, .008), 'M', .0008)
     # stock: slanted butt pad, bottom sling swivel
     box((0, -.038, .4295), (.0385, .108, .007), 'D', .002, rotx=-6)
     torus((0, -.047, .277), .0055, .0014, 'x', 'M')
