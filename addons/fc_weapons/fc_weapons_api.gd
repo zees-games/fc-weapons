@@ -73,7 +73,7 @@ extends RefCounted
 #     tools/add_scope_lens.py bakes a lens, reticle and eyecup into a scoped GLB for the model viewer. AwViewModel.scope_zoom_scale(). Additive.
 # 38: A bolt or pump gun works its part after a shot, timed to the fire interval, the support hand on it, with a sound: AwWeaponVisual
 #     cycle_style / cycle_time / bolt_axis / cycle_at (replacing bolt_cycle), AwViewModel.cycle_cue. Additive.
-const LEVEL := 39
+const LEVEL := 40
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

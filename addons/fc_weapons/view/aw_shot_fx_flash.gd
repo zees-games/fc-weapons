@@ -8,7 +8,7 @@ const MAX_LIVE := 48
 
 ## Each weapon class's flash and case, by [AwWeaponSound] class: `size` scales the flash (1 is a rifle's, 12 cm across), `light` its light, `petals` the crossed
 ## streaks (a shotgun's fat four, a sniper's long two), `length` stretches them, `case` is the spent case's length in metres, `hull` true for a shotgun's fat red one,
-## `delay` seconds before it leaves (a bolt or pump cycles after the shot). A class not here is a rifle's; no `case` ejects nothing (a revolver, a launcher).
+## `delay` seconds before it leaves: the cycle's rearmost point (AwViewModelState.CYCLE_WAIT + cycle_time * CYCLE_SPLIT[0]). A class not here is a rifle's; no `case` ejects nothing (a revolver, a launcher).
 const FLASH := {
 	AwWeaponSound.LIGHT: {"size": 0.7, "light": 0.7, "petals": 2, "length": 0.9, "case": 0.024},
 	AwWeaponSound.SUPPRESSED: {"size": 0.3, "light": 0.15, "petals": 1, "length": 0.6, "case": 0.024},
@@ -16,8 +16,8 @@ const FLASH := {
 	AwWeaponSound.MAGNUM: {"size": 1.15, "light": 1.1, "petals": 3, "length": 1.0},
 	AwWeaponSound.RIFLE: {"size": 1.0, "light": 1.0, "petals": 2, "length": 1.0, "case": 0.038},
 	AwWeaponSound.HEAVY: {"size": 1.25, "light": 1.25, "petals": 3, "length": 1.1, "case": 0.05},
-	AwWeaponSound.SNIPER: {"size": 1.5, "light": 1.4, "petals": 2, "length": 2.0, "case": 0.065, "delay": 0.45},
-	AwWeaponSound.SHOTGUN: {"size": 1.6, "light": 1.5, "petals": 4, "length": 0.9, "case": 0.055, "hull": true, "delay": 0.4},
+	AwWeaponSound.SNIPER: {"size": 1.5, "light": 1.4, "petals": 2, "length": 2.0, "case": 0.04, "delay": 0.32},
+	AwWeaponSound.SHOTGUN: {"size": 1.6, "light": 1.5, "petals": 4, "length": 0.9, "case": 0.055, "hull": true, "delay": 0.30},
 	AwWeaponSound.MINIGUN: {"size": 1.1, "light": 0.9, "petals": 3, "length": 1.2, "case": 0.038},
 	AwWeaponSound.LAUNCHER: {"size": 2.0, "light": 1.8, "petals": 4, "length": 1.4},
 	# The pack's finer sound classes (AwWeaponPack.SOUND_CLASSES): without a row they drew a rifle's flash and threw no case.
@@ -45,6 +45,10 @@ var catalogue: GSWeaponCatalogue = null
 
 ## Size of a first-person flash on top of everything else; the rig sets it below 1 while the view is scoped, because the zoom magnifies the flash with the world.
 var first_person_flash_scale: float = 1.0
+
+## The render layer (1 to 20, 0 for none) a first-person flash's drawn parts go on: the view's own, so the shooter's camera sees them and nobody
+## else's does (another camera would see a flare at the view's muzzle, not the gun's). The rig sets it to the view layer; its light is limited to that layer too.
+var first_person_layer: int = 0
 
 ## Multiplier on the flash's light. 0 draws no light at all.
 @export_range(0.0, 3.0, 0.05) var flash_light_scale: float = 1.0
@@ -117,6 +121,10 @@ func _flash(muzzle: Transform3D, size: float, weapon_class: StringName = AwWeapo
 			muzzle.origin + forward * (length * 0.5))
 		petals.append(petal)
 
+	if first_person:
+		_on_view_layer(node)
+		for petal in petals:
+			_on_view_layer(petal)
 	var fx := {"kind": &"flash", "life": 0.06, "size": across}
 	var light: OmniLight3D = null if _pack_drew else _flash_light(muzzle, size, profile, node)
 	if light != null:
@@ -141,6 +149,16 @@ func _flash(muzzle: Transform3D, size: float, weapon_class: StringName = AwWeapo
 		_add(petal, pfx)
 
 
+## Puts [param node] and everything under it that draws on [member first_person_layer] (nothing when it is 0).
+func _on_view_layer(node: Node) -> void:
+	if first_person_layer <= 0 or node == null or not is_instance_valid(node):
+		return
+	if node is VisualInstance3D and not node is Light3D:
+		(node as VisualInstance3D).layers = 1 << (first_person_layer - 1)
+	for child in node.get_children():
+		_on_view_layer(child)
+
+
 ## The dynamic muzzle light: short, shadowless, capped by [member max_flash_lights]. Null when off or at the cap.
 func _flash_light(muzzle: Transform3D, size: float, profile: Dictionary, _parent: Node3D) -> OmniLight3D:
 	var cap := max_flash_lights if first_person else mini(max_flash_lights, rules.remote_lights)
@@ -149,7 +167,11 @@ func _flash_light(muzzle: Transform3D, size: float, profile: Dictionary, _parent
 		return null
 	var energy := 2.2 * size * float(profile["light"]) / maxf(0.01, float(profile["size"])) * flash_light_scale
 	var at := muzzle.origin - (-muzzle.basis.z.normalized()) * 0.05
-	return _lights.flash(at, Color(1.0, 0.72, 0.38), energy, 4.5 * size, 0.06)
+	var light: OmniLight3D = _lights.flash(at, Color(1.0, 0.72, 0.38), energy, 4.5 * size, 0.06)
+	# A first-person flash lights the view's own layer only: the world is lit by the gun's flash at the gun, and a second one at the eye washed the other cameras' views orange.
+	if light != null and first_person and first_person_layer > 0:
+		light.light_cull_mask = 1 << (first_person_layer - 1)
+	return light
 
 
 ## Pack flashes draw no light of their own: ours is the one that is capped and cvar-controlled.
@@ -250,6 +272,9 @@ func _pack_flash(muzzle: Transform3D, size: float, weapon_class: StringName, id:
 	var grow: float = float(PACK_GROW.get(weapon_class, 1.0)) if first_person else 1.0
 	flash.scale = Vector3.ONE * (first_person_flash_scale * grow if first_person else 1.0)
 	GSWeaponMuzzle.fire(flash)
+	if first_person:
+		# After fire: a flash built without a spare makes its pool of parts inside its first fire.
+		_on_view_layer(flash)
 	if fresh and first_person:
 		# After fire: a flash attached without a spare builds its pool inside its first fire.
 		_unfade(flash)

@@ -707,6 +707,7 @@ func _record_use(outcome: GSWeaponOutcome) -> void:
 			var def := arsenal.current_def()
 			var weapon_id: StringName = def.id if def != null else &""
 			_fx.first_person_flash_scale = _view.flash_scale()
+			_fx.first_person_layer = _view.view_layer if "view_layer" in _view else 0
 			_fx.rail_charge = charge_shown
 			_view.note_fired()
 			_fx.play_use(outcome, _view.muzzle_transform(), weapon_id, _view.muzzle_transform)
