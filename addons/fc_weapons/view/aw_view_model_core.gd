@@ -561,6 +561,11 @@ func art_forearm_scale() -> float:
 	return _art.forearm_scale if _art != null else 0.0
 
 
+## The art's trimmed elbow-clearance box in the weapon node's space (zero size: measure the meshes instead).
+func art_clear_box() -> AABB:
+	return _art.clear_box if _art != null else AABB()
+
+
 ## The weapon's arm-lean cap, or below 0 for the arms' own.
 func art_max_lean() -> float:
 	return _art.max_lean if _art != null else -1.0

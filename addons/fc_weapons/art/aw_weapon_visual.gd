@@ -192,6 +192,10 @@ static var _dress_script: Script = null
 @export var scope_arms_hide: float = -1.0
 ## Most the first-person arms lean toward an out-of-reach hand with this weapon; below 0 keeps the arms' own.
 @export var max_lean: float = -1.0
+## The box (weapon node space: origin at the grip, muzzle toward -Z) the first-person arms keep their elbows out of,
+## when the model's mesh bounds are wider than the gun (an L-shaped single mesh: the bounds take in the air behind the
+## grip where the forearm sits). A zero-size box (the default) keeps the measured bounds.
+@export var clear_box: AABB = AABB()
 
 ## Size of the first-person forearm on this weapon (a short grip near the eye wants a slimmer one); 0 keeps the arms' own.
 @export var forearm_scale: float = 0.0
@@ -350,7 +354,7 @@ func with_magazine(path: String, offset: Vector3 = Vector3.ZERO) -> AwWeaponVisu
 
 ## The first-person transform, before any animation the rig applies.
 ## [param row] (a profile's `extra: art:`; vectors as 3-number arrays) over a copy of this art, or this
-## art itself when the row says nothing. Keys: `hands`, `support_grip`, `grip_socket`, `muzzle_socket`, `fore_along`, `fore_up`, `grip_along`, `grip_up`, `muzzle_distance`, `hand_scale`, `forearm_scale`, `sprint_offset`, `sprint_rotation`,
+## art itself when the row says nothing. Keys: `hands`, `support_grip`, `grip_socket`, `muzzle_socket`, `fore_along`, `fore_up`, `grip_along`, `grip_up`, `muzzle_distance`, `hand_scale`, `forearm_scale`, `clear_box` (6 numbers: position then size of the elbow-clearance box, for a one-mesh weapon whose bounds cover a notch), `sprint_offset`, `sprint_rotation`,
 ## `sprint_world_offset`, `sprint_world_rotation`, `world_scale`, `reload` (merged over the art's).
 func with_overrides(row: Variant) -> AwWeaponVisual:
 	if not (row is Dictionary) or (row as Dictionary).is_empty():
@@ -370,6 +374,11 @@ func with_overrides(row: Variant) -> AwWeaponVisual:
 					out.set(key, Vector3(float(value[0]), float(value[1]), float(value[2])))
 				elif value is Vector3:
 					out.set(key, value)
+			"clear_box":
+				if value is Array and (value as Array).size() == 6:
+					out.clear_box = AABB(Vector3(float(value[0]), float(value[1]), float(value[2])), Vector3(float(value[3]), float(value[4]), float(value[5])))
+				elif value is AABB:
+					out.clear_box = value
 			"belt_feed":
 				out.belt_feed = bool(value)
 			"reload_class":

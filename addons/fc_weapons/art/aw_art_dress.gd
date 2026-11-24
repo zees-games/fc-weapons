@@ -114,6 +114,11 @@ static func _sockets(art: AwWeaponVisual, row: Dictionary) -> void:
 	for key: String in ["fore_along", "fore_up", "grip_along", "grip_up", "hand_scale", "forearm_scale", "scope_arms_hide", "max_lean", "eject_speed"]:
 		if row.has(key):
 			art.set(key, float(row[key]))
+	var box: Variant = row.get("clear_box")
+	if box is Array and (box as Array).size() == 6:
+		art.clear_box = AABB(Vector3(float(box[0]), float(box[1]), float(box[2])), Vector3(float(box[3]), float(box[4]), float(box[5])))
+	elif box is AABB:
+		art.clear_box = box
 	art.hand_grip = (row.get("hand_grip", {}) as Dictionary).duplicate()
 	if row.has("belt_feed"):
 		art.belt_feed = bool(row["belt_feed"])
