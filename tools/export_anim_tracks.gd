@@ -4,7 +4,7 @@ extends SceneTree
 ## viewer plays next to the model. Args: out_dir [id,id ...] [pack]; the file is named like Nightly's GLB for the model (pack__path__with__underscores) so the viewer finds it beside the asset. No ids bakes every weapon in AwWeaponArt.
 ## godot --headless --path . --script tools/export_anim_tracks.gd -- out_dir sniper
 const Bake := preload("aw_anim_bake.gd")
-## Models no weapon row uses, shown in Nightly as alternates of one the game does play: they get that weapon's clips, marked alias_of (the grip is the played model's).
+## Models no weapon row uses, shown in Nightly as alternates of one the game does play: they get that weapon's clips baked on the alias's own model (its own grips and reach), marked alias_of.
 const ALIASES := {"sniper_ph": ["sniper_rifle"], "pistol_ph": ["pistol"], "knife_ph": ["knife"], "frag_grenade_alt": ["frag_grenade"]}
 
 
@@ -36,17 +36,19 @@ func _initialize() -> void:
 			failed += 1
 			continue
 		for alt: String in ALIASES.get(sidecar.model, []):
-			var copy: Dictionary = sidecar.duplicate()
-			copy.asset = String(sidecar.asset).replace("__" + String(sidecar.model), "__" + alt)
-			copy.alias_of = sidecar.model
-			copy.model = alt
-			if not _write("%s/%s.anim.json" % [out, copy.asset], copy):
+			var copy := Bake.new().bake(host, id, defs.get(id), alt)
+			if copy.is_empty() or not _write("%s/%s.anim.json" % [out, copy.asset], _aliased(copy, sidecar.model)):
 				failed += 1
 		var n := 0
 		for c: Dictionary in sidecar.clips:
 			n += (c.tracks as Array).size()
 		print("BAKED %s -> %s (%d clips, %d tracks)" % [id, path, (sidecar.clips as Array).size(), n])
 	quit(1 if failed > 0 else 0)
+
+
+func _aliased(copy: Dictionary, of: String) -> Dictionary:
+	copy.alias_of = of
+	return copy
 
 
 func _write(path: String, data: Dictionary) -> bool:

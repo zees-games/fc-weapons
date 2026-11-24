@@ -24,8 +24,9 @@ func _initialize() -> void:
 		var a := _bake(host, body, out)
 		if not a.is_empty():
 			avatars.append(a)
+	DirAccess.copy_absolute(ProjectSettings.globalize_path(GSHumanoidAssets.directory().path_join("atlas_people.png")), "%s/atlas_people.png" % out)
 	var f := FileAccess.open("%s/avatars.json" % out, FileAccess.WRITE)
-	f.store_string(JSON.stringify({"version": VERSION, "height": HEIGHT, "hand_bone": GSHumanoidFigure.HAND_BONE, "held_scale": 1.7, "avatars": avatars}))
+	f.store_string(JSON.stringify({"version": VERSION, "height": HEIGHT, "hand_bone": GSHumanoidFigure.HAND_BONE, "held_scale": 1.7, "atlas": "atlas_people.png", "avatars": avatars}))
 	f.close()
 	print("BAKED %d avatars" % avatars.size())
 	quit(0 if avatars.size() == GSHumanoidLook.BODIES.size() else 1)
@@ -55,8 +56,14 @@ func _bake(host: Node3D, body: StringName, out: String) -> Dictionary:
 	var file := GSHumanoidAssets.body_path(body)
 	var name := "people_%s.glb" % body
 	DirAccess.copy_absolute(ProjectSettings.globalize_path(file), "%s/%s" % [out, name])
+	var swaps: Array = []
+	var colours := {"skin": look.skin, "hair": look.hair, "top": look.top, "bottom": look.bottom}
+	var wears: Dictionary = GSHumanoidAssets.WEARS.get(body, {})
+	for role: String in ["skin", "hair", "top", "bottom"]:
+		for hex: String in wears.get(role, []):
+			swaps.append([hex, (colours[role] as Color).to_html(false)])
 	var result := {
-		"body": String(body), "glb": name, "height": HEIGHT,
+		"body": String(body), "glb": name, "height": HEIGHT, "swaps": swaps,
 		"skeleton_in_figure": _tf(fig.global_transform.affine_inverse() * sk.global_transform),
 		"mount": _tf(hand.transform),
 		"bones": bones,

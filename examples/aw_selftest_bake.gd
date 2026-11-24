@@ -50,6 +50,8 @@ func run() -> void:
 	for c: Dictionary in sc.clips:
 		whole = whole and c.frames > 0 and absf(c.length - float(c.frames) / 60.0) < 0.002
 		for t: Dictionary in c.tracks:
+			if t.values.size() != PER_FRAME[t.path] * c.frames:
+				print("DBG ", c.name, " ", t.path, " ", t.values.size(), " ", c.frames)
 			whole = whole and t.values.size() == PER_FRAME[t.path] * c.frames
 	_ok(whole, "every track holds exactly one value set per frame and each clip's length is its frames over 60")
 	_ok(_range(by.fire, "bolt") > 0.05 and _range(by.fire, "view_punch") > 0.5 and _range(by.fire, "weapon") > 0.01,
@@ -63,4 +65,12 @@ func run() -> void:
 	for v in rest:
 		rest_ok = rest_ok and is_finite(float(v))
 	_ok(rest_ok and tp.pose != "" and Vector3(rest[0], rest[1], rest[2]).length() > 0.1, "the sidecar carries where the weapon sits in the hand mount (12 finite values, a real scale)")
+	var props: Dictionary = by.reload.props
+	var prop_ok := not props.is_empty()
+	for k in props:
+		var spec: Dictionary = props[k]
+		prop_ok = prop_ok and not (spec.shapes as Array).is_empty() and _range(by.reload, "prop.%s" % str(k)) >= 0.0 and _range(by.reload, "prop.%s.visible" % str(k)) >= 0.0
+	_ok(prop_ok, "a reload bakes the parts it builds in code (shapes plus transform, scale and visibility tracks)")
+	var alt := Bake.new().bake(suite, &"sniper", defs[&"sniper"], "sniper_rifle")
+	_ok(alt.model == "sniper_rifle" and alt.asset != sc.asset and alt.clips.size() == sc.clips.size(), "an alias bakes on its own model file with the same clips")
 	suite._end()

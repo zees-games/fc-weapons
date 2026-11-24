@@ -23,6 +23,8 @@ const SWAY_SECONDS := 4.0
 var _view: AwViewModel = null
 var _tracks: Dictionary = {}
 var _frames := 0
+## The reload parts built in code (ammo box, casing, cell ...) the clip drew: index -> {part, shapes}; their tracks are prop.<index>, .scale and .visible.
+var _props: Dictionary = {}
 
 
 ## The clips a weapon has, in play order, each {name, loop}.
@@ -41,11 +43,15 @@ static func clip_names(art: AwWeaponVisual, def: GSWeaponDef) -> Array[Dictionar
 
 
 ## Bakes every clip of weapon [param id] under [param host] (a node in the tree). Returns the sidecar dictionary, or {} for an unknown id.
-func bake(host: Node, id: StringName, def: GSWeaponDef) -> Dictionary:
+## [param model] swaps in another model file of the same folder (an alias the game does not play): the row's tuning stays, and the grips, the
+## muzzle and the hand reach are measured from that model itself.
+func bake(host: Node, id: StringName, def: GSWeaponDef, model: String = "") -> Dictionary:
 	var art := AwWeaponVisual.make(id)
 	var rows := AwWeaponArt.weapon_rows("")
 	if rows.has(id):
 		AwArtDress.apply(art, rows[id])
+	if model != "":
+		art.model_path = "%s/%s.glb" % [art.model_path.get_base_dir(), model]
 	if not art.has_model():
 		return {}
 	var clips: Array = []
@@ -59,7 +65,9 @@ func bake(host: Node, id: StringName, def: GSWeaponDef) -> Dictionary:
 		view.set_kick_params(def.params if def != null else {})
 		view.equip(art)
 		_view = view
-		clips.append(_clip(String(c.name), bool(c.loop), art, def))
+		var baked := _clip(String(c.name), bool(c.loop), art, def)
+		baked["props"] = _props
+		clips.append(baked)
 		host.remove_child(view)
 		view.free()
 	return {
@@ -81,6 +89,7 @@ func bake(host: Node, id: StringName, def: GSWeaponDef) -> Dictionary:
 
 func _clip(name: String, loop: bool, art: AwWeaponVisual, def: GSWeaponDef) -> Dictionary:
 	_tracks = {}
+	_props = {}
 	_frames = 0
 	_view.on_reload(0.0)
 	_view.on_deploy(1.0)
@@ -104,6 +113,14 @@ func _clip(name: String, loop: bool, art: AwWeaponVisual, def: GSWeaponDef) -> D
 	var tracks: Array = []
 	for key: String in _tracks:
 		var t: Dictionary = _tracks[key]
+		# a part the game frees mid-clip (a casing, an ammo box) stops reporting: hold its last set, hidden
+		var width: int = {"transform": 7, "position": 3, "visible": 1, "vec2": 2}[t.path]
+		var vals: Array = t.values
+		while vals.size() < width * _frames:
+			if t.path == "visible":
+				vals.append(0.0)
+			else:
+				vals.append_array(vals.slice(vals.size() - width))
 		tracks.append({"target": key, "path": t.path, "values": _round(t.values)})
 	return {"name": name, "length": snappedf(float(_frames) / float(FPS), 0.001), "frames": _frames, "loop": loop, "tracks": tracks}
 
@@ -199,6 +216,16 @@ func _snap() -> void:
 	if mag != null:
 		_put("magazine", "transform", _t7(to_weapon * mag.global_transform))
 		_put("magazine.visible", "visible", [1.0 if mag.is_visible_in_tree() else 0.0])
+	var props: Node3D = _view._props
+	if props != null:
+		for k: Variant in props._nodes:
+			var n: Node3D = props._nodes[k]
+			if not _props.has(k):
+				_props[k] = {"part": String(n.get_meta(&"part", &"")), "shapes": _shapes(n)}
+			var at := to_view * n.global_transform
+			_put("prop.%d" % k, "transform", _t7(at.orthonormalized()))
+			_put("prop.%d.scale" % k, "position", [at.basis.get_scale().x, at.basis.get_scale().y, at.basis.get_scale().z])
+			_put("prop.%d.visible" % k, "visible", [1.0 if n.is_visible_in_tree() else 0.0], [0.0])
 	var arms: AwViewArms = _view._arms
 	if arms != null and not arms.last_hands.is_empty():
 		var to_arms: Transform3D = to_view * arms.global_transform
@@ -211,11 +238,11 @@ func _snap() -> void:
 	_frames += 1
 
 
-func _put(key: String, path: String, values: Array) -> void:
+func _put(key: String, path: String, values: Array, before: Array = []) -> void:
 	if not _tracks.has(key):
 		var back: Array = []
 		for _i in _frames:
-			back.append_array(values)
+			back.append_array(before if not before.is_empty() else values)
 		_tracks[key] = {"path": path, "values": back}
 	(_tracks[key].values as Array).append_array(values)
 
@@ -238,3 +265,34 @@ static func _third_person(art: AwWeaponVisual) -> Dictionary:
 	rest = Transform3D(rest.basis.scaled(Vector3.ONE * AwWeaponArtTable.pose_world_factor(art.pose)), rest.origin)
 	var b := rest.basis
 	return {"pose": String(art.pose), "rest": [b.x.x, b.x.y, b.x.z, b.y.x, b.y.y, b.y.z, b.z.x, b.z.y, b.z.z, rest.origin.x, rest.origin.y, rest.origin.z]}
+
+
+## The primitive meshes under a built reload part, in the part's space: {kind, size (box x y z; cylinder top, bottom, height; sphere radius, height), at (12 floats), colour, metal, rough, glow}.
+static func _shapes(part: Node3D) -> Array:
+	var out: Array = []
+	var inv := part.global_transform.affine_inverse()
+	for m: Node in part.find_children("*", "MeshInstance3D", true, false):
+		var mi := m as MeshInstance3D
+		var shape := {}
+		if mi.mesh is BoxMesh:
+			var sz := (mi.mesh as BoxMesh).size
+			shape = {"kind": "box", "size": [sz.x, sz.y, sz.z]}
+		elif mi.mesh is CylinderMesh:
+			var c := mi.mesh as CylinderMesh
+			shape = {"kind": "cylinder", "size": [c.top_radius, c.bottom_radius, c.height]}
+		elif mi.mesh is SphereMesh:
+			var sp := mi.mesh as SphereMesh
+			shape = {"kind": "sphere", "size": [sp.radius, sp.height]}
+		else:
+			continue
+		var t := inv * mi.global_transform
+		var b := t.basis
+		shape["at"] = [b.x.x, b.x.y, b.x.z, b.y.x, b.y.y, b.y.z, b.z.x, b.z.y, b.z.z, t.origin.x, t.origin.y, t.origin.z]
+		var mat := mi.get_active_material(0) as StandardMaterial3D
+		if mat != null:
+			shape["colour"] = mat.albedo_color.to_html(false)
+			shape["metal"] = mat.metallic
+			shape["rough"] = mat.roughness
+			shape["glow"] = mat.emission.to_html(false) if mat.emission_enabled else ""
+		out.append(shape)
+	return out
