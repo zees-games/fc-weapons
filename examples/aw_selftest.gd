@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
-const CHECKS := 566
+const CHECKS := 572
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -353,6 +353,25 @@ func _sound_coverage() -> void:
 		_check("%s has its own detonation takes (%d)" % [id, AwGrenadeSound.count(id)], AwGrenadeSound.count(id) >= 1 and AwGrenadeSound.stream(id, 1) != null)
 	_check("an id that is not a grenade has none", AwGrenadeSound.stream(&"no_such_grenade") == null)
 	_check("an unknown id has no gaps hidden: it reports missing sounds", not AwSoundCoverage.gaps(&"no_such_weapon").is_empty())
+	# A gun's own handling cues: every file the manifest names exists and loads, and none sits in the folder unlisted.
+	for gun: StringName in AwGunCues.CUES:
+		var cues: Dictionary = AwGunCues.CUES[gun]
+		for cue: StringName in cues:
+			var found := 0
+			for n in int(cues[cue]):
+				if AwGunCues.stream(gun, cue, n) != null:
+					found += 1
+			_check("%s's cue %s has its %d files" % [gun, cue, int(cues[cue])], found == int(cues[cue]))
+		var listed := 0
+		for cue: StringName in cues:
+			listed += int(cues[cue])
+		var on_disk := 0
+		for file in DirAccess.get_files_at(AwShotLayers.GUN_SOUNDS + String(gun)):
+			if file.begins_with("cue_") and file.ends_with(".ogg"):
+				on_disk += 1
+		_check("%s has no cue file the manifest does not list (%d of %d)" % [gun, on_disk, listed], on_disk == listed)
+	_check("the minigun's spin up, loop and down exist", AwGunCues.SPIN.all(func(part: StringName) -> bool: return AwGunCues.spin_stream(part) != null))
+	_check("a gun with no cues of its own falls back to stock", AwGunCues.stream(&"aw_rifle", &"bolt_back", 0) == null and AwGunCues.stream(&"aw_sniper", &"mag_out", 0) == null)
 	_end()
 
 

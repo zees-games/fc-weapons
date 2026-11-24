@@ -40,7 +40,9 @@ func _on_reload_started(slot: int) -> void:
 func _on_reload_cue(cue: StringName, db: float) -> void:
 	if _replaying or role == Role.SERVER or _fx == null:
 		return
-	_fx.play_cue(cue, _listen_at(), db)
+	# The cycle cues (bolt, pump) come between reloads, when _cue_weapon is stale: the gun in the hands is the one cycling.
+	var held := arsenal.current()
+	_fx.play_cue(cue, _listen_at(), db, held.def.id if held != null and held.def != null else _cue_weapon)
 	reload_cue_played.emit(cue, _cue_weapon)
 
 

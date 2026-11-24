@@ -117,5 +117,12 @@
         "author": "TMC",
         "url": "https://github.com/zees-games/fc-weapons",
         "title": "Attachment models (own work, primitives built by tools/make_attachments.gd; see CREDITS.md)"
+    },
+    {
+        "paths": ["assets-src/user-sounds/", "addons/fc_weapons/assets/sounds/rifle/", "addons/fc_weapons/assets/sounds/battle_rifle/", "addons/fc_weapons/assets/sounds/burst_rifle/", "addons/fc_weapons/assets/sounds/drum_shotgun/", "addons/fc_weapons/assets/sounds/lmg/", "addons/fc_weapons/assets/sounds/marksman/", "addons/fc_weapons/assets/sounds/sniper/", "addons/fc_weapons/assets/sounds/shotgun/", "addons/fc_weapons/assets/sounds/revolver/", "addons/fc_weapons/assets/sounds/minigun/spin_up.ogg", "addons/fc_weapons/assets/sounds/minigun/spin_loop.ogg", "addons/fc_weapons/assets/sounds/minigun/spin_down.ogg"],
+        "licence": "UNCONFIRMED",
+        "author": "unknown (freesound.org, supplied by the owner)",
+        "url": "https://freesound.org",
+        "title": "Owner-supplied recordings, per-file author and licence not recorded: the owner must confirm before release (see CREDITS.md)"
     }
 ]

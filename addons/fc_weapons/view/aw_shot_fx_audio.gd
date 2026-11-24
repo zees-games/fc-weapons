@@ -94,11 +94,14 @@ func play_reload(stage: StringName, at: Vector3, weapon_id: StringName = &"") ->
 
 
 ## One handling sound of a reload ([param cue] is a name from AwReloadCues, stock cue_NAME_N) at [param at]; [param db] is its
-## level in the plan. A cue with no stock file is silent.
-func play_cue(cue: StringName, at: Vector3, db: float = 0.0) -> void:
+## level in the plan. [param weapon_id]'s own cue (AwGunCues) is played where it has one, else the stock one; a cue with
+## neither is silent.
+func play_cue(cue: StringName, at: Vector3, db: float = 0.0, weapon_id: StringName = &"") -> void:
 	if not sounds or not is_inside_tree():
 		return
-	_play(GSWeaponSound.pick(StringName("cue_%s" % cue), randi()), at, db - 4.0, &"handling")
+	var roll := randi()
+	var own := AwGunCues.stream(weapon_id, cue, roll) if weapon_id != &"" else null
+	_play(own if own != null else GSWeaponSound.pick(StringName("cue_%s" % cue), roll), at, db - 4.0, &"handling")
 
 
 ## The selector switch of weapon [param weapon_id] at [param at]; the click differs per gun class.

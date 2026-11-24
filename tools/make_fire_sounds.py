@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Builds each gun's own layered fire sound (attack, body, open-air tail, far) from the CC0 Free Firearm Sound
-Library recordings, with the layer splitting, tails and levels of gs-audio's tools/make_shot_layers.py, which this
+Library recordings (or, for the guns in cut_user_sounds.SHOTS, the owner's own recordings), with the layer splitting, tails and levels of gs-audio's tools/make_shot_layers.py, which this
 runs rather than copies. Heavy guns get a generated low thump under the body. Two variants per gun: the take, and
 the same take a few percent lower with its own tail seeds. Room tails stay the stock class's (AwShotLayers).
 
@@ -20,6 +20,8 @@ import urllib.request
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import cut_user_sounds as U  # noqa: E402  (the owner's own recordings, which replace the library takes where given)
 GS_AUDIO = os.environ.get("GS_AUDIO", os.path.join(HERE, "..", "..", "gs-audio"))
 if not os.path.isdir(os.path.join(GS_AUDIO, "tools")):
     GS_AUDIO = "/home/gamedev/godot/gs-audio"
@@ -276,12 +278,19 @@ def build(gun):
     os.makedirs(folder, exist_ok=True)
     body_db, far_db = LEVELS.get(gun, (None, None))
     hz = 0.0
+    mine = []
     if gun in MADE:
         maker, low = MADE[gun]
     else:
         folder_name, near, mid, hz, low = GUNS[gun]
-        base = take(folder_name, near)
-        far_src = take(folder_name, mid)
+        mine = U.user_takes(gun)
+        if mine:
+            base = L["trim"](mine[0])
+            far_src = L["trim"](mine[1 % len(mine)])
+            hz = 0.0  # the recording's own weight; no generated thump or mid lift under it
+        else:
+            base = take(folder_name, near)
+            far_src = take(folder_name, mid)
     for n in range(VARIANTS):
         factor = 1.0 if n == 0 else low
         if gun in MADE:
@@ -292,7 +301,7 @@ def build(gun):
         attack, body, late = L["split"](x)
         if hz > 0.0:
             body = mid_lift(body, MID_LIFT_DB) + 0.3 * thump(len(body), hz * factor, 90 + n)
-        elif gun in SMALL_THUMP:
+        elif gun in SMALL_THUMP and not mine:
             t_hz, t_db = SMALL_THUMP[gun]
             boom = thump(len(body), t_hz * factor, 90 + n)
             body = body + boom * np.sqrt(band_energy(body, 200.0, 3000.0) / band_energy(boom, 20.0, 200.0) * 10 ** (t_db / 10.0))
