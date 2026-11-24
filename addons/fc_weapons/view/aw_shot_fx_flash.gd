@@ -190,7 +190,7 @@ func _pack_flash_light(muzzle: Transform3D, size: float, weapon_class: StringNam
 const CLASS_CATEGORY := {
 	AwWeaponSound.LIGHT: "pistol", AwWeaponSound.MAGNUM: "magnum", AwWeaponSound.SMG: "smg",
 	AwWeaponSound.RIFLE: "rifle", AwWeaponSound.HEAVY: "dmr", AwWeaponSound.SNIPER: "sniper",
-	AwWeaponSound.SHOTGUN: "shotgun", AwWeaponSound.MINIGUN: "lmg", AwWeaponSound.LAUNCHER: "shotgun",
+	AwWeaponSound.SHOTGUN: "shotgun", AwWeaponSound.MINIGUN: "lmg", AwWeaponSound.LAUNCHER: "rifle",
 	AwWeaponSound.CHARGE: "rifle", &"mpistol": "smg", &"derringer": "revolver", &"carbine": "carbine",
 	&"battle": "dmr", &"marksman": "dmr", &"lmg": "lmg", &"autoshot": "shotgun", &"grenade": "shotgun", &"rail": "rifle",
 }

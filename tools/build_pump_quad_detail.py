@@ -13,12 +13,14 @@ bpy.ops.import_scene.gltf(filepath=src)
 
 # palette texels (blender uv, v up) in each source atlas
 PAL = {
-    'pump_shotgun': {'M': (0.3125, 0.18), 'W': (0.586, 0.785), 'D': (0.586, 0.258)},
+    'pump_shotgun': {'M': (0.90, 0.38), 'W': (0.586, 0.785), 'D': (0.586, 0.258)},
     'quad_rocket_launcher': {'G': (0.098, 0.805), 'M': (0.723, 0.14), 'D': (0.9375, 0.414), 'B': (0.376, 0.805)},
 }[weapon]
 
 bm = bmesh.new()
 uvl = bm.loops.layers.uv.new('UVMap')
+pump_bm = bmesh.new()
+pump_uvl = pump_bm.loops.layers.uv.new('UVMap')
 
 
 def g2b(x, y, z):
@@ -75,7 +77,10 @@ def torus(c, big, small, axis, grp, n=20, m=6):
 
 
 if weapon == 'pump_shotgun':
-    # fore-end (wood) with grooves, end caps
+    # fore-end (wood) with grooves, end caps: its own mesh, parented to the pump node below so it slides with the pump
+    main_bm, main_uvl = bm, uvl
+    bm = pump_bm
+    uvl = pump_uvl
     box((0, .049, -.2075), (.043, .040, .150), 'W', .004)
     for i in range(9):
         z = -.27 + i * .0145
@@ -83,6 +88,7 @@ if weapon == 'pump_shotgun':
             box((.0217 * sx, .049, z), (.0016, .030, .0035), 'D', .0004)
     box((0, .049, -.1285), (.046, .044, .004), 'M', .0012)
     box((0, .049, -.2875), (.046, .044, .004), 'M', .0012)
+    bm, uvl = main_bm, main_uvl
     # vented barrel shroud
     cyl((0, .078, -.352), .0125, .085, 'z', 'M', 20)
     for i in range(5):
@@ -144,6 +150,8 @@ elif weapon == 'quad_rocket_launcher':
             box((.112 * sx, .07, z), (.003, .02, .02), 'M', .001)
             torus((.1175 * sx, .07, z), .011, .0022, 'x', 'D')
 
+if len(pump_bm.faces):
+    bmesh.ops.recalc_face_normals(pump_bm, faces=pump_bm.faces)
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 me = bpy.data.meshes.new('detail')
 bm.to_mesh(me)
@@ -151,6 +159,16 @@ obj = bpy.data.objects.new('detail', me)
 bpy.context.scene.collection.objects.link(obj)
 ref = [o for o in bpy.data.objects if o.type == 'MESH' and o.data.materials and o.data.materials[0].name != 'sight_metal'][0]
 me.materials.append(ref.data.materials[0])
+if len(pump_bm.faces):
+    pme = bpy.data.meshes.new('detail_pump')
+    pump_bm.to_mesh(pme)
+    pobj = bpy.data.objects.new('detail_pump', pme)
+    bpy.context.scene.collection.objects.link(pobj)
+    pme.materials.append(ref.data.materials[0])
+    pnode = bpy.data.objects.get('shotgunpomp')
+    assert pnode is not None, 'shotgunpomp node missing'
+    pobj.parent = pnode
+    pobj.matrix_parent_inverse = pnode.matrix_world.inverted()
 # top level like the sight nodes: the weapon root carries a scale / rotation, the detail is built in world space
 bpy.ops.export_scene.gltf(filepath=dst, export_format='GLB', export_apply=False)
 print('DETAIL faces', len(me.polygons))
