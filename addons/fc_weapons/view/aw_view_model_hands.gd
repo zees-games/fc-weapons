@@ -36,6 +36,9 @@ var _seq: ReloadSequence = null
 
 var _hands_frame: Node3D = null
 
+## How far the support hand is on a bolt's handle (0 to 1), so the arms can pinch it instead of fanning open; set by [method _cycle_hand].
+var _cycle_grip: float = 0.0
+
 ## The size of a game's own arms against life size: [signal hands_reached]'s anchor shrinks the weapon to match, about the eye.
 @export var hands_scale: float = 1.0
 
@@ -73,6 +76,8 @@ func _place_hands() -> void:
 	if "run" in _arms:
 		_arms.set("run", _pose.run_amount())
 		_arms.set("run_phase", _pose.run_phase())
+	if "cycle_grip" in _arms:
+		_arms.set("cycle_grip", _cycle_grip if _cycle_t >= 0.0 else 0.0)
 	if "throw_grip" in _arms:
 		_arms.set("throw_grip", _pose.windup_fraction())
 	if "support_free" in _arms:
@@ -123,6 +128,7 @@ func _cycle_hand() -> Vector3:
 		handle = _holder.transform * _art.cycle_at
 	var f := (_cycle_t - _cycle_wait) / _cycle_len
 	var w := cycle_reach(f, _cycle_wait / _cycle_len)
+	_cycle_grip = w if _art.cycle_at.length_squared() > 0.000001 else 0.0
 	return rest.lerp(handle + _cycle_shift, w)
 
 ## The support hand's keys for a gun fed by hand ([member AwWeaponVisual.load_from]): bolt back, each round fetched, carried and pushed home, bolt closed. Built once per weapon.
