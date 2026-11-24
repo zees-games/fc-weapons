@@ -752,3 +752,36 @@ func _scope_align() -> void:
 				port.queue_free()
 	_check("ring centred and sized in every window and canvas (worst %.4f)" % worst, worst < 0.03)
 	_end()
+
+
+func _scope_glass() -> void:
+	_begin("scope glass: not built headless or without an ocular, baked placeholders hidden, zoom scale follows the level")
+	const Glass := preload("res://addons/fc_weapons/view/aw_scope_glass.gd")
+	var art := AwWeaponVisual.make(&"sniper")
+	AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[&"sniper"])
+	_check("no glass is built headless", Glass.build(art.scope_style, 20) == null)
+	_check("no glass without an ocular", Glass.build({}, 20) == null)
+	var model := Node3D.new()
+	for named in Glass.BAKED:
+		var node := Node3D.new()
+		node.name = String(named)
+		model.add_child(node)
+	var other := Node3D.new()
+	other.name = "barrel"
+	model.add_child(other)
+	Glass.hide_baked(model)
+	var hidden := 0
+	for named in Glass.BAKED:
+		hidden += 0 if (model.get_node(String(named)) as Node3D).visible else 1
+	_check("every baked lens part is hidden and the rest stays", hidden == Glass.BAKED.size() and other.visible)
+	model.free()
+	var camera := Camera3D.new()
+	add_child(camera)
+	var view := AwViewModel.new()
+	view.show_arms = false
+	camera.add_child(view)
+	view.equip(art)
+	var hip := view.scope_zoom_scale()
+	_check("the glass zoom is the hip view before aiming (%.3f)" % hip, is_equal_approx(hip, 1.0) or hip > 0.0)
+	camera.queue_free()
+	_end()

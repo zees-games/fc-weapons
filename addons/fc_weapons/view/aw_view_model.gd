@@ -7,6 +7,7 @@ const Dress := preload("aw_attachment_dress.gd")
 const HipHold := preload("aw_hip_hold.gd")
 const Describe := preload("aw_view_describe.gd")
 const ScopeHousing := preload("aw_scope_housing.gd")
+const ScopeGlass := preload("aw_scope_glass.gd")
 
 ## The weapon you see in your own hands. Parent it to the camera; it is told what happened (on_used, on_reload_started)
 ## and never reads a device, a clock or the arsenal, so it draws a remote player's gun the same way.
@@ -363,6 +364,8 @@ func advance(delta: float) -> void:
 	# The gun goes when the scope's picture is half up, in both scope views: the view model draws over the HUD,
 	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
 	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
+	if _scope_glass != null:
+		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and visible and not scope_body_active())
 	if _arms != null:
 		_arms.visible = not (scoped or scope_picture_up() or arms_hidden_by_scope())
 
@@ -442,11 +445,17 @@ func scope_clear() -> float:
 func aim_fov_scale() -> float:
 	if _art == null:
 		return 1.0
+	return lerpf(1.0, scope_zoom_scale(), _ease(_aim_fraction))
+
+
+## The camera multiplier of the zoom level now looked through at full aim; the scope's glass shows it at all times.
+func scope_zoom_scale() -> float:
+	if _art == null:
+		return 1.0
 	var base := float(_dressed.get("zoom", 0.0))
 	base = base if base > 0.0 else _art.aim_zoom
 	var zoom := base if ads_rules == null else ads_rules.zoom_for(_art.id, base)
-	zoom = ScopeView.scale_at(zoom_scales(), _zoom_level, zoom)
-	return lerpf(1.0, zoom, _ease(_aim_fraction))
+	return ScopeView.scale_at(zoom_scales(), _zoom_level, zoom)
 
 
 ## The camera multipliers of the equipped scope's zoom levels, widest first; empty when it has one zoom.
@@ -715,6 +724,13 @@ func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
 			var housing := _add_built(ScopeHousing.build(art.scope_style), Transform3D(Basis.IDENTITY, ScopeHousing.origin(art.scope_style)))
 			if housing != null:
 				_attachments.append(housing)
+			# Real glass in the lens, so the scene shows through it at the hip too; the model's baked placeholders give way.
+			var glass := ScopeGlass.build(art.scope_style, view_layer) if art.aim_scoped else null
+			if glass != null:
+				_holder.add_child(glass)
+				_attachments.append(glass)
+				_scope_glass = glass
+				ScopeGlass.hide_baked(_holder)
 		6:
 			_reach_for(art)
 		7:

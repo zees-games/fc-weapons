@@ -584,6 +584,7 @@ func _clear_models() -> void:
 	_belt = null
 	_magazine = null
 	_attachments.clear()
+	_scope_glass = null
 
 
 # --- Keeping built weapons ------------------------------------------------------
@@ -654,6 +655,7 @@ func _stow() -> void:
 	_belt = null
 	_carved = null
 	_attachments.clear()
+	_scope_glass = null
 	_rear_rings.clear()
 
 
@@ -671,6 +673,7 @@ func _unstow(key: String) -> bool:
 	_belt = slot.belt
 	_carved = slot.carved
 	_attachments.clear()
+	_scope_glass = null
 	_attachments.append_array(slot.attachments)
 	_rear_rings.clear()
 	_rear_rings.append_array(slot.rear_rings)

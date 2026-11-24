@@ -69,7 +69,9 @@ extends RefCounted
 #     equip_cache_size(), clear_equip_cache()). Looks the same; on by default. Additive.
 # 36: scope zoom levels: art `zoom_levels` (field-of-view degrees, widest first; sniper 40/10, marksman 40/15), AwViewModel.zoom_scales(),
 #     zoom_level() and cycle_zoom(), ADS rules `zoom_level_1` and `zoom_level_2` (AwAdsRules.zoom_levels_for). Needs gs-weapon API 49. Additive.
-const LEVEL := 36
+# 37: the scope is real glass: a lens camera shows the scene through the ocular at all times (AwScopeGlass; not built headless), and
+#     tools/add_scope_lens.py bakes a lens, reticle and eyecup into a scoped GLB for the model viewer. AwViewModel.scope_zoom_scale(). Additive.
+const LEVEL := 37
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

@@ -13,6 +13,8 @@ var _aim_node: Node3D = null
 var _holder: Node3D = null
 var _weapon: Node3D = null
 var _magazine: Node3D = null
+## The scope glass of the equipped weapon (see aw_scope_glass.gd), or null: headless, or no scope.
+var _scope_glass: Node3D = null
 var _attachments: Array[Node3D] = []
 var _sight: Node3D = null
 ## Rear aperture ring nodes of the weapon in hand (see aw_view_model.gd).
