@@ -9,8 +9,7 @@
   "addons/fc_weapons/assets/models/machine_pistol.*",
   "addons/fc_weapons/assets/models/machine_pistol_?.*",
   "_imported/machine_pistol.glb-*",
-  "_imported/machine_pistol_?.jpg-*",
-  "_imported/machine_pistol_?.png-*"
+  "_imported/machine_pistol_?.jpg-*"
  ],
  "weapon-derringer": [
   "addons/fc_weapons/assets/models/derringer.*",
@@ -22,22 +21,19 @@
   "addons/fc_weapons/assets/models/smg.*",
   "addons/fc_weapons/assets/models/smg_?.*",
   "_imported/smg.glb-*",
-  "_imported/smg_?.jpg-*",
-  "_imported/smg_?.png-*"
+  "_imported/smg_?.jpg-*"
  ],
  "weapon-carbine": [
   "addons/fc_weapons/assets/models/carbine.*",
   "addons/fc_weapons/assets/models/carbine_?.*",
   "_imported/carbine.glb-*",
-  "_imported/carbine_?.jpg-*",
-  "_imported/carbine_?.png-*"
+  "_imported/carbine_?.jpg-*"
  ],
  "weapon-rifle": [
   "addons/fc_weapons/assets/models/rifle.*",
   "addons/fc_weapons/assets/models/rifle_?.*",
   "_imported/rifle.glb-*",
-  "_imported/rifle_?.jpg-*",
-  "_imported/rifle_?.png-*"
+  "_imported/rifle_?.jpg-*"
  ],
  "weapon-bullpup": [
   "addons/fc_weapons/assets/models/bullpup.*",
@@ -61,57 +57,50 @@
   "addons/fc_weapons/assets/models/pump_shotgun.*",
   "addons/fc_weapons/assets/models/pump_shotgun_?.*",
   "_imported/pump_shotgun.glb-*",
-  "_imported/pump_shotgun_?.jpg-*",
-  "_imported/pump_shotgun_?.png-*"
+  "_imported/pump_shotgun_?.jpg-*"
  ],
  "weapon-drum_shotgun": [
   "addons/fc_weapons/assets/models/drum_shotgun.*",
   "addons/fc_weapons/assets/models/drum_shotgun_?.*",
   "_imported/drum_shotgun.glb-*",
-  "_imported/drum_shotgun_?.jpg-*",
-  "_imported/drum_shotgun_?.png-*"
+  "_imported/drum_shotgun_?.jpg-*"
  ],
  "weapon-marksman": [
   "addons/fc_weapons/assets/models/marksman.*",
   "addons/fc_weapons/assets/models/marksman_?.*",
   "_imported/marksman.glb-*",
-  "_imported/marksman_?.jpg-*",
-  "_imported/marksman_?.png-*"
+  "_imported/marksman_?.jpg-*"
  ],
  "weapon-lmg": [
   "addons/fc_weapons/assets/models/lmg.*",
   "addons/fc_weapons/assets/models/lmg_?.*",
   "_imported/lmg.glb-*",
-  "_imported/lmg_?.jpg-*",
-  "_imported/lmg_?.png-*"
+  "_imported/lmg_?.jpg-*"
  ],
  "weapon-sniper": [
   "addons/fc_weapons/assets/models/sniper_ph.*",
-  "addons/fc_weapons/assets/models/sniper_ph_?.*",
+  "addons/fc_weapons/assets/models/sniper_ph_*.*",
   "_imported/sniper_ph.glb-*",
-  "_imported/sniper_ph_?.jpg-*",
-  "_imported/sniper_ph_?.png-*"
+  "_imported/sniper_ph_*.jpg-*",
+  "_imported/sniper_ph_*.png-*"
  ],
  "weapon-minigun": [
   "addons/fc_weapons/assets/models/minigun.*",
   "addons/fc_weapons/assets/models/minigun_?.*",
   "_imported/minigun.glb-*",
-  "_imported/minigun_?.jpg-*",
-  "_imported/minigun_?.png-*"
+  "_imported/minigun_?.jpg-*"
  ],
  "weapon-launcher": [
   "addons/fc_weapons/assets/models/rocket_launcher.*",
   "addons/fc_weapons/assets/models/rocket_launcher_?.*",
   "_imported/rocket_launcher.glb-*",
-  "_imported/rocket_launcher_?.jpg-*",
-  "_imported/rocket_launcher_?.png-*"
+  "_imported/rocket_launcher_?.jpg-*"
  ],
  "weapon-quad_launcher": [
   "addons/fc_weapons/assets/models/quad_rocket_launcher.*",
   "addons/fc_weapons/assets/models/quad_rocket_launcher_?.*",
   "_imported/quad_rocket_launcher.glb-*",
-  "_imported/quad_rocket_launcher_?.jpg-*",
-  "_imported/quad_rocket_launcher_?.png-*"
+  "_imported/quad_rocket_launcher_?.jpg-*"
  ],
  "weapon-grenade_launcher": [
   "addons/fc_weapons/assets/models/grenade_launcher.*",
@@ -124,15 +113,13 @@
   "addons/fc_weapons/assets/models/plasma_rifle.*",
   "addons/fc_weapons/assets/models/plasma_rifle_?.*",
   "_imported/plasma_rifle.glb-*",
-  "_imported/plasma_rifle_?.jpg-*",
-  "_imported/plasma_rifle_?.png-*"
+  "_imported/plasma_rifle_?.jpg-*"
  ],
  "weapon-charge_rifle": [
   "addons/fc_weapons/assets/models/rail_rifle.*",
   "addons/fc_weapons/assets/models/rail_rifle_?.*",
   "_imported/rail_rifle.glb-*",
-  "_imported/rail_rifle_?.jpg-*",
-  "_imported/rail_rifle_?.png-*"
+  "_imported/rail_rifle_?.jpg-*"
  ],
  "weapon-frag": [
   "addons/fc_weapons/assets/models/stick_grenade.*",
