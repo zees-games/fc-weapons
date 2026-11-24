@@ -155,6 +155,7 @@ func simulate_tick(
 		_lap(PH_BASH)
 
 	_advance_charge(command, tick)
+	_trigger_down = command.is_pressed(GSWeaponCommand.BUTTON_ATTACK)
 	_update_presentation(tick)
 	if prof:
 		_lap(PH_PRESENT)
@@ -279,6 +280,7 @@ func _idle_tick(command: GSWeaponCommand, tick: int, prof: bool = false, row := 
 		_lap(PH_IDLE_ARSENAL)
 	_notice_switch_end()
 	_advance_charge(command, tick)
+	_trigger_down = command.is_pressed(GSWeaponCommand.BUTTON_ATTACK)
 	_update_presentation(tick)
 	if prof:
 		_lap(PH_PRESENT)
@@ -492,6 +494,7 @@ func _update_presentation(tick: int) -> void:
 	_show_fitting()
 	_fx_origin_known = true
 	_per_round_sound()
+	_spin_sound()
 
 	if _view != null:
 		_view.on_deploy(_deploy_fraction(tick), _deploy_per_tick())
@@ -548,6 +551,8 @@ func on_landed(impact: float) -> void:
 ## Everything back to rest: a respawn, a teleport, a correction that moved the carrier.
 func on_reset() -> void:
 	_bare_after_throw = false
+	_trigger_down = false
+	_stop_spin()
 	if _fx != null:
 		_fx.stop_flashes()
 	if _view != null:

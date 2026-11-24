@@ -178,6 +178,7 @@ func _notification(what: int) -> void:
 
 func _exit_tree() -> void:
 	stop_flashes()
+	stop_spin()
 	for voice in _voices:
 		if is_instance_valid(voice):
 			voice.stop()

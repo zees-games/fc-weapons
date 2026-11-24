@@ -119,6 +119,8 @@ var _reload_ticks: int = 0
 
 ## The current weapon's magazine last tick of a per-round reload, to hear each shell go in; -1 otherwise.
 var _rounds_seen: int = -1
+var _spin := AwMinigunSpin.new()
+var _trigger_down := false
 
 ## False until the first presentation tick, so the weapon a carrier spawns with is not an "equip".
 var _fx_origin_known: bool = false

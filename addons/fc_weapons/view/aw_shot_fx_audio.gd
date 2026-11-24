@@ -45,6 +45,8 @@ const PCM_PATH := "res://addons/gs_audio/sink/gs_audio_pcm.gd"
 static var _pcm: Script = null
 static var _pcm_probed := false
 
+var _spin_voice: AudioStreamPlayer3D = null
+
 ## Replaces the stock report and tail: `func(id: StringName, kind: StringName, at: Vector3, indoors: bool) -> bool`, e.g. wrapping a GSShotPlayer's `fire`. Return true when it played the shot; false falls back to the stock sound. Unset keeps the stock sound.
 var shot_sound: Callable = Callable()
 
@@ -128,10 +130,45 @@ func play_equip(at: Vector3, thrown: bool = false, weapon_id: StringName = &"") 
 	_play(pin if pin != null else AwWeaponSound.equip_stream(weapon_id), at, -6.0, &"handling")
 
 
-## One shell going into a tube magazine: a per-round reload plays this once per round.
-func play_reload_shell(at: Vector3) -> void:
-	if is_inside_tree():
-		_play(AwWeaponSound.stream(AwWeaponSound.RELOAD_SHELL), at, -4.0, &"handling")
+## One shell going into a tube magazine: a per-round reload plays this once per round. [param weapon_id]'s own shell
+## recording (shotgun shell_load) when it has one.
+func play_reload_shell(at: Vector3, weapon_id: StringName = &"") -> void:
+	if not is_inside_tree():
+		return
+	var own := AwGunCues.stream(weapon_id, &"shell_load", randi()) if weapon_id != &"" else null
+	_play(own if own != null else AwWeaponSound.stream(AwWeaponSound.RELOAD_SHELL), at, -4.0, &"handling")
+
+
+## Starts the minigun's [param part] (spin_up, spin_loop or spin_down) on the one spin voice, replacing what it was playing.
+func play_spin(part: StringName, at: Vector3) -> void:
+	var stream := AwGunCues.spin_stream(part)
+	if not sounds or stream == null or not is_inside_tree():
+		return
+	if _spin_voice == null or not is_instance_valid(_spin_voice):
+		_spin_voice = AudioStreamPlayer3D.new()
+		_spin_voice.name = "SpinVoice"
+		_spin_voice.top_level = true
+		_spin_voice.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		_spin_voice.unit_size = 12.0
+		_spin_voice.max_distance = 120.0
+		add_child(_spin_voice)
+	heard.emit(stream)
+	_spin_voice.bus = bus
+	_spin_voice.stream = stream
+	_spin_voice.volume_db = volume_db - 6.0
+	_spin_voice.global_position = at
+	_spin_voice.play()
+
+
+## Cuts the spin voice now (a drop, a switch, a death): a loop must never outlive the gun.
+func stop_spin() -> void:
+	if _spin_voice != null and is_instance_valid(_spin_voice):
+		_spin_voice.stop()
+
+
+## True while the spin voice is sounding.
+func spin_playing() -> bool:
+	return _spin_voice != null and is_instance_valid(_spin_voice) and _spin_voice.playing
 
 
 ## The case landing, a little after it left the port.

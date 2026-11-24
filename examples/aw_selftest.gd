@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
-const CHECKS := 572
+const CHECKS := 596
 const ReloadSequence := preload("../addons/fc_weapons/view/aw_reload_sequence.gd")
 const ReloadCues := preload("../addons/fc_weapons/view/aw_reload_cues.gd")
 
@@ -19,6 +19,7 @@ func _ready() -> void:
 	_provider()
 	_sound_classes()
 	_sound_coverage()
+	await _sound_hooks()
 	_defs()
 	_fire_feel()
 	_dress()
@@ -372,6 +373,67 @@ func _sound_coverage() -> void:
 		_check("%s has no cue file the manifest does not list (%d of %d)" % [gun, on_disk, listed], on_disk == listed)
 	_check("the minigun's spin up, loop and down exist", AwGunCues.SPIN.all(func(part: StringName) -> bool: return AwGunCues.spin_stream(part) != null))
 	_check("a gun with no cues of its own falls back to stock", AwGunCues.stream(&"aw_rifle", &"bolt_back", 0) == null and AwGunCues.stream(&"aw_sniper", &"mag_out", 0) == null)
+	_end()
+
+
+## The minigun's spin voice, the shotgun's own shell loads, and that the owner's raw recordings never ship.
+func _sound_hooks() -> void:
+	_begin("sound hooks")
+	var spin := AwMinigunSpin.new()
+	var dt := 1.0 / float(AwWeaponPack.TICK_RATE)
+	_check("an idle minigun with the trigger up plays nothing", spin.step(false, dt) == &"" and not spin.active())
+	_check("the trigger going down starts the spin up", spin.step(true, dt) == &"spin_up" and spin.active())
+	var started := &""
+	var ticks := 0
+	while started == &"" and ticks < 200:
+		started = spin.step(true, dt)
+		ticks += 1
+	_check("the loop follows the start after its length (%d ticks)" % ticks, started == &"spin_loop" and absf(float(ticks) * dt - AwMinigunSpin.UP_SEC) < 0.05)
+	_check("held on, the loop plays on without restarting", spin.step(true, dt) == &"")
+	_check("letting go winds down", spin.step(false, dt) == &"spin_down")
+	var idle_ticks := 0
+	while spin.active() and idle_ticks < 200:
+		spin.step(false, dt)
+		idle_ticks += 1
+	_check("the wind-down ends in silence (%d ticks)" % idle_ticks, not spin.active() and absf(float(idle_ticks) * dt - AwMinigunSpin.DOWN_SEC) < 0.05)
+	spin.step(true, dt)
+	_check("letting go before it is up to speed winds down at once", spin.step(false, dt) == &"spin_down")
+	_check("squeezing again in the wind-down spins up again", spin.step(true, dt) == &"spin_up")
+	_check("a drop, switch or death stops it dead, once", spin.stop() and not spin.active() and not spin.stop())
+	_check("the loop recording loops and the start and end do not", AwGunCues.spin_stream(&"spin_loop").get(&"loop") == true and AwGunCues.spin_stream(&"spin_up").get(&"loop") == false and AwGunCues.spin_stream(&"spin_down").get(&"loop") == false)
+	var holder := Node3D.new()
+	add_child(holder)
+	var fx := AwShotFx.new()
+	holder.add_child(fx)
+	fx.play_spin(&"spin_loop", Vector3.ZERO)
+	await get_tree().process_frame
+	_check("the spin voice plays the loop", fx.spin_playing())
+	fx.stop_spin()
+	_check("stop_spin cuts it", not fx.spin_playing())
+	var rig := AwWeaponRig.new()
+	rig._fx = fx
+	holder.add_child(rig)
+	rig._spin.step(true, dt)
+	fx.play_spin(&"spin_loop", Vector3.ZERO)
+	rig.on_reset()
+	_check("a reset stops the rig's spin and its voice", not rig._spin.active() and not fx.spin_playing())
+	fx.play_spin(&"spin_loop", Vector3.ZERO)
+	holder.remove_child(fx)
+	_check("a shot fx leaving the tree takes its loop with it", not fx.spin_playing())
+	holder.remove_child(rig)
+	rig.free()
+	fx.free()
+	holder.queue_free()
+	_check("the shotgun has its own shell loads", AwGunCues.stream(&"aw_shotgun", &"shell_load", 3) != null and AwGunCues.stream(&"aw_rifle", &"shell_load", 0) == null)
+	_check("the AK has its own magazine and charging handle cues", AwGunCues.stream(&"aw_rifle", &"mag_out", 0) != null and AwGunCues.stream(&"aw_rifle", &"charge_back", 0) != null)
+	var publish := FileAccess.get_file_as_string("res://tools/publish.sh")
+	_check("publish.sh keeps assets-src (the raw recordings) out of the pack", publish.contains("--exclude-dir assets-src"))
+	var shipped_from_src := 0
+	for gun: StringName in AwGunCues.CUES:
+		for file in DirAccess.get_files_at(AwShotLayers.GUN_SOUNDS + String(gun)):
+			if "assets-src" in AwShotLayers.GUN_SOUNDS + file:
+				shipped_from_src += 1
+	_check("no shipped sound lives under assets-src", shipped_from_src == 0 and not AwShotLayers.GUN_SOUNDS.contains("assets-src"))
 	_end()
 
 

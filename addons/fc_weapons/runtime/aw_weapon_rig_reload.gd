@@ -83,8 +83,31 @@ func _per_round_sound() -> void:
 		return
 	# The last round lands on the tick the reload ends, so compare before checking is_reloading.
 	if _rounds_seen >= 0 and carried.magazine > _rounds_seen and _fx != null:
-		_fx.play_reload_shell(_listen_at())
+		_fx.play_reload_shell(_listen_at(), carried.def.id)
 	_rounds_seen = carried.magazine if arsenal.is_reloading() else -1
+
+
+## The minigun's barrels, from the trigger and what is in hand: a start, a loop, a wind-down, and silence the moment
+## the gun is switched away, dropped, empty or the carrier is reset (a wind-down only follows a release).
+func _spin_sound() -> void:
+	if _fx == null:
+		return
+	var carried := arsenal.current()
+	var held := carried != null and carried.def.id == AwWeaponIds.MINIGUN
+	if (not held or arsenal.is_switching()) and _spin.active():
+		_stop_spin()
+		return
+	var want := held and _trigger_down and not arsenal.is_switching() and not arsenal.is_reloading() \
+		and arsenal.ammo().count(arsenal.ammo_of(carried.def.id)) > 0
+	var part := _spin.step(want, 1.0 / float(AwWeaponPack.TICK_RATE))
+	if part != AwMinigunSpin.NONE:
+		_fx.play_spin(part, _listen_at())
+
+
+func _stop_spin() -> void:
+	_spin.stop()
+	if _fx != null:
+		_fx.stop_spin()
 
 
 func _listen_at() -> Vector3:

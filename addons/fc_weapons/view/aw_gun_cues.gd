@@ -6,13 +6,14 @@ extends RefCounted
 
 ## gun -> cue -> how many variants cue_NAME_0 .. cue_NAME_(n-1) exist. The selftest checks this against the folder.
 const CUES := {
-	&"sniper": {&"bolt_lift": 2, &"bolt_back": 3, &"bolt_fwd": 3, &"bolt_down": 3},
-	&"shotgun": {&"pump_back": 5, &"pump_fwd": 5},
-	&"revolver": {&"cyl_open": 2, &"cyl_dump": 2, &"round_tick": 5, &"cyl_close": 2, &"cyl_twist": 1},
+	&"sniper": {&"bolt_lift": 5, &"bolt_back": 6, &"bolt_fwd": 3, &"bolt_down": 6},
+	&"shotgun": {&"pump_back": 5, &"pump_fwd": 5, &"shell_load": 7},
+	&"revolver": {&"cyl_open": 2, &"cyl_dump": 2, &"round_tick": 11, &"cyl_close": 2, &"cyl_twist": 1},
+	&"rifle": {&"mag_out": 1, &"mag_seat": 1, &"charge_back": 1, &"charge_fwd": 1},
 }
 
-## The minigun's barrel spin, cut from its recording: a start, a seamless loop and a wind-down (nothing plays them yet;
-## a game's minigun hook can, via [method spin_stream]).
+## The minigun's barrel spin, cut from its recording: a start, a seamless loop and a wind-down. AwWeaponRig drives them from
+## AwMinigunSpin through AwShotFx.play_spin; spin_loop comes back with its loop on.
 const SPIN: Array[StringName] = [&"spin_up", &"spin_loop", &"spin_down"]
 const SPIN_GUN := &"minigun"
 
@@ -34,7 +35,12 @@ static func stream(weapon_id: StringName, cue: StringName, roll: int) -> AudioSt
 
 ## The minigun's [param part] (one of [constant SPIN]), or null.
 static func spin_stream(part: StringName) -> AudioStream:
-	return _load(path_of(SPIN_GUN, String(part))) if SPIN.has(part) else null
+	if not SPIN.has(part):
+		return null
+	var s := _load(path_of(SPIN_GUN, String(part)))
+	if s != null and &"loop" in s:
+		s.set(&"loop", part == &"spin_loop")
+	return s
 
 
 static func _load(path: String) -> AudioStream:
