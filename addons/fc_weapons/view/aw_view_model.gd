@@ -30,6 +30,9 @@ signal model_ready(id: StringName, weapon: Node3D)
 const ChargeFx := preload("aw_charge_fx.gd")
 ## The [method scope_fraction] from which the gun model is no longer drawn: the lens is up and the gun would show through it.
 const SCOPE_GUN_HIDE_FRACTION := 0.5
+## On the way out the gun stays hidden until the surround is this nearly gone, so it never shows through a half-faded scope.
+const SCOPE_GUN_SHOW_FRACTION := 0.02
+var _gun_covered := false
 var _charge_fx: Node3D = null
 ## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
 ## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
@@ -553,7 +556,7 @@ func scope_fraction() -> float:
 
 ## Whether the scope's picture is up enough that the 3D gun must not show through it: the surround is at least half in.
 func scope_picture_up() -> bool:
-	return has_scope() and scope_fraction() >= SCOPE_GUN_HIDE_FRACTION
+	return has_scope() and (_gun_covered or scope_fraction() >= SCOPE_GUN_HIDE_FRACTION)
 
 
 ## The scope lens's size, a share of its full size: small at the start of the aim-in, growing toward the eye.
@@ -578,6 +581,11 @@ func _advance_aim(delta: float) -> void:
 	if not can_aim():
 		_aim_held = false
 	_aim_fraction = move_toward(_aim_fraction, target, delta / maxf(time, 0.01))
+	var surround := scope_fraction()
+	if surround >= SCOPE_GUN_HIDE_FRACTION:
+		_gun_covered = true
+	elif surround <= SCOPE_GUN_SHOW_FRACTION:
+		_gun_covered = false
 	if _aim_fraction <= 0.0:
 		_zoom_level = 0  # every new look through the scope starts at its widest
 	_pose.set_aim(_ease(_aim_fraction))
