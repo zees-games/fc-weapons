@@ -514,8 +514,9 @@ func scope_style() -> Dictionary:
 
 
 ## Whether the scope is drawn as its body this frame: [member scope_body] on, the lens view, and an `ocular` in the weapon's scope style.
+## Not with a fitted optic that replaced the built-in scope: its ocular is hidden, so the flat lens is used.
 func scope_body_active() -> bool:
-	return scope_body and scope_is_lens() and not Describe.scope_ocular(scope_style()).is_empty()
+	return scope_body and scope_is_lens() and not bool(_dressed.get("replaced", false)) and not Describe.scope_ocular(scope_style()).is_empty()
 
 
 ## The ocular's centre and a point on its edge, in global space, for [AwScopeOverlay]; empty unless [method scope_body_active] and drawn.
