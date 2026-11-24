@@ -281,7 +281,7 @@ func _check_stepped_prewarm() -> void:
 	while began and view.prewarm_step():
 		steps += 1
 	view.queue_free()
-	_check("stepped prewarm loads the model, then runs %d stages and drops the weapon" % AwViewModel.EQUIP_STAGES, began and weapon_loaded and steps == AwViewModel.EQUIP_STAGES - 1 + part_steps and view.weapon_node() == null)
+	_check("stepped prewarm loads the model, then runs %d stages and drops the weapon" % AwViewModel.EQUIP_STAGES, began and weapon_loaded and steps >= AwViewModel.EQUIP_STAGES - 1 + part_steps and view.weapon_node() == null)
 	_check("stepped prewarm leaves every reload part warmed (one a step when cold: %d)" % part_steps, AwViewModel._parts_warmed and view._parts_left.is_empty() and view._kinds_held.is_empty())
 	var warmed := spans.size()
 	var hot := AwViewModel.new()

@@ -13,7 +13,7 @@ const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd"
 
 const CHANNEL := "aw.sightcut"
 
-static var _cache: Dictionary = {}
+static var cache: Dictionary = {}
 static var _tree: Dictionary = {}
 static var _spans: Dictionary = {}
 static var _warned: Dictionary = {}
@@ -36,38 +36,9 @@ static func cone(aim: Transform3D, degrees: float, front: Variant = null) -> Dic
 ## Gives every mesh under [param roots] the cut copy for [param cut] (from [method cone]) in [param space].
 ## Returns `{removed, near, far}`: triangles touched and the axial range of what was taken away (0 when nothing).
 static func apply(roots: Array, space: Node3D, cut: Dictionary) -> Dictionary:
-	var out := {"removed": 0, "near": INF, "far": 0.0}
-	if cut.is_empty():
-		return out
-	var planes := _planes(cut)
-	for root: Variant in roots:
-		if not (root is Node):
-			continue
-		var stack: Array[Node] = [root]
-		while not stack.is_empty():
-			var n: Node = stack.pop_back()
-			stack.append_array(n.get_children())
-			var mi := n as MeshInstance3D
-			if mi == null or not (mi.mesh is ArrayMesh or mi.mesh is PrimitiveMesh):
-				continue
-			var to_space := _to_space(mi, space)
-			var key := "%d|%s|%s|%s|%s|%s" % [mi.mesh.get_instance_id(), to_space, cut.eye, cut.axis, cut.tan, cut.stop]
-			var done: Dictionary = _cache[key] if _cache.has(key) else _cut_mesh(mi.mesh, to_space, planes, cut)
-			_cache[key] = done
-			if int(done.removed) == 0:
-				continue
-			out.removed += int(done.removed)
-			out.near = minf(out.near, float(done.near))
-			out.far = maxf(out.far, float(done.far))
-			var overrides: Array[Material] = []
-			for s in mi.get_surface_override_material_count():
-				overrides.append(mi.get_surface_override_material(s))
-			mi.mesh = done.mesh
-			for s in mini(overrides.size(), mi.mesh.get_surface_count()):
-				mi.set_surface_override_material(s, overrides[s])
-	if out.removed == 0:
-		out.near = 0.0
-	return out
+	# Loaded here, not preloaded: the job preloads this script, and a preload cycle is refused.
+	return load("res://addons/fc_weapons/view/aw_sight_cut_job.gd").new(roots, space, cut).run()
+
 
 
 ## [param cut] stopped short of the first thing its axis meets in the front part of [param node] (past [param from] of its length
@@ -87,7 +58,7 @@ static func short_of_front(cut: Dictionary, node: Node, space: Node3D, from: flo
 		var mi := n as MeshInstance3D
 		if mi == null or mi.mesh == null:
 			continue
-		var to_space := _to_space(mi, space)
+		var to_space := to_space_of(mi, space)
 		if not _invertible(to_space.basis):
 			_warn_once(mi.mesh, "sight cut skipped a mesh with a flat transform", {"node": mi.name})
 			continue
@@ -99,7 +70,7 @@ static func short_of_front(cut: Dictionary, node: Node, space: Node3D, from: flo
 		hi = maxf(hi, float(span[1]) + shift)
 		parts.append([mi.mesh, to_space])
 	var front := lo + (hi - lo) * from
-	var planes := _planes(cut)
+	var planes := planes_of(cut)
 	var nearest := INF
 	var start := eye + axis * maxf(front, 0.0)
 	var end := eye + axis * (hi + 1.0)
@@ -119,7 +90,7 @@ static func short_of_front(cut: Dictionary, node: Node, space: Node3D, from: flo
 	return cut
 
 
-## Axial depth of the nearest triangle vertex of [param mesh] inside the region (planes from [method _planes]) at or past [param from], else INF; cached per mesh and cut.
+## Axial depth of the nearest triangle vertex of [param mesh] inside the region (planes from [method planes_of]) at or past [param from], else INF; cached per mesh and cut.
 static func _nearest_inside(mesh: Mesh, to_space: Transform3D, planes: Array, eye: Vector3, axis: Vector3, from: float) -> float:
 	var key := "in|%d|%s|%s|%s|%s|%s" % [mesh.get_instance_id(), to_space, eye, axis, planes.size(), from]
 	if _spans.has(key):
@@ -189,7 +160,7 @@ static func occluders(node: Node, space: Node3D, cut: Dictionary, share: float =
 
 
 ## The region as planes `[normal, d]` in space coordinates: a point p is inside when every `normal.dot(p) - d <= 0`.
-static func _planes(cut: Dictionary) -> Array:
+static func planes_of(cut: Dictionary) -> Array:
 	var eye: Vector3 = cut.eye
 	var axis: Vector3 = cut.axis
 	var u := axis.cross(Vector3.UP if absf(axis.y) < 0.9 else Vector3.RIGHT).normalized()
@@ -219,7 +190,7 @@ static func _warn_once(mesh: Mesh, message: String, fields: Dictionary) -> void:
 		GSLog.warn(CHANNEL, message, fields)
 
 
-static func _to_space(mi: Node, space: Node3D) -> Transform3D:
+static func to_space_of(mi: Node, space: Node3D) -> Transform3D:
 	var to_space := Transform3D.IDENTITY
 	var walk: Node = mi
 	while walk != null and walk != space:
@@ -229,135 +200,10 @@ static func _to_space(mi: Node, space: Node3D) -> Transform3D:
 	return to_space
 
 
-## `{mesh, removed, near, far}`: [param mesh] with the region taken out of each triangle surface; the mesh itself when nothing is.
-static func _cut_mesh(mesh: Mesh, to_space: Transform3D, planes: Array, cut: Dictionary) -> Dictionary:
-	if mesh is PrimitiveMesh:
-		var baked := ArrayMesh.new()
-		baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, (mesh as PrimitiveMesh).get_mesh_arrays())
-		baked.surface_set_material(0, (mesh as PrimitiveMesh).material)
-		mesh = baked
-	var result := ArrayMesh.new()
-	var removed := 0
-	var near := INF
-	var far := 0.0
-	var eye: Vector3 = cut.eye
-	var axis: Vector3 = cut.axis
-	for s in mesh.get_surface_count():
-		var arrays := mesh.surface_get_arrays(s)
-		# Extra glTF UV sets come back as custom channels, which add_surface_from_arrays refuses without their format
-		# flags; no weapon material reads them.
-		for custom in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3]:
-			arrays[custom] = null
-		var plain: bool = mesh.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES \
-			or arrays[Mesh.ARRAY_BONES] != null or mesh.get_blend_shape_count() > 0
-		var cut_surface: Array = [] if plain else _cut_surface(arrays, to_space, planes, mesh.get_aabb())
-		if cut_surface.is_empty():
-			# The source's own format flags: its custom channels need them to be read back as the byte arrays they are.
-			result.add_surface_from_arrays(mesh.surface_get_primitive_type(s), arrays, [], {}, mesh.surface_get_format(s))
-		else:
-			removed += int(cut_surface[1])
-			for p: Vector3 in cut_surface[2]:
-				var d := (p - eye).dot(axis)
-				near = minf(near, d)
-				far = maxf(far, d)
-			var built: Array = cut_surface[0]
-			if (built[Mesh.ARRAY_VERTEX] as PackedVector3Array).is_empty():
-				# Wholly inside the region: nothing is left, and the engine refuses an empty surface. A zero-area
-				# triangle keeps the surface count, so material overrides by index stay aligned.
-				built = []
-				built.resize(Mesh.ARRAY_MAX)
-				built[Mesh.ARRAY_VERTEX] = PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
-				if not _warned.has(mesh.get_instance_id()):
-					_warned[mesh.get_instance_id()] = true
-					GSLog.warn(CHANNEL, "sight cut removed a whole surface", {"mesh": mesh.resource_name, "surface": s})
-			result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, built)
-		if result.get_surface_count() > s:
-			result.surface_set_material(s, mesh.surface_get_material(s))
-	if removed == 0:
-		return {"mesh": mesh, "removed": 0, "near": 0.0, "far": 0.0}
-	return {"mesh": result, "removed": removed, "near": near, "far": far}
-
-
-## `[arrays, removed, points]` for one surface (non-indexed, every attribute interpolated), or `[]` when nothing is inside.
-static func _cut_surface(arrays: Array, to_space: Transform3D, planes: Array, box: AABB = AABB()) -> Array:
-	if (box.has_volume() or box.size != Vector3.ZERO) and _box_beyond(to_space, planes, box):
-		return []
-	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var index: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
-	var count := index.size() if not index.is_empty() else verts.size()
-	var world := PackedVector3Array()
-	world.resize(verts.size())
-	# Per vertex, the set of planes it lies beyond (bit k): a triangle misses the region when its three vertices share one.
-	var beyond := PackedInt32Array()
-	beyond.resize(verts.size())
-	var normals: Array[Vector3] = []
-	var offsets := PackedFloat64Array()
-	for plane: Array in planes:
-		normals.append(plane[0])
-		offsets.append(plane[1])
-	var plane_count := normals.size()
-	for i in verts.size():
-		var w := to_space * verts[i]
-		world[i] = w
-		var bits := 0
-		for k in plane_count:
-			if normals[k].dot(w) > offsets[k]:
-				bits |= 1 << k
-		beyond[i] = bits
-	var corners := PackedInt32Array()
-	var bary: Array[Vector3] = []
-	var removed := 0
-	var points: Array[Vector3] = []
-	var corner := [Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1)]
-	var indexed := not index.is_empty()
-	for i in range(0, count - 2, 3):
-		var i0 := index[i] if indexed else i
-		var i1 := index[i + 1] if indexed else i + 1
-		var i2 := index[i + 2] if indexed else i + 2
-		if beyond[i0] & beyond[i1] & beyond[i2] != 0:
-			corners.append(i0)
-			corners.append(i1)
-			corners.append(i2)
-			corners.append(i0)
-			corners.append(i1)
-			corners.append(i2)
-			corners.append(i0)
-			corners.append(i1)
-			corners.append(i2)
-			bary.append(corner[0])
-			bary.append(corner[1])
-			bary.append(corner[2])
-			continue
-		var ids := PackedInt32Array([i0, i1, i2])
-		var p: Array[Vector3] = [world[i0], world[i1], world[i2]]
-		var pieces: Array = []
-		var poly: Array[Vector3] = [corner[0], corner[1], corner[2]]
-		for plane: Array in planes:
-			var split := _split(poly, p, plane[0], plane[1])
-			if not (split[0] as Array).is_empty():
-				pieces.append(split[0])
-			poly = split[1]
-			if poly.is_empty():
-				break
-		if poly.is_empty():
-			pieces = [[corner[0], corner[1], corner[2]]]
-		else:
-			removed += 1
-			for b: Vector3 in poly:
-				points.append(p[0] * b.x + p[1] * b.y + p[2] * b.z)
-		for piece: Array in pieces:
-			for k in range(1, piece.size() - 1):
-				for b: Vector3 in [piece[0], piece[k], piece[k + 1]]:
-					corners.append_array(ids)
-					bary.append(b)
-	if removed == 0:
-		return []
-	return [_build(arrays, corners, bary), removed, points]
-
 
 ## Whether [param box] (moved by [param to_space]) lies wholly beyond one of [param planes], with a margin for float
 ## noise: nothing of the surface is inside, so every vertex can be skipped.
-static func _box_beyond(to_space: Transform3D, planes: Array, box: AABB) -> bool:
+static func box_beyond(to_space: Transform3D, planes: Array, box: AABB) -> bool:
 	var corners_box: Array[Vector3] = []
 	for c in 8:
 		corners_box.append(to_space * box.get_endpoint(c))
@@ -385,7 +231,7 @@ static func _outside_any(p: Array[Vector3], planes: Array) -> bool:
 
 
 ## Splits a convex polygon of barycentrics on [param p] by a plane: `[outside, inside]`.
-static func _split(poly: Array[Vector3], p: Array[Vector3], n: Vector3, d: float) -> Array:
+static func split(poly: Array[Vector3], p: Array[Vector3], n: Vector3, d: float) -> Array:
 	var outside: Array[Vector3] = []
 	var inside: Array[Vector3] = []
 	var size := poly.size()
@@ -406,43 +252,8 @@ static func _split(poly: Array[Vector3], p: Array[Vector3], n: Vector3, d: float
 	return [outside if outside.size() >= 3 else none, inside if inside.size() >= 3 else none]
 
 
-## Non-indexed arrays: entry i is corners[3i..3i+2] (the source triangle) weighted by bary[i].
-static func _build(arrays: Array, corners: PackedInt32Array, bary: Array[Vector3]) -> Array:
-	var out := []
-	out.resize(Mesh.ARRAY_MAX)
-	for slot in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_TEX_UV2, Mesh.ARRAY_COLOR, Mesh.ARRAY_TANGENT]:
-		var src: Variant = arrays[slot]
-		if src == null:
-			continue
-		match slot:
-			Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL:
-				var a: PackedVector3Array = src
-				var o := PackedVector3Array()
-				for i in bary.size():
-					var b := bary[i]
-					var v := a[corners[3 * i]] * b.x + a[corners[3 * i + 1]] * b.y + a[corners[3 * i + 2]] * b.z
-					o.append(v.normalized() if slot == Mesh.ARRAY_NORMAL and v != Vector3.ZERO else v)
-				out[slot] = o
-			Mesh.ARRAY_TEX_UV, Mesh.ARRAY_TEX_UV2:
-				var a2: PackedVector2Array = src
-				var o2 := PackedVector2Array()
-				for i in bary.size():
-					var b := bary[i]
-					o2.append(a2[corners[3 * i]] * b.x + a2[corners[3 * i + 1]] * b.y + a2[corners[3 * i + 2]] * b.z)
-				out[slot] = o2
-			Mesh.ARRAY_COLOR:
-				var c: PackedColorArray = src
-				var oc := PackedColorArray()
-				for i in bary.size():
-					var b := bary[i]
-					oc.append(c[corners[3 * i]] * b.x + c[corners[3 * i + 1]] * b.y + c[corners[3 * i + 2]] * b.z)
-				out[slot] = oc
-			Mesh.ARRAY_TANGENT:
-				var t: PackedFloat32Array = src
-				var ot := PackedFloat32Array()
-				for i in bary.size():
-					var b := bary[i]
-					for k in 4:
-						ot.append(t[4 * corners[3 * i] + k] * b.x + t[4 * corners[3 * i + 1] + k] * b.y + t[4 * corners[3 * i + 2] + k] * b.z)
-				out[slot] = ot
-	return out
+## Warns once per mesh that a surface lay wholly inside the region (shared with the cut job).
+static func warn_whole_surface(mesh: Mesh, surface: int) -> void:
+	if not _warned.has(mesh.get_instance_id()):
+		_warned[mesh.get_instance_id()] = true
+		GSLog.warn(CHANNEL, "sight cut removed a whole surface", {"mesh": mesh.resource_name, "surface": surface})

@@ -504,9 +504,35 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 
 ## The second half of [method _fit_sight]: the red dot cut for the line, and the sight put in the holder.
 func _cut_sight(art: AwWeaponVisual) -> void:
+	var red := SightFit.cut(art, ads_rules, _cut_roots(), _holder, _aim_target(), _sight_line)
+	_place_sight(red)
+
+
+## [method _cut_sight] a slice at a time for [method prewarm_step]: starts the cut on the first call, works [constant CUT_SLICE_USEC] on each;
+## true once it is done and the sight placed. The cut is the same, only spread over frames.
+func _cut_sight_slice(art: AwWeaponVisual) -> bool:
+	if _cut_job == null:
+		var roots := _cut_roots()
+		_cut_cone = SightFit.cone_for(art, ads_rules, roots, _holder, _aim_target(), _sight_line)
+		if _cut_cone.is_empty():
+			_place_sight(null)
+			return true
+		_cut_job = SightFit.begin(roots, _holder, _cut_cone)
+	if not _cut_job.step(CUT_SLICE_USEC):
+		return false
+	var red := SightFit.finish(art, ads_rules, _cut_cone, _cut_job)
+	_cut_job = null
+	_place_sight(red)
+	return true
+
+
+func _cut_roots() -> Array:
 	var roots: Array = [_weapon]
 	roots.append_array(_dressed.get("parts", []))
-	var red := SightFit.cut(art, ads_rules, roots, _holder, _aim_target(), _sight_line)
+	return roots
+
+
+func _place_sight(red: Node3D) -> void:
 	if red != null and _sight != null:
 		_sight.add_child(red)
 	elif red != null:
@@ -538,6 +564,12 @@ func _add_built(part: Node3D, at: Transform3D) -> Node3D:
 ## The stages the tail of [method equip] runs in, after the model is in the holder; [method prewarm_step] runs them one a call.
 ## The belt and the two halves of the sight fit are separate stages: together they were a 50-234 ms frame per weapon at game-fatal-contact startup.
 const EQUIP_STAGES := 8
+## The stage that cuts the sight hole, which [method prewarm_step] works in slices.
+const CUT_STAGE := 3
+## What one [method prewarm_step] spends on the cut: the rest waits for the next frame.
+const CUT_SLICE_USEC := 6000
+var _cut_job: RefCounted
+var _cut_cone: Dictionary = {}
 
 
 func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
@@ -593,6 +625,7 @@ var _kinds_held: Array[Material] = []
 ## Returns false when there is nothing to step (no art, no model, or the load failed); the weapon is then already as warm as it gets.
 func prewarm_begin(art: AwWeaponVisual) -> bool:
 	_prewarm_stage = -1
+	_cut_job = null
 	if not _parts_left.is_empty():
 		_warm_parts()
 	var head := _equip_head(art)
@@ -613,7 +646,11 @@ func prewarm_step() -> bool:
 	if _prewarm_stage < 0 or _art == null:
 		_prewarm_stage = -1
 		return false
-	_equip_stage(_art, _prewarm_stage)
+	if _prewarm_stage == CUT_STAGE:
+		if not _cut_sight_slice(_art):
+			return true
+	else:
+		_equip_stage(_art, _prewarm_stage)
 	_prewarm_stage += 1
 	if _prewarm_stage < EQUIP_STAGES:
 		return true

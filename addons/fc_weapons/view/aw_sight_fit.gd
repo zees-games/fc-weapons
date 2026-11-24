@@ -6,6 +6,7 @@ extends RefCounted
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
 const OwnSight := preload("aw_own_sight.gd")
 const Cut := preload("aw_sight_cut.gd")
+const CutJob := preload("aw_sight_cut_job.gd")
 
 ## The front sight's glow: a small dot on the post's tip, its size in degrees from the ADS rule `sight_dot`, shown as the aim arrives.
 const DOT_COLOR := Color(0.75, 1.0, 0.35)
@@ -119,9 +120,22 @@ static func cut(art: AwWeaponVisual, rules: AwAdsRules, roots: Array, holder: No
 	var cone := cone_for(art, rules, roots, holder, aim, line)
 	if cone.is_empty():
 		return null
-	var done := Cut.apply(roots, holder, cone)
+	var job: RefCounted = begin(roots, holder, cone)
+	job.run()
+	return finish(art, rules, cone, job)
+
+
+## A cut in progress for [param cone] (from [method cone_for], not empty): [code]step(usec)[/code] it a frame at a time until it reports
+## done, then [method finish]. The same hole [method cut] makes at once.
+static func begin(roots: Array, holder: Node3D, cone: Dictionary) -> RefCounted:
+	return CutJob.new(roots, holder, cone)
+
+
+## The red dot (or null) once [param job] from [method begin] is done.
+static func finish(art: AwWeaponVisual, rules: AwAdsRules, cone: Dictionary, job: RefCounted) -> Node3D:
 	if not cone.red:
 		return null
+	var done: Dictionary = job.result
 	var relief := art.aim_eye_relief / maxf(art.view_scale, 0.01)
 	return _red_dot(cone, float(done.far) if int(done.removed) > 0 else relief, _red(art, rules))
 
