@@ -57,4 +57,10 @@ func run() -> void:
 	_ok(_range(by.reload, "magazine") > 0.1 and _range(by.reload, "hand.left") > 0.1, "a reload carries the magazine and the support hand")
 	_ok(_range(by.idle, "weapon") < 0.02 and _range(by.idle, "weapon") > 0.0, "the idle sway is small but not still")
 	_ok(sc.lens.reference_fov == GSViewLens.REFERENCE_FOV and sc.lens.max_pull_in == GSViewLens.MAX_PULL_IN, "the sidecar carries the game's lens constants")
+	var tp: Dictionary = sc.third_person
+	var rest: Array = tp.rest
+	var rest_ok := rest.size() == 12
+	for v in rest:
+		rest_ok = rest_ok and is_finite(float(v))
+	_ok(rest_ok and tp.pose != "" and Vector3(rest[0], rest[1], rest[2]).length() > 0.1, "the sidecar carries where the weapon sits in the hand mount (12 finite values, a real scale)")
 	suite._end()

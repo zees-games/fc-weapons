@@ -73,6 +73,7 @@ func bake(host: Node, id: StringName, def: GSWeaponDef) -> Dictionary:
 			"reference_fov": GSViewLens.REFERENCE_FOV, "reference_depth": GSViewLens.REFERENCE_DEPTH,
 			"max_pull_in": GSViewLens.MAX_PULL_IN, "depth_comp": 1.0,
 		},
+		"third_person": _third_person(art),
 		"nodes": {"bolt": String(art.bolt_node), "magazine": String(art.hide_during_reload)},
 		"clips": clips,
 	}
@@ -229,3 +230,11 @@ static func _round(values: Array) -> Array:
 	for v: float in values:
 		out.append(snappedf(v, 0.00001))
 	return out
+
+
+## Where the weapon sits in the hand mount, as AwWorldModel's holder places it (the art's world transform, its basis scaled by the pose's share of the hand scale): 12 floats, basis columns then origin.
+static func _third_person(art: AwWeaponVisual) -> Dictionary:
+	var rest := art.world_transform()
+	rest = Transform3D(rest.basis.scaled(Vector3.ONE * AwWeaponArtTable.pose_world_factor(art.pose)), rest.origin)
+	var b := rest.basis
+	return {"pose": String(art.pose), "rest": [b.x.x, b.x.y, b.x.z, b.y.x, b.y.y, b.y.z, b.z.x, b.z.y, b.z.z, rest.origin.x, rest.origin.y, rest.origin.z]}
