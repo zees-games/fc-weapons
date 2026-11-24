@@ -12,13 +12,14 @@ static func of(art: AwWeaponVisual) -> Variant:
 	match art.pose:
 		&"pistol":
 			return &"pistol"
-		&"heavy":
-			return &"heavy"
 		&"melee", &"thrown":
 			return null
 	var sound: StringName = AwWeaponPack.SOUND_CLASSES.get(art.id, &"")
 	if sound == &"":
 		sound = AwWeaponSound.class_for(art.id, &"")
+	# A sniper is a heavy-tier gun (it brings the wall tier) but is shouldered, not held at the hip like a launcher.
+	if art.pose == &"heavy" and sound not in [&"sniper", &"marksman", &"rail"]:
+		return &"heavy"
 	match sound:
 		&"shotgun", &"autoshot":
 			return &"shotgun"
