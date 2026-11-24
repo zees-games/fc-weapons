@@ -2,31 +2,28 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bo330l0oaqxnh"
-path="res://.godot/imported/lmg_2.png-790d0761eea4c008caa97a9090ec9325.ctex"
+uid="uid://cw0sy3ehmi8dn"
+path="res://.godot/imported/lmg_2.jpg-b9e3484d3bf07058681afdb7c3ac350e.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "d7fb5d1709c68c5fa6c685b7fa712ab2"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/lmg_2.png"
-dest_files=["res://.godot/imported/lmg_2.png-790d0761eea4c008caa97a9090ec9325.ctex"]
+source_file="res://addons/fc_weapons/assets/models/lmg_2.jpg"
+dest_files=["res://.godot/imported/lmg_2.jpg-b9e3484d3bf07058681afdb7c3ac350e.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
-compress/lossy_quality=0.9
+compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

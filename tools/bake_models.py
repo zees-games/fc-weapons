@@ -31,7 +31,10 @@ def find(name):
     return None
 
 
+only = set(filter(None, os.environ.get('AW_ONLY', '').split(',')))  # AW_ONLY=bullpup,lmg bakes just those
 for name, (s, sc, rot, grip) in M.items():
+    if only and name not in only:
+        continue
     path = find(s)
     if path is None:
         print('SKIP', name, s)
