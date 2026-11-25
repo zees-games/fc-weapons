@@ -114,6 +114,18 @@ def mark(j, name, y=None):
         n['translation'] = [t[0], y, t[2]]
 
 
+def sight_marks(j, y, rear_z, front_z):
+    """Writes the `sight_rear` / `sight_front` marks (GSWeaponIronSight.from_marks) on the line y, for sights whose
+    aperture sits below their own ears, where the model's highest point is not the line."""
+    for name, z in (('sight_rear', rear_z), ('sight_front', front_z)):
+        n = next((x for x in j['nodes'] if x.get('name') == name), None)
+        if n is None:
+            n = {'name': name}
+            j['nodes'].append(n)
+            j['scenes'][0]['nodes'].append(len(j['nodes']) - 1)
+        n['translation'] = [0.0, y, z]
+
+
 def rear_notch(p, mat, x, z, y0, h, width=0.026, gap=0.009, ear=0.004, depth=0.012):
     """Open rear sight: a base plate on y0 and two ears (the notch between them), top at y0 + h."""
     p.box(mat, (x, y0 + 0.0025, z), (width, 0.005, depth))
@@ -445,6 +457,7 @@ def bullpup_v3(j, b, p):
     p.cyl('part_glass', (0, 0.27, -0.094), 0.0135, 0.0135, 0.002, 'z', S)
     p.cyl('part_scope', (0.0195, 0.27, -0.07), 0.008, 0.008, 0.008, 'x', 20)  # brightness turret
     p.cyl('part_scope', (0, 0.2895, -0.07), 0.007, 0.007, 0.006, 'y', 20)     # adjustment turret
+    sight_marks(j, 0.2776, -0.041, -0.1)   # the turret now tops the gun, so mark the line through the bore
     img, im = albedo(j, b, 'geometry_0')
     im = im.resize((im.width * 2, im.height * 2), Image.LANCZOS)
     a = np.asarray(im).astype(np.float64)
@@ -490,6 +503,7 @@ def drum_shotgun_v3(j, b, p):
     for s in (-1, 1):
         p.box('part_blued', (s * 0.0185, 0.284, -0.116), (0.007, 0.024, 0.03))
         p.cyl('part_blued', (s * 0.0185, 0.296, -0.116), 0.0035, 0.0035, 0.03, 'z', 16)
+    sight_marks(j, 0.2842, -0.116, -0.2155)   # ring centre to post top; the ears stand above the line
 
 
 def battle_rifle_v3(j, b, p):
