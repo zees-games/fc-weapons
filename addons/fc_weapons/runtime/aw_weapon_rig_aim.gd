@@ -42,8 +42,16 @@ func _aim_along_sprint_barrel(context: GSWeaponContext) -> void:
 func _aim_unread(command: GSWeaponCommand, context: GSWeaponContext) -> bool:
 	if (command.buttons & (GSWeaponCommand.BUTTON_AIM | GSWeaponCommand.BUTTON_ALT)) != 0:
 		return false
-	# Asked by name: an older gs-weapon has no such answer, and then every tick casts as before.
-	return arsenal.has_method(&"is_cooling_for") and arsenal.call(&"is_cooling_for", command, context)
+	# Asked by name: an older gs-weapon has no such answer, and then every tick casts as before. Whether it has one is
+	# looked up once per arsenal; the lookup each tick cost as much as the answer.
+	if arsenal != _cooling_of:
+		_cooling_of = arsenal
+		_cooling_known = arsenal != null and arsenal.has_method(&"is_cooling_for")
+	return _cooling_known and arsenal.call(&"is_cooling_for", command, context)
+
+
+var _cooling_of: Object = null
+var _cooling_known := false
 
 
 ## Sideways speed last given to [method drive_view]; the wall shot tilts with it, as the drawn gun does. A server sets it from `context.extra[&"strafe"]` instead.
