@@ -12,6 +12,10 @@ var _own_style: Dictionary = {}
 ## Where the lens and reticle sit off centre, in lens radii (x right, y down); [method follow] takes it from the view.
 var motion := Vector2.ZERO
 
+## The least the scope body's lens radius is, as a share of the screen's height: the ocular is a few dozen pixels at the
+## hip, too small to read the zoomed picture in, so the lens is drawn at least this big around the same centre.
+@export_range(0.0, 0.5) var body_min_radius := 0.13
+
 ## The view whose scope is drawn as its body (AwViewModel.scope_ocular_points), or null for the flat lens.
 var _body_view: Object = null
 
@@ -79,7 +83,7 @@ func _body_lens() -> Dictionary:
 	if points.is_empty() or _source.is_position_behind(points["centre"]):
 		return {}
 	var centre := _to_overlay(_source.unproject_position(points["centre"]))
-	var radius := centre.distance_to(_to_overlay(_source.unproject_position(points["edge"])))
+	var radius := maxf(centre.distance_to(_to_overlay(_source.unproject_position(points["edge"]))), size.y * body_min_radius)
 	return {"centre": centre, "radius": radius} if radius > 0.5 else {}
 
 
