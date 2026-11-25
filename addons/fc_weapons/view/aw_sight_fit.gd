@@ -103,7 +103,8 @@ static func _measure_line(art: AwWeaponVisual, weapon: Node3D, holder: Node3D, b
 static func _line_key(art: AwWeaponVisual, weapon: Node3D, holder: Node3D, basis: Basis) -> String:
 	if not line_cache or art.model_path == "" or not weapon.is_inside_tree() or not holder.is_inside_tree():
 		return ""
-	var placed := holder.global_transform.affine_inverse() * weapon.global_transform
+	# Local transforms only: through the globals, a view out in the world or kicked by recoil rounds differently and misses the prewarmed line.
+	var placed := Cut.to_space_of(weapon, holder)
 	return "%s|%s|%s|%s|%s|%s|%s|%s" % [art.model_path, art.model_forward, placed, basis, art.aim_eye_relief,
 		art.aim_offset, art.sight_own, art.iron_sight]
 

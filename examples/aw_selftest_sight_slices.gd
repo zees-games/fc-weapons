@@ -61,3 +61,29 @@ func front() -> void:
 		results.append([job.result, steps])
 		space.free()
 	suite._check("sliced front walk matches the one-call walk (stop %.3f, %d slices)" % [float(results[0][0].stop), results[1][1]], is_finite(float(results[0][0].stop)) and results[1][1] > 1 and results[0][0] == results[1][0])
+
+
+## A view out in the world, turned and kicked by a shot, reads the sight line a view at the origin measured: no line is measured twice.
+func posed() -> void:
+	var lines: Dictionary = AwViewModel.SightFit._lines
+	var arts: Array[AwWeaponVisual] = []
+	for id: StringName in [&"revolver", &"battle_rifle", &"smg"]:
+		var art := AwWeaponVisual.make(id)
+		AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[id])
+		arts.append(art)
+	var counts: Array[int] = []
+	for at: Transform3D in [Transform3D.IDENTITY, Transform3D(Basis.from_euler(Vector3(0.31, 1.27, 0.0)), Vector3(1234.5, 67.8, -912.3))]:
+		var place := Node3D.new()
+		place.transform = at
+		suite.add_child(place)
+		var view := AwViewModel.new()
+		view.show_arms = false
+		place.add_child(view)
+		for art in arts:
+			view.equip(art)
+			view.on_fired()
+			view.advance(0.016)
+		counts.append(lines.size())
+		place.free()
+	suite._check("a posed view out in the world measures no sight line again (%d lines, then %d)" % [counts[0], counts[1]], counts[0] > 0 and counts[1] == counts[0])
+
