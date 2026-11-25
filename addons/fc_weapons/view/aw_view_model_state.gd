@@ -28,11 +28,30 @@ var _build_key := ""
 var _build_shape := {}
 ## True while [method equip] has put a kept build back instead of making one.
 var _reused := false
-## True inside [method prewarm]: what it builds is dropped, not kept.
+## True inside [method prewarm]: what it builds is not kept in this view's own cache.
 var _prewarming := false
+## Builds a prewarm finished, kept for every view model of the process: a spare view under the loading cover builds them, and the
+## player's own view takes one the first time it equips that weapon, so that equip is a put-back, not a 30-100 ms sight fit and cut.
+## Keyed like [member _equip_cache], so a view whose rules or finish differ from the spare's never takes one. 0 limit: keeps every one.
+static var prewarmed := _unlimited_store()
+## How many prewarmed builds are kept (0 keeps every one); the oldest goes first.
+static var prewarm_keep_limit: int = 0:
+	set(value):
+		prewarm_keep_limit = maxi(value, 0)
+		prewarmed.limit = prewarm_keep_limit
+## False: a prewarm drops its build, as before.
+static var keep_prewarmed := true
+
+
+static func _unlimited_store() -> RefCounted:
+	var store := EquipCache.new()
+	store.limit = 0
+	return store
 
 ## The fitted attachments (what the rig was told) and what [code]aw_attachment_dress.gd[/code] drew for them.
 var _fitting: GSWeaponFitting = null
+## The key of the fitting the weapon in hand was last dressed with; [method set_fitting] with the same key redraws and refits nothing.
+var _worn_key := ""
 var _dressed: Dictionary = {}
 
 ## The iron sight's line, measured at equip in the holder's (model) space: `rear` and `front`

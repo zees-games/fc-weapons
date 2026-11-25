@@ -155,6 +155,9 @@ func set_fitting(fitting: GSWeaponFitting) -> void:
 	_fitting = fitting.duplicate_fitting() if fitting != null else null
 	if _weapon == null:
 		return
+	# The build in hand already wears this fitting (none on a fresh or kept build, and the rig tells every switch): nothing to redraw or refit.
+	if _fitting_key() == _worn_key:
+		return
 	# The kept build is of the fitting it was made with: refitted in hand, it is no longer one to keep.
 	_build_key = "" if _equip_key(_art) != _build_key else _build_key
 	_dress()
@@ -166,8 +169,13 @@ func set_fitting(fitting: GSWeaponFitting) -> void:
 	_apply_aim(_ease(_aim_fraction))
 
 
+func _fitting_key() -> String:
+	return "" if _fitting == null else _fitting.key()
+
+
 func _dress() -> void:
 	_dressed = Dress.apply(_weapon, _fitting, _art.model_forward, _dressed)
+	_worn_key = _fitting_key()
 	_forget_mesh_walks()
 	for part: Node3D in _dressed.parts:
 		_set_on_top(part)
@@ -705,7 +713,7 @@ func prewarm_step() -> bool:
 		return true
 	_prewarm_stage = -1
 	model_ready.emit(_id, _weapon)
-	clear()
+	_keep_prewarm()
 	if not _parts_warmed:
 		_parts_warmed = true
 		_parts_left = WARM_KINDS + ReloadParts.part_names()
@@ -720,7 +728,7 @@ func prewarm(art: AwWeaponVisual) -> void:
 	_prewarming = true
 	var _r := equip(art)
 	_prewarming = false
-	clear()
+	_keep_prewarm()
 	_warm_parts()
 
 

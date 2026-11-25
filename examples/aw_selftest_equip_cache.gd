@@ -119,6 +119,7 @@ func run() -> void:
 	view.free()
 	suite._check("freeing the view model frees every weapon it kept (%d)" % count, count > 0 and kept.all(func(n) -> bool: return not is_instance_valid(n)))
 	await _late_checks()
+	_fitting_and_prewarm_checks()
 	suite._end()
 
 
@@ -146,3 +147,24 @@ func _late_checks() -> void:
 	AwModelCache._scenes.erase(path)
 	hand.queue_free()
 	world.queue_free()
+
+
+## The rig tells the view its fitting on every switch: an empty one on a build that wears none refits nothing, and a prewarmed build is the one a real equip takes.
+func _fitting_and_prewarm_checks() -> void:
+	AwViewModel.prewarmed.clear()
+	var view := _rig(true)
+	var art := _art(&"rifle")
+	view.equip(art)
+	var weapon := view.weapon_node()
+	view.set_fitting(GSWeaponFitting.new())
+	suite._check("an empty fitting on a build that wears none keeps its weapon (no refit)", weapon != null and view.weapon_node() == weapon)
+	var spare := _rig(true)
+	spare.prewarm(art)
+	suite._check("a prewarm leaves its finished build in the shared store (%d kept)" % AwViewModel.prewarmed.size(), AwViewModel.prewarmed.size() == 1 and spare.weapon_node() == null)
+	var real := _rig(true)
+	real.equip(art)
+	suite._check("the first equip of that weapon takes the prewarmed build", AwViewModel.prewarmed.size() == 0 and real.weapon_node() != null)
+	AwViewModel.prewarmed.clear()
+	view.queue_free()
+	spare.queue_free()
+	real.queue_free()

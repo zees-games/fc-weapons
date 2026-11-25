@@ -595,6 +595,7 @@ func _clear_models() -> void:
 	_sight = null
 	_sight_line = {}
 	_dressed = {}
+	_worn_key = ""
 	_fitting = null
 
 	for node in _attachments:
@@ -620,6 +621,7 @@ func equip_cache_size() -> int:
 ## Frees every put-away weapon. The rig does it for you on leaving; a game that swaps its whole kit may do it sooner.
 func clear_equip_cache() -> void:
 	_equip_cache.clear()
+	prewarmed.clear()
 
 
 ## What the built weapon depends on besides its art: the art itself, the rules read at build and the finish. A build is reused only under the same key.
@@ -638,6 +640,19 @@ func _note_built(art: AwWeaponVisual) -> void:
 		return
 	_build_key = _equip_key(art)
 	_build_shape = EquipCache.snapshot(_stow_roots())
+
+
+## Ends a prewarm: the finished build goes to [member prewarmed] under the key a real view would look it up by, or is dropped
+## when [member keep_prewarmed] is off or the build is not whole. The view is left empty either way.
+func _keep_prewarm() -> void:
+	if keep_prewarmed and cache_equips and _weapon != null and is_instance_valid(_weapon) and _fitting == null:
+		_build_key = _equip_key(_art)
+		_build_shape = EquipCache.snapshot(_stow_roots())
+		var key := _build_key
+		_stow()
+		_build_key = ""
+		prewarmed.put(key, _equip_cache.take(key))
+	clear()
 
 
 ## The nodes of the weapon in hand that sit under the holder, in draw order.
@@ -683,6 +698,8 @@ func _stow() -> void:
 func _unstow(key: String) -> bool:
 	var slot := _equip_cache.take(key)
 	if slot.is_empty():
+		slot = prewarmed.take(key)
+	if slot.is_empty():
 		return false
 	for node: Node in slot.roots:
 		_holder.add_child(node)
@@ -701,6 +718,7 @@ func _unstow(key: String) -> bool:
 	_sight_aim = slot.sight_aim
 	_muzzle = slot.muzzle
 	_set_reach_state(slot.reach)
+	_worn_key = ""
 	_build_key = key
 	_build_shape = slot.shape
 	return true
