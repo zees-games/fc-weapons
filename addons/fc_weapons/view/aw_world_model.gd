@@ -158,6 +158,7 @@ func equip(art: AwWeaponVisual) -> GSResult:
 	_build()
 	_clear_models()
 	_deferred = false
+	_late_wait = false
 
 	_art = art
 
@@ -177,7 +178,9 @@ func equip(art: AwWeaponVisual) -> GSResult:
 		_deferred = true
 		return GSResult.success(null)
 
-	return _build_model(art)
+	var built := _build_model(art)
+	_late_wait = not built.ok and AwModelCache.late_pending()
+	return built
 
 
 ## Whether this frame still has [member equip_budget_usec] to spend on a model; always true for the first, or with no budget.
@@ -399,7 +402,15 @@ func _cycle_seconds() -> float:
 	return clampf(float(def.reload_ticks) / rate, 0.4, 6.0)
 
 
+## The model was missing at equip while a late addon group was on its way: built again once the group is mounted.
+var _late_wait := false
+
+
 func _process(delta: float) -> void:
+	if _late_wait and not AwModelCache.late_pending():
+		# The group is mounted now.
+		_late_wait = false
+		_deferred = _art != null
 	if _deferred:
 		_build_deferred()
 	# Hidden (the local player's own, a switch), one frame lets go of the support hand, then the

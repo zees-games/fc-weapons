@@ -118,4 +118,31 @@ func run() -> void:
 		count += 1
 	view.free()
 	suite._check("freeing the view model frees every weapon it kept (%d)" % count, count > 0 and kept.all(func(n) -> bool: return not is_instance_valid(n)))
+	await _late_checks()
 	suite._end()
+
+
+## A weapon equipped while its addon group is still being fetched is drawn once the group is mounted, in hand and on a body.
+func _late_checks() -> void:
+	var path := "res://assets/models/zz_late_group_probe.glb"
+	var real: Variant = AwModelCache.scene(_art(&"rifle").model_path).value
+	var art := _art(&"rifle")
+	art.model_path = path
+	ProjectSettings.set_setting(AwModelCache.LATE_PENDING, true)
+	var hand := _rig(false)
+	var world := AwWorldModel.new()
+	suite.add_child(world)
+	hand.equip(art)
+	world.equip(art)
+	suite._check("with the group on its way a missing model leaves the hand and the body empty", hand.weapon_node() == null and world._weapon == null)
+	await suite.get_tree().process_frame
+	suite._check("and they stay empty while it is still on its way", hand.weapon_node() == null and world._weapon == null)
+	AwModelCache._scenes[path] = real
+	ProjectSettings.set_setting(AwModelCache.LATE_PENDING, false)
+	await suite.get_tree().process_frame
+	await suite.get_tree().process_frame
+	suite._check("once it is mounted the hand draws the weapon without a re-equip", hand.weapon_node() != null and hand.weapon_node().is_inside_tree())
+	suite._check("and so does the body", world._weapon != null and world._weapon.is_inside_tree())
+	AwModelCache._scenes.erase(path)
+	hand.queue_free()
+	world.queue_free()

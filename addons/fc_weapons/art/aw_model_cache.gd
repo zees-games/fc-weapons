@@ -108,6 +108,15 @@ static func resolve(path: String) -> String:
 	return _asset_root + path.trim_prefix("res://")
 
 
+const LATE_PENDING := "gs_cloud/late_groups/pending"
+
+
+## True while a web shell is still fetching the addon groups it left out of the first overlay (project setting set by gs-cloud's
+## GSCloudAddonSet.mark_late_pending, off otherwise). A view that finds its model missing then tries again once it is false.
+static func late_pending() -> bool:
+	return bool(ProjectSettings.get_setting(LATE_PENDING, false))
+
+
 ## The scene at [param path], loaded at most once.
 static func scene(path: String) -> GSResult:
 	if path == "":

@@ -55,7 +55,10 @@ const REAR_RING_SHOW_AIM := 0.35
 ## Draws [param art]'s weapon, replacing whatever was in hand; a model built before is put back from the kept ones ([member cache_equips]); every model in the tree is culled per player, so the old one leaves the tree rather than hiding.
 func equip(art: AwWeaponVisual) -> GSResult:
 	_forget_mesh_walks()
+	_late_art = null
 	var head := _equip_head(art, true)
+	if not head.ok and art != null and AwModelCache.late_pending():
+		_late_art = art
 	if not head.ok or head.value_or(null) == null:
 		return head
 	if not _reused:
@@ -323,7 +326,15 @@ func on_reset() -> void:
 
 # --- The frame --------------------------------------------------------------
 
+## The art whose model was missing when equipped while a late addon group was on its way: drawn again once the group is mounted.
+var _late_art: AwWeaponVisual = null
+
+
 func _process(delta: float) -> void:
+	if _late_art != null and not AwModelCache.late_pending():
+		var again := _late_art
+		_late_art = null
+		equip(again)
 	smooth_reload()
 	smooth_deploy()
 	advance(delta)
