@@ -1,8 +1,7 @@
 extends RefCounted
 
-## The scope's lens as real glass: a disc at the ocular showing the world through a second camera that rides the scope, so the scene is seen through it
-## at all times (hip, idle, in sway), not only while aiming. The camera sits at the ocular looking down the tube (-Z, the muzzle's way) in the model's
-## space, so it follows every sway and recoil the hands do. Drawn on the view layer, so the gun is not in its own lens. A reticle is drawn in the disc's shader.
+## The scope's lens as real glass: a disc at the ocular showing the world through a second camera that rides the scope, at all times (hip, idle, in sway).
+## The camera looks down the tube (-Z) in the model's space, on the view layer so the gun is not in its own lens; a reticle is drawn in the disc's shader.
 ## Not built headless (nothing renders). Preloaded by path (no `class_name`), as aw_scope_housing.gd is.
 
 const RESOLUTION := 384

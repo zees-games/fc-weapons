@@ -1,10 +1,8 @@
 extends RefCounted
 
-## The built first-person models of weapons the view model has put away, kept by what built them so switching back
-## is not an instantiate, a material pass, a sight fit and a magazine carve again. No `class_name`: AwViewModel preloads it.
-## A slot is owned by exactly one place: taken out when its weapon is drawn, put back when it is stowed. Stowed nodes
-## sit outside the tree (so nothing draws, culls or walks them) and are freed here: by the limit, by [method clear], or
-## by the view model leaving.
+## The built first-person models of weapons the view model has put away, kept by what built them, so switching back is not a rebuild. No `class_name`: AwViewModel preloads it.
+## A slot is owned by exactly one place: taken out when drawn, put back when stowed. Stowed nodes sit outside the tree
+## and are freed here: by the limit, by [method clear], or by the view model leaving.
 
 ## The most weapons kept; the oldest stowed goes first. 0 keeps every one.
 var limit: int = 6

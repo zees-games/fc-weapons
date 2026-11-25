@@ -49,16 +49,15 @@ func _drawn_gun_in_world(delta: float) -> bool:
 	return _clip_left > 0.0
 
 
-## When on, a drawn gun the world is in front of is drawn nearer the eye, scaled about it so every point keeps its pixel, but never nearer
-## than life size (where the hands are drawn). Off, only the wall-free pass shows it, which on the web draws it without a depth test:
-## inside out and over the hands, the gun "in the ground" when looking down (Fatal Contact web, 2026-11-18).
+## When on, a drawn gun the world is in front of is drawn nearer the eye, scaled about it so every point keeps its pixel, but never nearer than life size.
+## Off, only the wall-free pass shows it, which on the web draws it without a depth test: inside out and over the hands, the gun "in the ground" when looking down.
 @export var world_pull: bool = true
 
 ## How fast a pull lets go once the world is clear, as a share of the drawn distance per second (0 = at once).
 @export var world_pull_release: float = 1.5
 
-## How fast a pull closes on a world that came into reach, as a share of the drawn distance per second (0 = at once). A walk into a
-## wall used to snap the gun toward the eye in one frame (a 0.09 m pop on the launcher); the wall-free pass draws it clear while it closes.
+## How fast a pull closes on a world that came into reach, as a share of the drawn distance per second (0 = at once). Without it a walk into a
+## wall snapped the gun toward the eye in one frame (a 0.09 m pop on the launcher); the wall-free pass draws it clear while it closes.
 @export var world_pull_attack: float = 2.5
 
 ## Share of the way to the world the pulled gun stops at, so it stays a little in front of it.
@@ -245,12 +244,9 @@ func _advance_wall(delta: float) -> void:
 		_animated.transform = _wall.offset(feel_rules.wall_retract, feel_rules.wall_tilt, w["push"], w["nudge"], aim_fraction(), w["impulse"], lens_move_share()) * _animated.transform
 		_keep_off_near_plane(rest)
 
-## Slides the view model away from the eye until no part of the hands is nearer than the camera's near plane plus a margin, and
-## no part of the weapon is cut by that plane where it shows: a hand or a shroud through the lens is sliced open and shows its
-## inside as flat white or blue-grey faces. A stock that passes the plane outside the view is not seen and does not count.
-## The weapon's share of the slide is capped at what the wall pulled it back toward the eye ([param rest] is where it was before),
+## Slides the view model away from the eye until no part of the hands is nearer than the near plane plus a margin and no part of the weapon is cut by it where it shows
+## (a cut hand or shroud shows its inside as flat white or blue-grey faces). The weapon's share of the slide is capped at what the wall pulled it back ([param rest] is where it was),
 ## so the clamp only undoes retraction and never shoves the gun past its free pose; the overlay draws it over the wall.
-## Ported from zee-gs-weapons (viewmodel-white-blue-1).
 func _keep_off_near_plane(rest: Vector3 = Vector3.INF) -> void:
 	var camera := get_parent() as Camera3D
 	if camera == null:
@@ -268,11 +264,9 @@ func _keep_off_near_plane(rest: Vector3 = Vector3.INF) -> void:
 	if deficit > 0.0:
 		_animated.global_position -= camera.global_basis.z * deficit
 
-## Slides the gun pulled by [param pull] away from the eye until the near plane no longer cuts it, whatever the wall pass did.
-## Two shares, both smooth in the pull: what the pull itself brought each drawn mesh through the plane, and the whole cut faded
-## in over [constant PULL_CLEAR_RAMP]. The whole cut alone shoved a gun whose stock already crossed the plane unpulled (the
-## launcher) forward by that depth the frame the pull started; the pull's share alone left the smg's magazine in the plane
-## after it ran into a wall; and a check only where the gun shows snapped the smg 0.1 m the frame the magazine came into view.
+## Slides the gun pulled by [param pull] away from the eye until the near plane no longer cuts it, whatever the wall pass did. Two shares, both smooth in the pull:
+## what the pull itself brought each drawn mesh through the plane, and the whole cut faded in over [constant PULL_CLEAR_RAMP]; either alone popped a gun by the cut's depth
+## the frame the pull started or the magazine came into view.
 func _clear_pulled_gun_of_near_plane(pull: float) -> void:
 	var camera := get_parent() as Camera3D
 	if camera == null or _holder == null or pull <= 0.0:

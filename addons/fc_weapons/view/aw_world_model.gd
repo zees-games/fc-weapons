@@ -2,26 +2,9 @@
 class_name AwWorldModel
 extends "aw_world_model_fit.gd"
 
-## The weapon everybody [i]else[/i] sees, hanging off a character's hand.
-##
-## [b]Not a second copy of [AwViewModel], and the difference is the point.[/b] A view
-## model is drawn on top of the world at an exaggerated scale, sways with the camera and
-## exists for exactly one viewer. A world model is an object in the world: it is
-## depth-tested, it casts a shadow, it is the right size, and thirty of them can be on
-## screen at once. Sharing one node between the two jobs means either a first-person
-## weapon that clips through walls or a third-person weapon somebody can see through a
-## floor.
-##
-## [b]It is attached by duck typing, never by class.[/b] `attach_to` takes any node that
-## answers `attachment(point)` — which gs-player-char's visual does and a game's own rig
-## can — and this file mentions no character class at all, because a script that
-## references a `class_name` the project does not have fails to parse and takes every
-## script that references [i]it[/i] down with it.
-##
-## [b]Recoil is smaller here and that is deliberate.[/b] The kick a player feels in their
-## own hands is a feel effect tuned for one viewer; applied at full strength to a
-## character twenty metres away it reads as the weapon coming loose. A fraction of it is
-## enough to tell a watcher that the gun went off.
+## The weapon everybody [i]else[/i] sees, hanging off a character's hand. Not a second copy of [AwViewModel]: a view model is drawn on top of the world at an exaggerated scale for one viewer,
+## a world model is depth-tested, casts a shadow, is the right size, and thirty can be on screen. It attaches by duck typing (`attach_to` takes any node answering `attachment(point)`; no character class
+## is named, as a missing `class_name` breaks every script that mentions it). Recoil is a fraction of the first-person kick, enough to tell a watcher the gun went off.
 
 # No CHANNEL: a drawer. Its one failure, a model that will not load, is reported once by
 # AwModelCache and handed back as a GSResult; "nowhere to attach" is headless, not wrong.
@@ -31,32 +14,22 @@ const RECOIL_SHARE := 0.35
 
 @export_group("Attachment")
 
-## The attachment point on the character to hang from.
-##
-## Any node answering `attachment(point)`. The name is the character rig's to define;
-## `right_hand` is what gs-player-char ships.
+## The attachment point on the character to hang from: any node answering `attachment(point)`.
+## The name is the character rig's to define; `right_hand` is what gs-player-char ships.
 @export var mount: StringName = &"right_hand"
 
 @export_group("Behaviour")
 
-## Hides the model while the character is switching weapons.
-##
-## The third-person counterpart of the view model's deploy animation, and much simpler:
-## nobody watching can tell a holster from a deploy at range, so it is a visibility
-## toggle rather than an animation.
+## Hides the model while the character is switching weapons: the third-person counterpart of the view model's deploy,
+## a visibility toggle, as nobody watching can tell a holster from a deploy at range.
 @export var hide_while_switching: bool = true
 
 ## Whether a shot is drawn and heard from this hand. See [method on_fired].
 @export var effects: bool = true
 
-## Whether the report is heard, when [member effects] draws the shot.
-##
-## [b]Off for a game that already has a sound for somebody else's shot[/b] — one that plays
-## a use by its kind from the replicated counter, before any of this pack's art was drawn.
-## Leaving both on is two reports for one shot from the same place; turning [member effects]
-## off to stop it throws away the flash and the tracer, which are the part a watcher needs.
-## Set with `set(&"sounds", …)` from a delivered game, because a shell built before this
-## property existed fails to parse a pack that names it.
+## Whether the report is heard, when [member effects] draws the shot. Off for a game that already plays a sound for somebody else's shot
+## (two reports for one shot otherwise; turning [member effects] off would lose the flash and tracer). Set with `set(&"sounds", ...)` from a delivered game,
+## because a shell built before this property existed fails to parse a pack that names it.
 @export var sounds: bool = true
 
 ## Pulls the weapon back and holds it low when a wall is within the gun's length, so a watcher does not see it through the wall. Off switch for a game with its own.
@@ -70,11 +43,9 @@ const RECOIL_SHARE := 0.35
 ## Smoothing rate of the response, per second.
 @export_range(0.5, 40.0, 0.5) var wall_rate: float = 12.0
 
-## Microseconds one frame may spend building watchers' weapon models; 0 (the default) builds every one at once.
-## [b]Every respawn on a map change equips a model for every player in one tick[/b] (about 4 ms each, 66 ms for 16):
-## past the budget an [method equip] records the weapon ([method equipped] answers at once) and builds its model on
-## a later frame, one budget's worth a frame. The first build of a frame always goes ahead, so a single switch never
-## waits. Presentation only: nothing a shot, a hit or the simulation reads comes from this node.
+## Microseconds one frame may spend building watchers' weapon models; 0 (the default) builds every one at once. A respawn on a map change equips every player in one tick
+## (about 4 ms each): past the budget [method equip] records the weapon ([method equipped] answers at once) and builds its model on a later frame. The first build of a frame
+## always goes ahead, so a single switch never waits. Presentation only: nothing a shot, a hit or the simulation reads comes from this node.
 static var equip_budget_usec := 0
 static var _budget_frame := -1
 static var _budget_spent := 0
@@ -116,11 +87,9 @@ var _sprint: float = 0.0
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
 
-## The person's gun-arm carry (gs-player-char API 22's `GSHumanoidFigure.carry`, duck-typed), the weapon id its class
-## was last set for, and whether the character is mid-switch. While there is one it draws the kick, the reload roll
-## and the sprint, so this model adds none of its own.
-## Whether a held gun hands its kick, reload and swap to the person's carry (off: the model's own kick and reload
-## dip, the clip's arms). On by default; a bench turns it off to price the carry.
+## The person's gun-arm carry (gs-player-char API 22's `GSHumanoidFigure.carry`, duck-typed), the weapon id its class was last set for, and whether the character is mid-switch.
+## While there is one it draws the kick, the reload roll and the sprint. Whether a held gun hands them to it (off: the model's own kick and reload dip, the clip's arms):
+## on by default; a bench turns it off to price the carry.
 static var person_carry := true
 var _carry: Object = null
 var _carry_for: StringName = &"-"
@@ -163,11 +132,8 @@ func _build() -> void:
 
 # --- Attaching --------------------------------------------------------------
 
-## Hangs this model off [param character]'s [member mount] point.
-##
-## [b]Returning false is not an error.[/b] A dedicated server has no character model, a
-## 2D game has no hand, and a rig that treats "nowhere to attach" as a failure cannot run
-## headless — which is the one place this whole family insists on being able to run.
+## Hangs this model off [param character]'s [member mount] point. Returning false is not an error: a dedicated server has no character model and a 2D game
+## has no hand, and a rig that treats "nowhere to attach" as a failure cannot run headless, which this family insists on being able to do.
 func attach_to(character: Object) -> bool:
 	if character == null or not character.has_method("attachment"):
 		return false
@@ -314,14 +280,9 @@ func charge_fx() -> Node3D:
 	return _charge_fx
 
 
-## The weapon fired. [param recoil] is the pitch and yaw a behaviour asked for, and
-## [param kind] a [AwWeaponNet] kind number.
-##
-## [param with_effects] draws the shot from this hand — a flash, a tracer along the barrel
-## and the report — and is what a watcher sees of somebody else firing. It stands down by
-## itself when the carrier's own first-person rig is on this machine, because that rig has
-## already drawn the shot from the view model's muzzle and a second report a few
-## centimetres away is the same gun going off twice.
+## The weapon fired. [param recoil] is the pitch and yaw a behaviour asked for, and [param kind] a [AwWeaponNet] kind number. [param with_effects] draws the shot
+## from this hand (flash, tracer, report): what a watcher sees of somebody else firing. It stands down when the carrier's own first-person rig is on this machine,
+## because that rig already drew the shot from the view model's muzzle and a second report centimetres away is the same gun going off twice.
 func on_fired(
 	recoil: Vector2 = Vector2(0.5, 0.1),
 	kind: int = AwWeaponNet.KIND_SHOT,
@@ -366,13 +327,9 @@ func throw() -> void:
 		person.call(&"swing", &"slash")
 
 
-## The person this hand belongs to: the nearest node above it that answers both `swing(which)`
-## and `set_hold(kind)`, which gs-player-char's figure does.
-##
-## [b]Asked for a throw only, and duck-typed for [method attach_to]'s reason.[/b] Every game
-## already plays the slash on a swing itself, and a second call would restart it; nobody plays
-## anything on a throw, because the figure has no throw clip and empty-handed arms are what a
-## thrown weapon is held with.
+## The person this hand belongs to: the nearest node above it that answers both `swing(which)` and `set_hold(kind)`, which gs-player-char's figure does.
+## Asked for a throw only, and duck-typed for [method attach_to]'s reason: every game already plays the slash on a swing itself, and the figure has no throw clip,
+## so empty-handed arms are what a thrown weapon is held with.
 func _person() -> Object:
 	if _owner_cache != null and is_instance_valid(_owner_cache) and _owner_cache is Node and (_owner_cache as Node).is_ancestor_of(self):
 		return _owner_cache
@@ -520,11 +477,8 @@ func advance(delta: float) -> void:
 		_mag = null
 
 
-## Follows the support hand while it has the magazine: out of the well at a quarter of the cycle, down to the belt and
-## back up with the fresh one, seated at three quarters.
-##
-## [b]In the hand, not under the gun.[/b] Dropped straight down 28 cm from the well, the magazine hung in the air
-## beside the hand that was meant to be holding it (a watcher's reload read as a magazine floating at knee height).
+## Follows the support hand while it has the magazine: out of the well at a quarter of the cycle, down to the belt and back up with the fresh one, seated at three quarters.
+## In the hand, not under the gun: dropped straight down from the well, the magazine hung in the air beside the hand meant to hold it.
 ## Its middle goes to the support hand's point as the hand leaves the well.
 func _move_magazine() -> void:
 	if _mag == null or not is_instance_valid(_mag):

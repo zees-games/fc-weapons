@@ -1,9 +1,8 @@
 extends Node
 
-## Smoke check: instantiate the viewer, select every weapon, play fire, draw and reload to the end. Exit 1 on any failure.
-##   godot --headless --path . res://tools/weapon_viewer_check.tscn
-## With -- <out dir> <id> it renders that weapon mid-reload to a PNG instead (needs a display); a third argument N
-## renders a filmstrip instead: N frames 0.2 s apart from the reload's start, <id>_reload_NN.png.
+## Smoke check: instantiate the viewer, select every weapon, play fire, draw and reload to the end. Exit 1 on any failure: godot --headless --path . res://tools/weapon_viewer_check.tscn
+## With -- <out dir> <id> it renders that weapon mid-reload to a PNG instead (needs a display); a third argument N renders a filmstrip:
+## N frames 0.2 s apart from the reload's start, <id>_reload_NN.png.
 
 
 func _ready() -> void:

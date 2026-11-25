@@ -19,6 +19,7 @@
 /addons/gs_player
 /addons/gs_player_controller
 /addons/gs_player_char
+/addons/gs_animation
 
 # Exports
 build/

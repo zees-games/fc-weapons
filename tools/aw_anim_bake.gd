@@ -1,12 +1,8 @@
 extends RefCounted
 
-## Samples a weapon's procedural first-person motion into keyframed tracks, from the code the game runs: a real AwViewModel is
-## driven through each clip (fire, the bolt or pump cycle, reload, draw, inspect, aim, idle sway) at 60 fps and every drawn part's
-## transform is read back each frame. Nothing here copies a number from the animation code; the clip only says which call to make.
-## Used by tools/export_anim_tracks.gd (the file Nightly's viewer plays) and by the suite.
-##
-## Space: every transform is in the view model's own space (the rig's node under the camera, drawn with no hands lens, so
-## hands_fov 0): metres, Godot axes (-Z forward). The viewer applies the lens itself (GSViewLens.apply) from the player's FoV.
+## Samples a weapon's procedural first-person motion into keyframed tracks, from the code the game runs: a real AwViewModel is driven through each clip (fire, bolt or pump, reload, draw,
+## inspect, aim, idle sway) at 60 fps and every drawn part's transform is read back each frame; no number is copied. Used by tools/export_anim_tracks.gd (Nightly's viewer) and the suite.
+## Space: the view model's own (no hands lens, hands_fov 0), metres, -Z forward; the viewer applies the lens itself (GSViewLens.apply).
 
 const FPS := 60
 const STEP := 1.0 / float(FPS)

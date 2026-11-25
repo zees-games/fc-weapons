@@ -11,10 +11,9 @@ const _SIDEARM := {"hold": Vector3(0.14, -0.13, -0.32), "rot": Vector3(0, 8, 22)
 const _LONG := {"hold": Vector3(0.14, -0.05, -0.38), "rot": Vector3(0, 10, 30), "scale": 0.7, "zoom": 0.8}
 const _HEAVY := {"hold": Vector3(0.16, -0.07, -0.42), "rot": Vector3(0, 10, 26), "scale": 0.55, "zoom": 0.8}
 
-## weapon id -> {model, muzzle, motion, tier, reload, view}; `reload` is the view model's reload phases (style and parts). `aim` is tools/measure_sights.py's: the sight 0.32 ahead of the eye, further out when the stock would otherwise fill the screen.
-## `view` without hold/rot/scale/zoom takes its tier's (a melee or thrown row's hold/rot/scale go over the stand-in's own). A `scope` style's `ocular` is [x, y, z, radius] of the scope's eye-end glass in model metres (AwViewModel.scope_body). `ads` is the row's own AwAdsRules keys (wall_row);
-## A gun's `muzzle_offset` is the bore's end off the grip's axis, as AwModelCache.muzzle_bore measures it (default face depth): written here so building the table loads no model (a web boot paid 21 glb loads for it); aw_selftest checks it against the models.
-## a small grenade's `thrown_span` keeps it near life size in the hand. `mag_node` names the model's own magazine, which a reload hides and carries out and back in; `hand_grip` is AwWeaponVisual.hand_grip. `bolt_node` and `bolt_travel` name a model part the charge draws back toward the stock (AwWeaponVisual.bolt_node).
+## weapon id -> {model, muzzle, motion, tier, reload, view}; `reload` is the view model's reload phases, `aim` is tools/measure_sights.py's. `view` without hold/rot/scale/zoom takes its tier's;
+## a `scope` style's `ocular` is [x, y, z, radius] of the eye-end glass; `ads` is the row's own AwAdsRules keys; `muzzle_offset` is the bore's end off the grip's axis (AwModelCache.muzzle_bore), written here so no model loads;
+## `thrown_span` sizes a grenade in the hand; `mag_node`, `hand_grip`, `bolt_node` and `bolt_travel` name model parts a reload or bolt cycle moves (AwWeaponVisual).
 const WEAPONS := {
 	&"knife": {"model": "knife_ph", "world_scale": 1.6, "hands_life": 1.0, "grip_socket": Vector3(0.0, -0.035, 0.03), "muzzle": 0.0, "motion": "melee", "tier": "melee", "view": {"rot": Vector3(55, 80, 75), "scale": 1.5, "hold": Vector3(0.19, -0.17, -0.40)}},
 	&"pistol": {"model": "pistol_ph", "measured_grip": true, "mag_node": "magazine", "muzzle": 0.151, "muzzle_offset": Vector3(-0.0005, 0.0526, 0.0000), "tier": "sidearm", "reload": {"style": "pistol"}, "support_grip": Vector3(-0.028, 0.004, -0.004), "grip_socket": Vector3(-0.012, 0.02, 0.004), "hand_scale": 0.5, "forearm_scale": 0.85, "view": {"hold": Vector3(0.12, -0.06, -0.36), "scale": 1.25, "aim": Vector3(0.002, -0.063, -0.332)}},

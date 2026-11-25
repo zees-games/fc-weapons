@@ -102,7 +102,7 @@ func _ready() -> void:
 	_reveal = wall_overlay and view_layer > 0 and _overlay == null
 
 
-# --- Building ---------------------------------------------------------------
+# Building:
 
 
 func _build_structure() -> void:
@@ -177,7 +177,7 @@ func _build_light() -> void:
 	add_child(_light)
 
 
-# --- Weapons ----------------------------------------------------------------
+# Weapons:
 
 
 ## Puts the hands on this weapon, measured from the weapon itself in the holder's space: a blaster's right hand round its grip,
@@ -282,7 +282,7 @@ func eject_transform() -> Transform3D:
 	return Transform3D(world.basis.orthonormalized(), world * HandReach.eject_local(_weapon, _art))
 
 
-# --- Being told what happened -----------------------------------------------
+# Being told what happened:
 
 
 var _props: ReloadProps = null
@@ -439,7 +439,7 @@ static func lens_scale(camera: float, hands: float) -> float:
 	return GSViewLens.lens_scale(camera, hands)
 
 
-# --- Aiming -----------------------------------------------------------------
+# Aiming:
 
 
 ## Smoothstep, so the weapon leaves the hip and arrives at the eye gently.
@@ -607,7 +607,7 @@ func _clear_models() -> void:
 	_scope_glass = null
 
 
-# --- Keeping built weapons ------------------------------------------------------
+# Keeping built weapons:
 
 
 const DressUndo := preload("aw_attachment_dress.gd")

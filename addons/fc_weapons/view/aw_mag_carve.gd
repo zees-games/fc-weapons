@@ -1,7 +1,6 @@
 extends RefCounted
 
-## Splits a gun's magazine out of a model drawn as one welded mesh, so the magazine is a node of the weapon hierarchy
-## (a child of the mesh's parent, at its transform) that a reload can pull out, carry in the support hand and seat again.
+## Splits a gun's magazine out of a model drawn as one welded mesh, so it is a node a reload can pull out, carry in the support hand and seat again.
 ## The triangles whose middle lies in a box move to a new "Magazine" mesh; the rest stay on the gun.
 ## Preloaded by path (no class_name), as its siblings are.
 
@@ -144,11 +143,9 @@ static func _split(mesh: Mesh, xf: Transform3D, box: AABB) -> Array:
 	return [rest, mag, total]
 
 
-## Closes the opening of a carved magazine. It was welded to the gun there, so the model has no faces across it: out of
-## the well the magazine read as an open shell, its inside and far walls showing through its top as a bent, notched
-## sheet (Fatal Contact battle rifle reload, visual judge 2026-11-19). [param tris] are the carved triangles' corners,
-## three a triangle, with [param uvs]; the edges only one of them uses (corners welded by position, so UV seams do not
-## count) are the opening, chained into loops and each filled as a fan from its middle. Seated, it lies inside the gun.
+## Closes the opening of a carved magazine, which was welded to the gun there and so has no faces across it. [param tris] are the carved
+## triangles' corners, three a triangle, with [param uvs]; the edges only one triangle uses (welded by position) are the opening,
+## chained into loops and each filled as a fan from its middle. Seated, it lies inside the gun.
 static func _add_cap(into: ArrayMesh, material: Material, tris: PackedVector3Array, uvs: PackedVector2Array) -> void:
 	var weld := func(p: Vector3) -> Vector3: return p.snapped(Vector3.ONE * 0.0001)
 	var uses := {}

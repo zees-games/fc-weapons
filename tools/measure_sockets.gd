@@ -1,8 +1,7 @@
 extends SceneTree
-## Prints each gun's attachment sockets in model space, for AwAttachmentSockets.SOCKETS: muzzle at the bore's tip,
-## optic on the receiver top, underbarrel and side on the fore-end, magazine under the mag node.
+## Prints each gun's attachment sockets in model space, for AwAttachmentSockets.SOCKETS: muzzle at the bore's tip, optic on the receiver top, underbarrel and side on the fore-end, magazine under the mag node.
 ## godot --headless --path . --script res://tools/measure_sockets.gd [-- id ...]
-## `-- --optic-top [id ...]` instead prints each gun's mesh height at its optic socket's x and z (the receiver top the optic's rail sits on) next to the table's y.
+## `-- --optic-top [id ...]` prints each gun's mesh height at its optic socket's x and z next to the table's y.
 
 const SKIP := [&"knife", &"frag", &"sticky", &"flash", &"smoke", &"incendiary"]
 

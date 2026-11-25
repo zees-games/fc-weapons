@@ -1,8 +1,7 @@
 extends RefCounted
 
-## One run of the sight cut (aw_sight_cut.gd's cone applied to every mesh under some roots), able to stop part way and go on in a later
-## frame: [method step] works for a time budget and returns, [method run] goes through at once. The hole is the same either way, the
-## code is one; a cold cut was one 50-285 ms call per weapon on staging02, and a stepped prewarm now spreads it over several frames.
+## One run of the sight cut (aw_sight_cut.gd's cone applied to every mesh under some roots), able to stop part way and go on in a later frame:
+## [method step] works for a time budget and returns, [method run] goes through at once; the hole is the same either way, and a stepped prewarm spreads it over frames.
 ## No `class_name`: preloaded by path, like aw_sight_cut.gd.
 
 const Cut := preload("aw_sight_cut.gd")

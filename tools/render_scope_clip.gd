@@ -1,8 +1,7 @@
 extends SceneTree
-## Scope clips for the visual judge: the sniper (or any scoped gun) held at the hip, aimed, and zoomed through both levels, with landmarks
-## (coloured pillars at 8, 25 and 80 m, a fence, ground) in front so the lens shows what is behind it. One PNG per frame under
-## <out>/<gun>/<clip>/, which tools/render_scope_clip.sh turns into <out>/<gun>/<clip>.mp4. Args: out dir under the project; gun id (default sniper).
-## Clips: hip_idle (lens see-through with sway, no aim), aim_in (raise to the scope), zoom_cycle (both levels, back to the widest), lower.
+## Scope clips for the visual judge: a scoped gun at the hip, aimed, and zoomed through both levels, with landmarks (pillars at 8, 25 and 80 m, a fence, ground) so the lens shows what is behind it.
+## One PNG per frame under <out>/<gun>/<clip>/, which tools/render_scope_clip.sh turns into <out>/<gun>/<clip>.mp4. Args: out dir under the project; gun id (default sniper).
+## Clips: hip_idle (lens see-through with sway), aim_in, zoom_cycle (both levels, back to the widest), lower.
 const W := 960
 const H := 540
 const FPS := 30

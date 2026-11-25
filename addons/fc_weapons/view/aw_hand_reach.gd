@@ -60,13 +60,9 @@ static func measure(art: AwWeaponVisual, weapon: Node3D, holder: Node3D) -> Dict
 					var under: Dictionary = spans[0]
 					if not under.is_empty():
 						var cap := float(under.low) + float(under.length) * REACH
-						# The magazine deepens the bounds too: a fore point under the fore-end's own
-						# underside held air (the rifle's open hand 9 cm below its handguard), so it
-						# rises to the fore-end's middle, still no higher than the span allows.
-						# Not a pistol's: its support hand cups the firing one under the frame (raised,
-						# the revolver's went up onto its cylinder, its sleeve across the view).
-						# Aimed, the gun sits under the eye and a raised hand brings the upper arm's sleeve
-						# into the near plane (the carbine's torn blue flap), so aiming keeps it low.
+						# The magazine deepens the bounds too: a fore point under the fore-end's underside held air, so it rises to its middle, within the span.
+						# Not a pistol's: its support hand cups the firing one under the frame (raised, the revolver's sleeve crossed the view).
+						# Aimed, a raised hand puts the upper arm's sleeve into the near plane, so aiming keeps it low.
 						fore_aimed = fore
 						fore_aimed.y = minf(fore_aimed.y, cap)
 						if art.pose != &"pistol" and fore.y < float(under.low):

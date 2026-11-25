@@ -1,8 +1,7 @@
 extends SceneTree
 
-## Bakes what Nightly's asset viewer needs to show a weapon held the way gs-player-char draws it: for each stock body, the skeleton's
-## local bone poses holding a gun, where the skeleton sits in the figure, and the hand mount's frame on the right-hand bone.
-## Writes avatars.json and copies each body's glb beside it. Args: out_dir.
+## Bakes what Nightly's asset viewer needs to show a weapon held the way gs-player-char draws it: per stock body, the skeleton's local bone poses holding a gun,
+## where the skeleton sits in the figure, and the hand mount's frame on the right-hand bone. Writes avatars.json and copies each body's glb beside it.
 ## godot --headless --path . --script tools/export_third_person.gd -- out_dir
 const VERSION := 1
 const HEIGHT := 1.8

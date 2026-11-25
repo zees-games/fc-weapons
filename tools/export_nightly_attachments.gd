@@ -1,11 +1,7 @@
 extends SceneTree
-## Writes what Nightly needs to list the attachments as assets of their own and link them to the guns they fit:
-## <out>/att_<id>.glb for each attachment model and <out>/attachments.json (an rsi-assets audit document with `attach_links`).
-## Every number comes from the game's own tables, nothing is repeated here: the mounts and their positions from AwAttachmentSockets.SOCKETS,
-## the attachments from AwAttachmentPack.ROWS, the gun tiers from AwWeaponArt.WEAPONS (an attachment's `excludes` names tiers).
+## Writes what Nightly needs to list the attachments as assets and link them to the guns they fit: <out>/att_<id>.glb each and <out>/attachments.json (an rsi-assets audit document with `attach_links`).
+## Every number comes from the game's tables (AwAttachmentSockets.SOCKETS, AwAttachmentPack.ROWS, AwWeaponArt.WEAPONS); positions are in the gun glb's space, rotation identity, scale 1.
 ## Run through tools/publish_nightly.sh, or: godot --headless --path . --script res://tools/export_nightly_attachments.gd -- <out dir> [<glb dir relative to the pack root>]
-## Positions are in the gun model's space, which is the gun glb's space (grip at the origin, muzzle toward -Z); rotation is identity and scale 1
-## because the game seats the attachment model at the socket with no offset (AwAttachmentSockets.ensure).
 
 const PACK := "fc-weapons"
 
