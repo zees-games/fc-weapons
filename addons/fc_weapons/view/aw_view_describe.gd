@@ -47,3 +47,25 @@ static func scope_ocular(style: Dictionary) -> Array:
 	if not (ocular is Array) or (ocular as Array).size() < 4 or float(ocular[3]) <= 0.0:
 		return []
 	return [Vector3(float(ocular[0]), float(ocular[1]), float(ocular[2])), float(ocular[3])]
+
+
+## The error text for a weapon whose model failed to load.
+static func no_model_message(id: Variant) -> String:
+	return "No model for %s." % String(id)
+
+
+## The error text for a view-drop part the weapon model does not have.
+static func missing_drop_message(id: Variant, part: String) -> String:
+	return "AwViewModel: %s has no part %s to drop (art view drop)." % [String(id), part]
+
+
+## A built iron sight's `Rear` notch and `Front` ring, those that exist; empty without a sight.
+static func iron_sight_pieces(sight: Node) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	if sight == null:
+		return out
+	for part: NodePath in [^"Rear", ^"Front"]:
+		var piece := sight.get_node_or_null(part) as Node3D
+		if piece != null:
+			out.append(piece)
+	return out

@@ -128,7 +128,7 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 
 	if _weapon == null:
 		return GSResult.fail(
-			GSError.CODE_IO, "No model for %s." % String(art.id), art.model_path
+			GSError.CODE_IO, Describe.no_model_message(art.id), art.model_path
 		)
 
 	_weapon.name = "Weapon"
@@ -144,7 +144,7 @@ func _drop_parts(art: AwWeaponVisual) -> void:
 	for part: String in art.view_drop:
 		var node := _weapon.find_child(part, true, false)
 		if node == null:
-			push_error("AwViewModel: %s has no part %s to drop (art view drop)." % [String(art.id), part])
+			push_error(Describe.missing_drop_message(art.id, part))
 			continue
 		node.get_parent().remove_child(node)
 		node.free()
@@ -513,10 +513,7 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 		_sight = fitted.sight
 		# A built iron sight's rear notch and front ring float over the line, above a gun whose top is lower than its
 		# sight line (the quad's ring at the hip), so both show only from REAR_RING_SHOW_AIM.
-		for part: NodePath in [^"Rear", ^"Front"]:
-			var piece := _sight.get_node_or_null(part) as Node3D if _sight != null else null
-			if piece != null:
-				_rear_rings.append(piece)
+		_rear_rings.append_array(Describe.iron_sight_pieces(_sight))
 
 
 ## The second half of [method _fit_sight]: the red dot cut for the line, and the sight put in the holder.
@@ -563,9 +560,8 @@ func _reach_slice(art: AwWeaponVisual) -> bool:
 
 
 func _cut_roots() -> Array:
-	var roots: Array = [_weapon]
-	roots.append_array(_dressed.get("parts", []))
-	return roots
+	var parts: Array = _dressed.get("parts", [])
+	return [_weapon] + parts
 
 
 func _place_sight(red: Node3D) -> void:
