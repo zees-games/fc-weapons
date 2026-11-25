@@ -105,6 +105,10 @@ var _last_body_at := Vector3.INF
 var _last_body_msec: int = -100000
 
 func _ready() -> void:
+	# Born asleep: nothing is showing, and every effect, mark, shell or own layered player wakes it with
+	# set_process(true). A fresh node otherwise kept the flag until its first frame ran, and a parked one
+	# (AwFxPool, process mode disabled) kept it for ever.
+	set_process(false)
 	top_level = true
 	# Placed at the world origin and never moved: every effect is written in world space.
 	global_transform = Transform3D.IDENTITY

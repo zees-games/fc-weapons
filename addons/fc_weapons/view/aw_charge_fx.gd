@@ -35,6 +35,13 @@ func _init() -> void:
 	visible = false
 
 
+func _ready() -> void:
+	# Asleep until a draw or a shot (set_charge, note_fired) wakes it; a parked or unused one never ticks.
+	# Not in _init: the engine switches processing on after it for a script with a _process.
+	# (A draw or a shot made before it entered the tree keeps it awake.)
+	set_process(visible or _fired_ago <= 0.25)
+
+
 ## The weapon's draw, 0 to 1. Called every frame while the weapon is held.
 func set_charge(fraction: float) -> void:
 	var f := clampf(fraction, 0.0, 1.0)

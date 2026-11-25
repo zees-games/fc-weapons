@@ -438,6 +438,36 @@ func _idle_parity(r2: AwWeaponRig, cat: GSWeaponCatalogue, cmd: GSWeaponCommand)
 	r3.queue_free()
 
 
+## A shooter and a charge ball are born asleep (no frame has to run first, and a parked one under a disabled
+## parent never gets one), and the first effect, draw or shot wakes them.
+func _born_asleep() -> void:
+	_begin("effects are born asleep")
+	var holder := Node3D.new()
+	add_child(holder)
+	var wall := StaticBody3D.new()
+	holder.add_child(wall)
+	var shots := AwShotFx.new()
+	shots.sounds = false
+	holder.add_child(shots)
+	_check("a fresh shooter is not processing before any frame", not shots.is_processing())
+	var parked := Node.new()
+	parked.process_mode = Node.PROCESS_MODE_DISABLED
+	holder.add_child(parked)
+	var spare := AwShotFx.new()
+	spare.sounds = false
+	parked.add_child(spare)
+	_check("a parked shooter does not hold the process flag", not spare.is_processing())
+	shots.play_impact(Vector3(0.0, 0.0, -10.0), Vector3.BACK, wall)
+	_check("its first impact wakes it", shots.is_processing())
+	var charge := preload("res://addons/fc_weapons/view/aw_charge_fx.gd").new()
+	holder.add_child(charge)
+	_check("a fresh charge ball is not processing before any frame", not charge.is_processing())
+	charge.note_fired()
+	_check("a shot wakes the charge ball", charge.is_processing())
+	holder.free()
+	_end()
+
+
 ## Effects with nothing to show stop their per-frame work and pick it up again on the next shot, draw or showing.
 func _idle_sleep() -> void:
 	_begin("idle effects sleep")
