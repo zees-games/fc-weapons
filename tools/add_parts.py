@@ -1,5 +1,6 @@
 """Adds modelled detail parts to the shipped weapon GLBs in place (pure python + numpy, no Blender): minigun barrel clamps and bores, the launcher
-venturi, the lmg belt and a smaller ammo box, rear sights on lmg, machine_pistol and carbine. Parts are plain-material meshes named aw_part_*
+venturi, the lmg belt and a smaller ammo box, rear sights on lmg, machine_pistol and carbine;
+second pass (aw_parts_v2): the marksman's smooth scope, the drum_shotgun's green smudges off its steel. Parts are plain-material meshes named aw_part_*
 (see glb_parts.py); the glb's asset.extras.aw_parts marks a model as done, so a second run does nothing.
 Usage: python3 tools/add_parts.py [model ...]   (default: all six). Needs numpy; own geometry, no new licence."""
 import math
@@ -13,6 +14,7 @@ import glb_parts as g
 
 MODELS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'addons', 'fc_weapons', 'assets', 'models')
 TAG = 'aw_parts_v1'
+TAG2 = 'aw_parts_v2'
 
 
 def edit_mesh(j, b, node, fn):
@@ -36,6 +38,54 @@ def edit_mesh(j, b, node, fn):
         a['count'] = len(arr) if key == 'POSITION' else int(arr.size)
         if key == 'POSITION':
             a['min'], a['max'] = P.min(0).tolist(), P.max(0).tolist()
+
+
+def cut_world(j, b, node, pred):
+    """Drops the triangles of a mesh node whose centroid, in the scene roots' frame, satisfies pred(C (T,3)) -> bool array."""
+    m = g.node_world(j, next(i for i, n in enumerate(j['nodes']) if n.get('name') == node))
+
+    def fn(P, I):
+        C = P[I].mean(1) @ m[:3, :3].T + m[:3, 3]
+        return P, I[~pred(C)]
+    edit_mesh(j, b, node, fn)
+
+
+def degreen_tris(j, b, node, pred, dilate=3):
+    """Olive-green albedo texels under the triangles whose world centroid satisfies pred go grey at the same brightness (the source's
+    green wear smudges on steel); the albedo is re-encoded in place. Returns the number of texels changed."""
+    import io
+    from PIL import Image, ImageDraw, ImageFilter
+    i = next(k for k, n in enumerate(j['nodes']) if n.get('name') == node)
+    m = g.node_world(j, i)
+    pr = j['meshes'][j['nodes'][i]['mesh']]['primitives'][0]
+    I = g.accessor(j, b, pr['indices']).reshape(-1, 3).astype(np.int64)
+    P = g.accessor(j, b, pr['attributes']['POSITION']).astype(np.float64)
+    uv = g.accessor(j, b, pr['attributes']['TEXCOORD_0']).astype(np.float64)
+    C = P[I].mean(1) @ m[:3, :3].T + m[:3, 3]
+    img = j['images'][j['textures'][j['materials'][pr['material']]['pbrMetallicRoughness']['baseColorTexture']['index']]['source']]
+    bv = j['bufferViews'][img['bufferView']]
+    im = Image.open(io.BytesIO(bytes(b[bv['byteOffset']:bv['byteOffset'] + bv['byteLength']]))).convert('RGB')
+    w, h = im.size
+    mask = Image.new('L', (w, h), 0)
+    d = ImageDraw.Draw(mask)
+    for t in I[pred(C)]:
+        d.polygon([(float(u * w), float(v * h)) for u, v in uv[t] % 1.0], fill=255)
+    mask = np.array(mask.filter(ImageFilter.MaxFilter(2 * dilate + 1))) > 0
+    a = np.array(im).astype(np.float64)
+    r, gg, bb = a[..., 0], a[..., 1], a[..., 2]
+    green = mask & (gg > bb + 10) & (gg >= r - 4)
+    lum = (0.299 * r + 0.587 * gg + 0.114 * bb)[green]
+    a[green] = np.stack([lum * 0.97, lum, lum * 1.06], 1)   # the receiver's cool grey
+    buf = io.BytesIO()
+    Image.fromarray(a.clip(0, 255).astype(np.uint8)).save(buf, 'JPEG', quality=92)
+    data = buf.getvalue()
+    while len(b) % 4:
+        b.append(0)
+    j['bufferViews'].append({'buffer': 0, 'byteOffset': len(b), 'byteLength': len(data)})
+    b += data
+    img['bufferView'] = len(j['bufferViews']) - 1
+    img['mimeType'] = 'image/jpeg'
+    return int(green.sum())
 
 
 def brown_tris(j, b, node):
@@ -130,27 +180,63 @@ def carbine(j, b, p):
     rear_notch(p, 'part_blued', 0, -0.215, 0.079, 0.012, width=0.03, gap=0.009)
 
 
+def marksman(j, b, p):
+    """The source scope was an octagonal tube baked near-black; replace it with a smooth one (same axis: y 0.195, eyepiece at z 0)."""
+    cy = 0.195
+    cut_world(j, b, 'geometry_0', lambda C: (C[:, 1] > 0.145) & (C[:, 2] > -0.43) & (C[:, 2] < 0.01) & (np.abs(C[:, 0]) < 0.06))
+    S = 48
+    p.cyl('part_rubber', (0, cy, -0.0075), 0.0355, 0.036, 0.011, 'z', S, True, inner=0.029)   # eye cup (the game draws live glass at the ocular: aw_scope_glass.gd)
+    p.cyl('part_scope', (0, cy, -0.0395), 0.0355, 0.0355, 0.053, 'z', S)                      # ocular housing
+    p.cyl('part_scope', (0, cy, -0.0835), 0.0245, 0.0355, 0.035, 'z', S, False)               # ocular taper
+    p.cyl('part_scope', (0, cy, -0.2), 0.0245, 0.0245, 0.2, 'z', S, False)                    # main tube
+    p.cyl('part_scope', (0, cy, -0.19), 0.031, 0.031, 0.048, 'z', S)                         # turret saddle
+    p.cyl('part_scope', (0, cy + 0.041, -0.19), 0.017, 0.017, 0.026, 'y', S)                 # elevation turret: its cap top is the
+    p.cyl('part_steel', (0, cy + 0.0555, -0.19), 0.0155, 0.0155, 0.007, 'y', S)               # source's y 0.254, the rear top aim_in was set on
+    p.cyl('part_scope', (0.041, cy, -0.19), 0.017, 0.017, 0.026, 'x', S)                     # windage turret
+    p.cyl('part_steel', (0.0555, cy, -0.19), 0.0155, 0.0155, 0.007, 'x', S)
+    p.cyl('part_scope', (-0.036, cy, -0.19), 0.013, 0.013, 0.014, 'x', S)                    # parallax knob
+    p.cyl('part_scope', (0, cy, -0.33), 0.046, 0.0245, 0.06, 'z', S, False)                  # objective taper
+    p.cyl('part_scope', (0, cy, -0.39), 0.046, 0.046, 0.06, 'z', S, False)                   # objective bell
+    p.cyl('part_scope', (0, cy, -0.4205), 0.0475, 0.0475, 0.007, 'z', S, True, inner=0.04)   # objective lip
+    p.cyl('part_glass', (0, cy, -0.418), 0.04, 0.04, 0.004, 'z', S)
+    for z in (-0.12, -0.255):                                                                 # rings on their bases
+        p.cyl('part_black', (0, cy, z), 0.0295, 0.0295, 0.018, 'z', S, True, inner=0.0245)
+        p.box('part_black', (0, 0.145, z), (0.03, 0.05, 0.018))
+        p.box('part_black', (0, 0.124, z), (0.036, 0.012, 0.024))
+        p.cyl('part_steel', (0.019, 0.152, z), 0.0045, 0.0045, 0.006, 'x', 12)
+
+
+def drum_shotgun(j, b, p):
+    """Only the pistol grip and the foregrip are olive polymer; the green smudges on the steel receiver and stock block go grey."""
+    def steel(C):
+        grips = (C[:, 1] < 0.105) & (((C[:, 2] > -0.25) & (C[:, 2] < -0.13)) | ((C[:, 2] > -0.12) & (C[:, 2] < 0.19)))
+        return ~grips
+    print('drum_shotgun degreened texels', degreen_tris(j, b, 'geometry_0', steel))
+
+
 DONE = {'minigun': minigun, 'rocket_launcher_alt': launcher, 'lmg': lmg, 'machine_pistol': machine_pistol, 'carbine': carbine}
+# second pass (the judge's remodel list): its own tag, so a model done in the first pass still takes it once
+DONE2 = {'marksman': marksman, 'drum_shotgun': drum_shotgun}
 
 
 def main(names):
-    for n in names or list(DONE):
-        f = DONE.get(n)
-        if not f:
-            print('skip', n)
-            continue
-        path = os.path.join(MODELS, n + '.glb')
-        j, b = g.read_glb(path)
-        ex = j['asset'].setdefault('extras', {})
-        if TAG in ex:
-            print(n, 'already done')
-            continue
-        p = g.Parts(j, b)
-        f(j, b, p)
-        p.finish(n)
-        ex[TAG] = True
-        g.write_glb(path, j, b)
-        print(n, 'ok', len(b))
+    for tag, done in ((TAG, DONE), (TAG2, DONE2)):
+        for n in names or list(done):
+            f = done.get(n)
+            if not f:
+                continue
+            path = os.path.join(MODELS, n + '.glb')
+            j, b = g.read_glb(path)
+            ex = j['asset'].setdefault('extras', {})
+            if tag in ex:
+                print(n, tag, 'already done')
+                continue
+            p = g.Parts(j, b)
+            f(j, b, p)
+            p.finish(n if tag == TAG else n + '_v2')
+            ex[tag] = True
+            g.write_glb(path, j, b)
+            print(n, tag, 'ok', len(b))
 
 
 if __name__ == '__main__':

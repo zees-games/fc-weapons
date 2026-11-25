@@ -59,24 +59,23 @@ def accessor(j, binb, idx):
     return np.frombuffer(bytes(binb[o:o + cnt * comp * isz]), dtype=dt).reshape(cnt, comp)
 
 
+def node_world(j, i):
+    """4x4 matrix from node i's own frame to the scene roots' frame."""
+    parent = {c: k for k, n in enumerate(j['nodes']) for c in n.get('children', [])}
+    m = node_matrix(j['nodes'][i])
+    while i in parent:
+        i = parent[i]
+        m = node_matrix(j['nodes'][i]) @ m
+    return m
+
+
 def world_points(j, binb, skip_prefix='aw_part'):
     """All mesh vertices of the scene in the scene roots' frame, as {node name: (N,3) array}."""
     out = {}
-    parent = {}
-    for i, n in enumerate(j['nodes']):
-        for c in n.get('children', []):
-            parent[c] = i
-
-    def world(i):
-        m = node_matrix(j['nodes'][i])
-        while i in parent:
-            i = parent[i]
-            m = node_matrix(j['nodes'][i]) @ m
-        return m
     for i, n in enumerate(j['nodes']):
         if 'mesh' not in n or n.get('name', '').startswith(skip_prefix):
             continue
-        m = world(i)
+        m = node_world(j, i)
         pts = []
         for p in j['meshes'][n['mesh']]['primitives']:
             pts.append(accessor(j, binb, p['attributes']['POSITION']).astype(np.float64))
@@ -213,4 +212,6 @@ MATERIALS = {
     'part_brass': ([0.62, 0.40, 0.14], 1.0, 0.30),
     'part_olive': ([0.07, 0.085, 0.045], 0.0, 0.6),
     'part_glass': ([0.02, 0.05, 0.06], 0.0, 0.05),
+    'part_scope': ([0.05, 0.052, 0.056], 0.0, 0.45),   # anodised scope body: dark but not black, so the smooth tube shades
+    'part_rubber': ([0.035, 0.035, 0.035], 0.0, 0.8),
 }
