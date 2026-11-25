@@ -52,6 +52,25 @@ const THROW_SECONDS := 0.55
 const THROW_RELEASE := 0.36
 const THROW_BACK := 0.9
 
+## Looking the gun over, as a watcher sees it, in the hand's frame like the swing and timed to the first-person
+## inspect's fraction (AwWeaponPose's INSPECT_KEYS: left side and top to the eye at 0.16-0.42, the right side at
+## 0.56-0.86, back into the hand). Lifted toward the face and rolled further than the first-person keys: at
+## twenty metres a wrist turned 30 degrees reads as the gun at rest. Turned about the grip, so the hand stays on it
+## and the support hand follows the fore-end round.
+const INSPECT_KEYS := [
+	[0.0, Vector3.ZERO, Vector3.ZERO],
+	[0.16, Vector3(0.0, 0.07, 0.05), Vector3(14.0, 22.0, -55.0)],
+	[0.42, Vector3(0.0, 0.09, 0.06), Vector3(20.0, 28.0, -70.0)],
+	[0.56, Vector3(0.0, 0.06, 0.04), Vector3(8.0, 6.0, -10.0)],
+	[0.72, Vector3(0.0, 0.07, 0.05), Vector3(10.0, -20.0, 55.0)],
+	[0.86, Vector3(0.0, 0.06, 0.04), Vector3(8.0, -18.0, 48.0)],
+	[1.0, Vector3.ZERO, Vector3.ZERO],
+]
+
+## Seconds the watcher's inspect takes to let go when it is cut short (a shot, a switch): the first-person
+## inspect's cancel ease.
+const INSPECT_RELEASE_SECONDS := 0.2
+
 ## A watcher's reload, in the hand's frame like the swing: the gun dipped and rolled so its well faces the support
 ## hand, which goes from the fore-end to the well, down to the belt and back once per cycle (one reload, or one round).
 const RELOAD_DIP := Vector3(0.0, -0.05, 0.03)

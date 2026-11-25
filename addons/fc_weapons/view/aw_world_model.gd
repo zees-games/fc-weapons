@@ -107,6 +107,12 @@ var _reload_blend: float = 0.0
 var _reload_time: float = 0.0
 var _reload_period: float = 1.5
 
+## The inspect a watcher sees ([method on_inspect]): the fraction last told (1 is none) and how much of it shows.
+var _inspect: float = 1.0
+var _inspect_shown: float = 0.0
+var _inspect_told: bool = false
+var _inspect_was_on: bool = false
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE or what == NOTIFICATION_EXIT_TREE:
@@ -385,6 +391,38 @@ func on_reloading(reloading: bool) -> void:
 	_tell_carry()
 
 
+## How far through looking the gun over, 0 to 1 (1 is none): the first-person inspect's fraction
+## (`AwViewModel.inspect_fraction`), so the hand in the world turns the gun the way the eye sees it turned.
+## Like aiming it is not replicated: the body this client drives (third person, the lab's outside cameras)
+## shows it. An inspect cut short (1 told mid-way) eases out over [constant INSPECT_RELEASE_SECONDS].
+func on_inspect(fraction: float) -> void:
+	var f := clampf(fraction, 0.0, 1.0) if is_finite(fraction) else 1.0
+	if f < 1.0:
+		_inspect = f
+		_inspect_shown = 1.0
+		_inspect_told = true
+
+
+## How far through the watcher's inspect, 0 to 1; 1 when none is showing.
+func inspect_fraction() -> float:
+	return _inspect if _inspect_shown > 0.0 else 1.0
+
+
+## The inspect's turn about the grip at [param delta] into the frame: [offset, degrees], zero when none shows.
+## A fraction not told again this frame (the inspect ended or was cut) lets go over [constant INSPECT_RELEASE_SECONDS].
+func _inspect_turn(delta: float, told: bool) -> Array:
+	if _inspect_shown <= 0.0:
+		return [Vector3.ZERO, Vector3.ZERO]
+	if not told:
+		_inspect_shown = maxf(0.0, _inspect_shown - delta / INSPECT_RELEASE_SECONDS)
+		if _inspect_shown <= 0.0:
+			_inspect = 1.0
+			return [Vector3.ZERO, Vector3.ZERO]
+	var at := AwWeaponPose.sample_keys(INSPECT_KEYS, _inspect)
+	var share := smoothstep(0.0, 1.0, _inspect_shown)
+	return [(at[0] as Vector3) * share, (at[1] as Vector3) * share]
+
+
 ## How far into the watcher's reload, 0 to 1 per cycle; -1 when none is showing.
 func reload_fraction() -> float:
 	return fposmod(_reload_time / _reload_period, 1.0) if _reload_blend > 0.0 else -1.0
@@ -439,8 +477,14 @@ func advance(delta: float) -> void:
 		_wall_was = false
 	elif _wall_amount > 0.0:
 		_wall_was = true
-	if not _wall_was and _kick <= 0.00001 and _action >= 1.0 and _sprint <= 0.0 and not _sprint_was_on and _reload_blend <= 0.0 and not _reloading:
+	var told := _inspect_told
+	_inspect_told = false
+	var looked := _inspect_turn(delta, told)
+	var looking := _inspect_shown > 0.0
+	if not _wall_was and _kick <= 0.00001 and _action >= 1.0 and _sprint <= 0.0 and not _sprint_was_on and _reload_blend <= 0.0 \
+			and not _reloading and not looking and not _inspect_was_on:
 		return
+	_inspect_was_on = looking
 	_sprint_was_on = _sprint > 0.0
 
 	# Decayed rather than sprung. A watcher cannot see an overshoot at twenty metres, so
@@ -456,6 +500,12 @@ func advance(delta: float) -> void:
 		var degrees: Vector3 = at[1]
 		turn = Basis.from_euler(Vector3(
 			deg_to_rad(degrees.x), deg_to_rad(degrees.y), deg_to_rad(degrees.z)
+		))
+	elif looking:
+		moved = looked[0]
+		var looked_degrees: Vector3 = looked[1]
+		turn = Basis.from_euler(Vector3(
+			deg_to_rad(looked_degrees.x), deg_to_rad(looked_degrees.y), deg_to_rad(looked_degrees.z)
 		))
 	_show_in_hand(not (_action_hides and _action >= THROW_RELEASE and _action < THROW_BACK))
 	if _reload_blend > 0.0 and _carry == null:
