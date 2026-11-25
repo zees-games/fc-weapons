@@ -285,7 +285,7 @@ static func instantiate(path: String) -> Node3D:
 
 ## The merged bounding box of every mesh in the model, in the model's own space.
 ## Measured once per path.
-## An empty box for a model that could not be loaded, which is the right answer: no mesh, no bounds, and a muzzle at the origin.
+## An empty box for a model that could not be loaded (not remembered, so the model's late-mounted group is measured once it is there).
 static func bounds(path: String) -> AABB:
 	if _bounds.has(path):
 		return _bounds[path]
@@ -299,8 +299,9 @@ static func bounds(path: String) -> AABB:
 		for i in range(boxes.size()):
 			box = boxes[i] if i == 0 else box.merge(boxes[i])
 		node.queue_free()
+		_bounds[path] = box
 
-	_bounds[path] = box
+	# A model that could not be loaded is not remembered: a late addon group may mount it a moment from now.
 	return box
 
 
