@@ -1,5 +1,5 @@
 @tool
-extends "aw_world_model_keys.gd"
+extends "aw_world_model_inspect.gd"
 
 ## Fitting half of [AwWorldModel], split out for file size: dressing the gun with its attachments, its
 ## shadows, the support hand point and the dropped magazine. Behaviour lives in [AwWorldModel], which extends this.
