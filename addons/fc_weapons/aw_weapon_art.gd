@@ -50,7 +50,7 @@ const PROPS: Array[String] = ["ammo_box", "round_pistol", "round_rifle", "round_
 
 ## Who made each model ([method AwSpawnProvider.credits]); CREDITS.md says the same for people.
 const CREDITS: Array[Dictionary] = [
-	{"id": "styloo", "model": "pistol, smg, carbine, sniper_rifle, pump_shotgun, rocket launchers, grenades, ammo_box, rounds", "author": "Styloo", "licence": "CC0-1.0", "url": "https://styloo.itch.io/guns-asset-pack"},
+	{"id": "styloo", "model": "pistol, smg, carbine, sniper_rifle, pump_shotgun, rocket launchers, grenades", "author": "Styloo", "licence": "CC0-1.0", "url": "https://styloo.itch.io/guns-asset-pack"},
 	{"id": "polyy-1", "model": "revolver, machine_pistol, derringer, bullpup, drum_shotgun, marksman", "author": "Polyy", "licence": "CC0-1.0", "url": "https://polyyai.itch.io/3d-low-poly-guns-pack"},
 	{"id": "polyy-2", "model": "minigun, lmg, grenade_launcher, plasma_rifle, rail_rifle", "author": "Polyy", "licence": "CC0-1.0", "url": "https://polyyai.itch.io/3d-low-poly-guns-pack-2"},
 	{"id": "ambientcg-metal", "model": "surface detail on every gun (Metal038, Metal027)", "author": "ambientCG", "licence": "CC0-1.0", "url": "https://ambientcg.com/view?id=Metal038"},

@@ -1,4 +1,5 @@
 extends SceneTree
+## SUPERSEDED: the shipped attachments are now modelled and baked by tools/build_small_parts.py (glb + a wrapper tscn). This primitive builder only feeds that script's PARTS table; do not run it, it would overwrite the wrapper scenes.
 ## Builds the attachment models (own work, primitives only) into addons/fc_weapons/assets/attachments/<id>.tscn, each drawn on its gun's `socket_<mount>` with no offset:
 ## muzzle parts run toward -Z, optics sit on +Y (their `<id>_glass` mesh is what the sight line runs through), underbarrel parts hang toward -Y, side parts sit toward +X, magazine extensions hang below the magazine, a warhead sits on the missile's nose (its tip at the socket).
 ## Optics are hollow tubes (open at both ends, so the view runs through them) with a glass lens and an unshaded red `reticle` disc on the lens plane.

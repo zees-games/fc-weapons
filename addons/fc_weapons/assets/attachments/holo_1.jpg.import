@@ -2,23 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcvsl3ul5o04p"
-path="res://.godot/imported/round_shell_bulletshotgunlow_color.png-552ef3e37a8373ff44f317ed0787fecc.ctex"
+uid="uid://lwsp7t0ucno5"
+path="res://.godot/imported/holo_1.jpg-0eb4c0d6d6850b8ba1f08fceb883526e.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "fc048fd15a04e33b25004219324d9b81"
+"md5": "a3cf2342a4fc22a9a8f77fb991e1429a"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/round_shell_bulletshotgunlow_color.png"
-dest_files=["res://.godot/imported/round_shell_bulletshotgunlow_color.png-552ef3e37a8373ff44f317ed0787fecc.ctex"]
+source_file="res://addons/fc_weapons/assets/attachments/holo_1.jpg"
+dest_files=["res://.godot/imported/holo_1.jpg-0eb4c0d6d6850b8ba1f08fceb883526e.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -2,23 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dhxp15wbj5dlt"
-path="res://.godot/imported/round_pistol_bulletpew_color.png-3e8635aaa847374bc3aa5f9808a8881e.ctex"
+uid="uid://dlwmng3ilo4t7"
+path="res://.godot/imported/vertical_grip_0.jpg-814cad4c7e967ee31c3ef5da5b1c3e38.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "8f49a57674056d8a09a180ff8ae98a5b"
+"md5": "cae10f229b5ad03d9f9e5f4ca69a3ea4"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/round_pistol_bulletpew_color.png"
-dest_files=["res://.godot/imported/round_pistol_bulletpew_color.png-3e8635aaa847374bc3aa5f9808a8881e.ctex"]
+source_file="res://addons/fc_weapons/assets/attachments/vertical_grip_0.jpg"
+dest_files=["res://.godot/imported/vertical_grip_0.jpg-814cad4c7e967ee31c3ef5da5b1c3e38.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

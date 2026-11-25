@@ -2,23 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxjdtdjtiqxwx"
-path="res://.godot/imported/round_sniper_bulletsnipermat_color.png-47297df7952c4cea190176c00e9814b3.ctex"
+uid="uid://1wkmuxxyle5m"
+path="res://.godot/imported/round_rifle_1.jpg-428da854e088a0abc7548a66fa5ecd5b.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "110cbc783fc5d08979f3b7caf5176036"
+"md5": "1759f4eb1bcc635dd1559d62880c003b"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/round_sniper_bulletsnipermat_color.png"
-dest_files=["res://.godot/imported/round_sniper_bulletsnipermat_color.png-47297df7952c4cea190176c00e9814b3.ctex"]
+source_file="res://addons/fc_weapons/assets/models/round_rifle_1.jpg"
+dest_files=["res://.godot/imported/round_rifle_1.jpg-428da854e088a0abc7548a66fa5ecd5b.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

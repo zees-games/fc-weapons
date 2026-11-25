@@ -2,7 +2,7 @@
 
 | What | Author | Licence | Where |
 | --- | --- | --- | --- |
-| `pistol`, `smg`, `carbine` (and the `rifle` until it was replaced, see below), `sniper_rifle`, `pump_shotgun`, the rocket launchers, the grenades, `ammo_box`, the rounds (renamed by type, re-oriented, rescaled; the meshes and textures are unchanged) | Styloo | Creative Commons Zero v1.0 Universal | https://styloo.itch.io/guns-asset-pack (the free "GLTF FBX V1.1" zip) |
+| `pistol`, `smg`, `carbine` (and the `rifle` until it was replaced, see below), `sniper_rifle`, `pump_shotgun`, the rocket launchers, the grenades) | Styloo | Creative Commons Zero v1.0 Universal | https://styloo.itch.io/guns-asset-pack (the free "GLTF FBX V1.1" zip) |
 | `revolver`, `machine_pistol`, `derringer`, `bullpup`, `drum_shotgun`, `marksman` (and the `battle_rifle` and `burst_rifle` until they were replaced, see below) (low-poly edition, re-oriented, rescaled, origin moved to the grip) | Polyy | CC0 1.0 | https://polyyai.itch.io/3d-low-poly-guns-pack |
 | `burst_rifle` (replaces Polyy's: the source's own PBR maps kept at 2K, a decal on the stock painted out, split into body, magazine and bolt nodes, origin at the grip, scaled to 0.916 m by `tools/build_sf_rifles.py`) | 8sianDude | CC BY 4.0 | https://sketchfab.com/3d-models/howa-type-89-assault-rifle-40ed169fba7d478190f1ad57a42857a3 |
 | `battle_rifle` (replaces Polyy's: rebaked at 1536 from the source's own PBR maps with procedural panel detail by gs-weapon texbake, the scope, suppressor, bipod and spare copies left out, the magazine cut into its own node, origin at the grip, scaled to 1.025 m by `tools/build_sf_rifles.py`) | Ulrik Langvandsbråten | CC BY 4.0 | https://sketchfab.com/3d-models/hk-g3-rifle-game-ready-2cd63366353b4e8fbc9eff81b1fe922f |
@@ -39,6 +39,7 @@ Each gun's own layered report (attack, body, outdoor tail, distant; two takes ea
 | `charge_rifle` and the energy dry clicks | jc-sounds | CC-BY 4.0 | https://opengameart.org/content/jc-sounds-sci-fi-pack-vol-1 |
 | `beamer` | cyklon698, celestialghost8, Zane Little Music | CC0 | https://opengameart.org/content/alien-blaster, https://opengameart.org/content/laser-weapon-burst-fire, https://opengameart.org/content/theremin-laser-sfx |
 | `charge_rifle` core | TAD | CC0 | https://opengameart.org/content/doomsday-laser-cannon-sound-effect |
+| `ammo_box`, the four rounds (`round_pistol`, `round_rifle`, `round_sniper`, `round_shell`) and the eleven attachments (`holo`, `red_dot`, `prism_3x`, `scope_6x`, `suppressor`, `compensator`, `vertical_grip`, `angled_grip`, `laser`, `extended_mag`, `rocketjump`): replace the Styloo box and rounds and the primitive-only attachments | Own work (this repository) | CC0 1.0 | Modelled in Blender by `tools/build_small_parts.py` (bevelled housings, lathe-turned casings and projectiles, rails, screws), textured by `addons/gs_weapon/tools/texbake/tex_pipeline.sh` |
 
 ## Surface finish
 

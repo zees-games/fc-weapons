@@ -2,10 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkgngmn302bc6"
+uid="uid://ihav8a8kvfja"
 path="res://.godot/imported/ammo_box_0.jpg-03bc94c011763a09be757fb353788362.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "a4c2c349aed7a10b74a766bd869bfbbf"
 }
 
 [deps]
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

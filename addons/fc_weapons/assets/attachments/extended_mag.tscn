@@ -1,56 +1,7 @@
 [gd_scene format=3]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_djp3p"]
-albedo_color = Color(0.16, 0.15, 0.13, 1)
-roughness = 0.75
+[ext_resource type="PackedScene" path="res://addons/fc_weapons/assets/attachments/extended_mag.glb" id="1"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_msecm"]
-size = Vector3(0.03, 0.05, 0.034)
+[node name="extended_mag" type="Node3D"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jkbvl"]
-albedo_color = Color(0.045, 0.045, 0.05, 1)
-roughness = 0.7
-
-[sub_resource type="BoxMesh" id="BoxMesh_tla6k"]
-size = Vector3(0.0315, 0.003, 0.0355)
-
-[sub_resource type="BoxMesh" id="BoxMesh_we8mh"]
-size = Vector3(0.0315, 0.003, 0.0355)
-
-[sub_resource type="BoxMesh" id="BoxMesh_vxpha"]
-size = Vector3(0.0315, 0.003, 0.0355)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kpimj"]
-albedo_color = Color(0.3, 0.3, 0.32, 1)
-metallic = 0.4
-roughness = 0.45
-
-[sub_resource type="BoxMesh" id="BoxMesh_y2qcr"]
-size = Vector3(0.034, 0.006, 0.04)
-
-[node name="extended_mag" type="Node3D" unique_id=400998257]
-
-[node name="extension" type="MeshInstance3D" parent="." unique_id=232960768]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.025, 0)
-material_override = SubResource("StandardMaterial3D_djp3p")
-mesh = SubResource("BoxMesh_msecm")
-
-[node name="rib_a" type="MeshInstance3D" parent="." unique_id=384093644]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.014, 0)
-material_override = SubResource("StandardMaterial3D_jkbvl")
-mesh = SubResource("BoxMesh_tla6k")
-
-[node name="rib_b" type="MeshInstance3D" parent="." unique_id=922502118]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.026, 0)
-material_override = SubResource("StandardMaterial3D_jkbvl")
-mesh = SubResource("BoxMesh_we8mh")
-
-[node name="rib_c" type="MeshInstance3D" parent="." unique_id=524788390]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.038, 0)
-material_override = SubResource("StandardMaterial3D_jkbvl")
-mesh = SubResource("BoxMesh_vxpha")
-
-[node name="plate" type="MeshInstance3D" parent="." unique_id=117826702]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.053, 0)
-material_override = SubResource("StandardMaterial3D_kpimj")
-mesh = SubResource("BoxMesh_y2qcr")
+[node name="Model" parent="." instance=ExtResource("1")]
