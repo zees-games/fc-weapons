@@ -5,6 +5,8 @@ extras.aw_detail on its material and is skipped, so a rerun changes nothing. The
 import sys, os, json, struct, io
 import numpy as np
 from PIL import Image
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from glb_parts import compact  # noqa: E402
 
 TILE = 2
 NORMAL_SIZE = 1024  # the normal map carries the visible detail, so it goes back to full size
@@ -29,49 +31,6 @@ def write_glb(p, j, binb):
     js += b' ' * (-len(js) % 4)
     total = 12 + 8 + len(js) + 8 + len(binb)
     open(p, 'wb').write(b'glTF' + struct.pack('<II', 2, total) + struct.pack('<I', len(js)) + b'JSON' + js + struct.pack('<I', len(binb)) + b'BIN\0' + bytes(binb))
-
-
-def compact(j, binb):
-    """Drops buffer views nothing references any more (the maps this run replaced), so the GLB does not carry both."""
-    def textures_of(m):
-        for v in list(m.values()) + list(m.get('pbrMetallicRoughness', {}).values()):
-            if isinstance(v, dict) and 'index' in v:
-                yield v
-    tex = sorted({t['index'] for m in j['materials'] for t in textures_of(m)})
-    img = sorted({j['textures'][t]['source'] for t in tex})
-    tmap, imap = {t: k for k, t in enumerate(tex)}, {i: k for k, i in enumerate(img)}
-    j['textures'] = [dict(j['textures'][t], source=imap[j['textures'][t]['source']]) for t in tex]
-    j['images'] = [j['images'][i] for i in img]
-    for m in j['materials']:
-        for t in textures_of(m):
-            t['index'] = tmap[t['index']]
-    used = {a['bufferView'] for a in j['accessors'] if 'bufferView' in a}
-    used |= {i['bufferView'] for i in j['images'] if 'bufferView' in i}
-    for a in j['accessors']:
-        for k in ('sparse',):
-            if k in a:
-                used |= {a[k]['indices']['bufferView'], a[k]['values']['bufferView']}
-    out, remap = bytearray(), {}
-    views = []
-    for i, v in enumerate(j['bufferViews']):
-        if i not in used:
-            continue
-        while len(out) % 4:
-            out.append(0)
-        o = v.get('byteOffset', 0)
-        nv = dict(v)
-        nv['byteOffset'] = len(out)
-        out += binb[o:o + v['byteLength']]
-        remap[i] = len(views)
-        views.append(nv)
-    j['bufferViews'] = views
-    for a in j['accessors']:
-        if 'bufferView' in a:
-            a['bufferView'] = remap[a['bufferView']]
-    for i in j['images']:
-        if 'bufferView' in i:
-            i['bufferView'] = remap[i['bufferView']]
-    return out
 
 
 def img_bytes(j, binb, tex):

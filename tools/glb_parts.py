@@ -1,5 +1,6 @@
-"""Small pure-python glTF/GLB helpers for the weapon tools: read and write a GLB, world positions of a model's meshes, and primitive builders
-(box, cylinder, cone, ring) that append flat-shaded parts with their own plain PBR material as new scene roots. Frame is glTF: x right, y up,
+"""Small pure-python glTF/GLB helpers for the weapon tools: read and write a GLB, drop the buffer views nothing references
+(compact), world positions of a model's meshes, and primitive builders (box, cylinder, cone, ring) that append flat-shaded
+parts with their own plain PBR material as new scene roots. Frame is glTF: x right, y up,
 muzzle toward -Z, metres, origin at the grip (the scene roots' frame, the same one the sight marks are written in).
 Used by tools/add_parts.py and tools/material_pass.py. Run with python3 -I."""
 import json
@@ -81,6 +82,49 @@ def world_points(j, binb, skip_prefix='aw_part'):
             pts.append(accessor(j, binb, p['attributes']['POSITION']).astype(np.float64))
         pts = np.vstack(pts)
         out[n.get('name', str(i))] = (m[:3, :3] @ pts.T).T + m[:3, 3]
+    return out
+
+
+def compact(j, binb):
+    """Drops buffer views nothing references any more (the maps this run replaced), so the GLB does not carry both."""
+    def textures_of(m):
+        for v in list(m.values()) + list(m.get('pbrMetallicRoughness', {}).values()):
+            if isinstance(v, dict) and 'index' in v:
+                yield v
+    tex = sorted({t['index'] for m in j['materials'] for t in textures_of(m)})
+    img = sorted({j['textures'][t]['source'] for t in tex})
+    tmap, imap = {t: k for k, t in enumerate(tex)}, {i: k for k, i in enumerate(img)}
+    j['textures'] = [dict(j['textures'][t], source=imap[j['textures'][t]['source']]) for t in tex]
+    j['images'] = [j['images'][i] for i in img]
+    for m in j['materials']:
+        for t in textures_of(m):
+            t['index'] = tmap[t['index']]
+    used = {a['bufferView'] for a in j['accessors'] if 'bufferView' in a}
+    used |= {i['bufferView'] for i in j['images'] if 'bufferView' in i}
+    for a in j['accessors']:
+        for k in ('sparse',):
+            if k in a:
+                used |= {a[k]['indices']['bufferView'], a[k]['values']['bufferView']}
+    out, remap = bytearray(), {}
+    views = []
+    for i, v in enumerate(j['bufferViews']):
+        if i not in used:
+            continue
+        while len(out) % 4:
+            out.append(0)
+        o = v.get('byteOffset', 0)
+        nv = dict(v)
+        nv['byteOffset'] = len(out)
+        out += binb[o:o + v['byteLength']]
+        remap[i] = len(views)
+        views.append(nv)
+    j['bufferViews'] = views
+    for a in j['accessors']:
+        if 'bufferView' in a:
+            a['bufferView'] = remap[a['bufferView']]
+    for i in j['images']:
+        if 'bufferView' in i:
+            i['bufferView'] = remap[i['bufferView']]
     return out
 
 
@@ -214,4 +258,5 @@ MATERIALS = {
     'part_glass': ([0.02, 0.05, 0.06], 0.0, 0.05),
     'part_scope': ([0.05, 0.052, 0.056], 0.0, 0.45),   # anodised scope body: dark but not black, so the smooth tube shades
     'part_rubber': ([0.035, 0.035, 0.035], 0.0, 0.8),
+    'part_drab': ([0.15, 0.16, 0.115], 0.2, 0.55),     # olive-drab painted cover plates
 }
