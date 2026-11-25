@@ -1,6 +1,6 @@
 @tool
 class_name AwWorldModel
-extends "aw_world_model_fit.gd"
+extends "aw_world_model_ticking.gd"
 
 ## The weapon everybody [i]else[/i] sees, hanging off a character's hand. Not a second copy of [AwViewModel]: a view model is drawn on top of the world at an exaggerated scale for one viewer,
 ## a world model is depth-tested, casts a shadow, is the right size, and thirty can be on screen. It attaches by duck typing (`attach_to` takes any node answering `attachment(point)`; no character class
@@ -406,7 +406,8 @@ func _cycle_seconds() -> float:
 var _late_wait := false
 
 
-func _process(delta: float) -> void:
+## One frame of the gun however it is ticked.
+func _tick(delta: float) -> void:
 	if _late_wait and not AwModelCache.late_pending():
 		# The group is mounted now.
 		_late_wait = false
@@ -433,7 +434,7 @@ func _process(delta: float) -> void:
 var _hidden_for := -1.0
 
 
-## One frame of the hand, [param delta] seconds long. [method _process] calls it; a tool that
+## One frame of the hand, [param delta] seconds long. [method _tick] calls it; a tool that
 ## freezes processing (`tools/world_sheet.gd`) calls it with a fixed step, so a frame is the
 ## same picture on every machine.
 func advance(delta: float) -> void:

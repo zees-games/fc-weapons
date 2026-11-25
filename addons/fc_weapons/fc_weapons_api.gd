@@ -76,7 +76,9 @@ extends RefCounted
 # 41: AwViewModel.scope_breath_angles(): the idle breath as a presentation-only turn of the scoped view (degrees); the hip pose breathes at idle. Additive.
 # 42: AwWorldModel.on_inspect(fraction) / inspect_fraction(): the held gun in the world turns through the first-person inspect
 #     (INSPECT_KEYS, about the grip), told by the body this client drives; not replicated, like aiming. Additive.
-const LEVEL := 42
+# 43: AwWorldModel.central_tick (one ticker node runs every held gun's frame, own `_process` off), set_ticking(on) and
+#     is_ticking(), which work either way, and world_ticks(). Off by default; same transforms per frame. Additive.
+const LEVEL := 43
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
