@@ -132,9 +132,27 @@ static func meshes(node: Node) -> Array[MeshInstance3D]:
 
 
 static func spans_for(art: AwWeaponVisual, weapon: Node3D, holder: Node3D, forward: Vector3) -> Array:
-	# Not the art's instance id: `HipHold.sized` makes a new art per equip, and that id is reused.
-	# The holder's scale and origin are the art's fit; its rotation is idle sway that differs a hair between the prewarm's spare view and the real one, which made the real view miss and re-walk the mesh (~70 ms on the first equip after a map change). Rotation is left out of the key.
-	var key := "%s|%s|%s|%s|%s|%s" % [art.id, art.model_path, (holder.transform.basis.get_scale() * 1000.0).round(), (holder.transform.origin * 1000.0).round(), forward, art.fore_along]
+	var key := _span_key(art, holder, forward)
 	if not _span_cache.has(key):
 		_span_cache[key] = IronSight.spans(IronSight.faces_of(weapon, holder), forward, [art.fore_along, 0.30])
 	return _span_cache[key]
+
+
+## [method spans_for]'s walk of the mesh as a job to `step(usec)` a frame at a time, then [method spans_store]; null when the spans are
+## cached already. The first [method measure] after the store reads them back, so the stage that measures costs nothing extra.
+static func spans_job(art: AwWeaponVisual, weapon: Node3D, holder: Node3D) -> RefCounted:
+	var forward := art.model_forward.normalized()
+	if weapon == null or _span_cache.has(_span_key(art, holder, forward)):
+		return null
+	return IronSight.spans_job(IronSight.faces_of(weapon, holder), forward, [art.fore_along, 0.30])
+
+
+## Keeps the answer of a done [param job] from [method spans_job].
+static func spans_store(art: AwWeaponVisual, holder: Node3D, job: RefCounted) -> void:
+	_span_cache[_span_key(art, holder, art.model_forward.normalized())] = job.result
+
+
+static func _span_key(art: AwWeaponVisual, holder: Node3D, forward: Vector3) -> String:
+	# Not the art's instance id: `HipHold.sized` makes a new art per equip, and that id is reused.
+	# The holder's scale and origin are the art's fit; its rotation is idle sway that differs a hair between the prewarm's spare view and the real one, which made the real view miss and re-walk the mesh (~70 ms on the first equip after a map change). Rotation is left out of the key.
+	return "%s|%s|%s|%s|%s|%s" % [art.id, art.model_path, (holder.transform.basis.get_scale() * 1000.0).round(), (holder.transform.origin * 1000.0).round(), forward, art.fore_along]

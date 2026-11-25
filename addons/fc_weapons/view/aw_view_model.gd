@@ -519,7 +519,13 @@ func _cut_sight(art: AwWeaponVisual) -> void:
 func _cut_sight_slice(art: AwWeaponVisual) -> bool:
 	if _cut_job == null:
 		var roots := _cut_roots()
-		_cut_cone = SightFit.cone_for(art, ads_rules, roots, _holder, _aim_target(), _sight_line)
+		if _cone_begun.is_empty():
+			_cone_begun = SightFit.cone_begin(art, ads_rules, roots, _holder, _aim_target(), _sight_line)
+		# The walk over the gun's faces that stops the hole short of a front post, a slice a call too.
+		if _cone_begun.front != null and not _cone_begun.front.step(CUT_SLICE_USEC):
+			return false
+		_cut_cone = SightFit.cone_end(_cone_begun)
+		_cone_begun = {}
 		if _cut_cone.is_empty():
 			_place_sight(null)
 			return true
@@ -529,6 +535,19 @@ func _cut_sight_slice(art: AwWeaponVisual) -> bool:
 	var red := SightFit.finish(art, ads_rules, _cut_cone, _cut_job)
 	_cut_job = null
 	_place_sight(red)
+	return true
+
+
+## [method HandReach.measure]'s mesh walk a slice at a time for [method prewarm_step]; true once the spans are cached.
+func _reach_slice(art: AwWeaponVisual) -> bool:
+	if not _reach_begun:
+		_reach_begun = true
+		_reach_job = HandReach.spans_job(art, _weapon, _holder)
+	if _reach_job != null:
+		if not _reach_job.step(CUT_SLICE_USEC):
+			return false
+		HandReach.spans_store(art, _holder, _reach_job)
+		_reach_job = null
 	return true
 
 
@@ -574,8 +593,13 @@ const EQUIP_STAGES := 10
 const CUT_STAGE := 3
 ## What one [method prewarm_step] spends on the cut: the rest waits for the next frame.
 const CUT_SLICE_USEC := 6000
+## The stage that measures the hand reach, whose mesh walk [method prewarm_step] works in slices too.
+const REACH_STAGE := 6
 var _cut_job: RefCounted
 var _cut_cone: Dictionary = {}
+var _cone_begun: Dictionary = {}
+var _reach_job: RefCounted
+var _reach_begun := false
 
 
 func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
@@ -639,6 +663,9 @@ var _kinds_held: Array[Material] = []
 func prewarm_begin(art: AwWeaponVisual) -> bool:
 	_prewarm_stage = -1
 	_cut_job = null
+	_cone_begun = {}
+	_reach_job = null
+	_reach_begun = false
 	if not _parts_left.is_empty():
 		_warm_parts()
 	var head := _equip_head(art)
@@ -662,6 +689,8 @@ func prewarm_step() -> bool:
 	if _prewarm_stage == CUT_STAGE:
 		if not _cut_sight_slice(_art):
 			return true
+	elif _prewarm_stage == REACH_STAGE and not _reach_slice(_art):
+		return true
 	else:
 		_equip_stage(_art, _prewarm_stage)
 	_prewarm_stage += 1

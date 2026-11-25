@@ -159,16 +159,30 @@ static func finish(art: AwWeaponVisual, rules: AwAdsRules, cone: Dictionary, job
 ## The hole along the aim hold [param aim] in the holder's space (aw_sight_cut.gd's cone plus `red`): `sight_cut` degrees stopping
 ## short of the front post ([param line]'s, else the first thing on the axis in the gun's front part); a red dot's wider window runs through.
 static func cone_for(art: AwWeaponVisual, rules: AwAdsRules, roots: Array, holder: Node3D, aim: Transform3D, line: Dictionary) -> Dictionary:
+	var begun := cone_begin(art, rules, roots, holder, aim, line)
+	if begun.front != null:
+		begun.front.run()
+	return cone_end(begun)
+
+
+## [method cone_for] in two halves, so the walk over the gun's faces that stops the hole short of a front post can be stepped a frame
+## at a time: `{cone, red, front}` where `front` is null (the cone is final) or a job to `step(usec)` until done; then [method cone_end].
+static func cone_begin(art: AwWeaponVisual, rules: AwAdsRules, roots: Array, holder: Node3D, aim: Transform3D, line: Dictionary) -> Dictionary:
 	if art == null or not art.aim_enabled or art.aim_scoped or roots.is_empty() or roots[0] == null:
-		return {}
+		return {"cone": {}, "red": false, "front": null}
 	var red := _red(art, rules)
 	var is_red := art.sight_red_dot or bool(red.on)
 	var degrees: float = float(red.window) if is_red else (rules.sight_cut_for(art.id) if rules != null else float(AwAdsRules.SPECS["sight_cut"]["default"]))
 	var cone := Cut.cone(aim, degrees, line.front if line.get("post", false) and not is_red else null)
-	if not is_red:
-		cone = Cut.short_of_front(cone, roots[0], holder)
+	var front: RefCounted = Cut.front_job(cone, roots[0], holder) if not is_red else null
+	return {"cone": cone, "red": is_red, "front": front}
+
+
+## The cone of [method cone_begin] once its `front` job (if any) is done.
+static func cone_end(begun: Dictionary) -> Dictionary:
+	var cone: Dictionary = begun.cone if begun.front == null else begun.front.result
 	if not cone.is_empty():
-		cone.red = is_red
+		cone.red = begun.red
 	return cone
 
 
