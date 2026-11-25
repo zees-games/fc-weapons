@@ -568,8 +568,8 @@ func _add_built(part: Node3D, at: Transform3D) -> Node3D:
 
 
 ## The stages the tail of [method equip] runs in, after the model is in the holder; [method prewarm_step] runs them one a call.
-## The belt and the two halves of the sight fit are separate stages: together they were a 50-234 ms frame per weapon at game-fatal-contact startup.
-const EQUIP_STAGES := 8
+## The belt, the two halves of the sight fit and the hand reach's two measurements are separate stages: together they were a 50-234 ms frame per weapon at game-fatal-contact startup.
+const EQUIP_STAGES := 10
 ## The stage that cuts the sight hole, which [method prewarm_step] works in slices.
 const CUT_STAGE := 3
 ## What one [method prewarm_step] spends on the cut: the rest waits for the next frame.
@@ -611,8 +611,15 @@ func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
 				_scope_glass = glass
 				ScopeGlass.hide_baked(_holder)
 		6:
-			_reach_for(art)
+			# The hand reach's mesh spans and the glove's texture means are cached by what they measure, so each is its own stage
+			# and [method _reach_for] after them reads both back: together they were a 50-90 ms frame for a rifle.
+			HandReach.measure(art, _weapon, _holder)
 		7:
+			if _weapon != null:
+				ArmsColour.surface_albedos(_weapon)
+		8:
+			_reach_for(art)
+		9:
 			_carve_magazine(art)
 
 

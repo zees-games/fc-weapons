@@ -4,6 +4,7 @@ extends RefCounted
 ## No `class_name`: preloaded by path, as gs_weapon_iron_sight.gd is. The mesh is sliced along its centre line and swept from the top down.
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
+const Extent := preload("aw_face_extent.gd")
 
 ## Where the gun's front part starts, as a fraction of its length: the first thing hit from behind past it is a front post.
 const FRONT_FROM := 0.55
@@ -43,26 +44,19 @@ static func measure(weapon: Node, space: Node3D, forward: Vector3, rear_t: float
 ## The sweep: `{kind, y, s, front_t, back_t}` in the forward/side/up frame, or `{}`.
 static func _profile(weapon: Node, space: Node3D, f: Vector3) -> Dictionary:
 	var side := Vector3.UP.cross(f).normalized()
-	var triangles := IronSight.triangles_of(weapon, space)
-	if triangles.is_empty():
+	var faces := IronSight.faces_of(weapon, space)
+	if faces.is_empty():
 		return {}
-	var t_min := INF
-	var t_max := -INF
-	var s_min := INF
-	var s_max := -INF
-	var y_max := -INF
-	for tri: Dictionary in triangles:
-		for p: Vector3 in [tri.a, tri.b, tri.c]:
-			t_min = minf(t_min, p.dot(f))
-			t_max = maxf(t_max, p.dot(f))
-			s_min = minf(s_min, p.dot(side))
-			s_max = maxf(s_max, p.dot(side))
-			y_max = maxf(y_max, p.y)
+	var along := Extent.range_along(faces, f)
+	var across := Extent.range_along(faces, side)
+	var t_min := along.x
+	var t_max := along.y
+	var y_max := Extent.range_along(faces, Vector3.UP).y
 	var length := t_max - t_min
 	if length <= 0.0:
 		return {}
-	var centre := (s_min + s_max) * 0.5
-	var segments := _slice(triangles, f, side, centre)
+	var centre := (across.x + across.y) * 0.5
+	var segments := _slice(faces, f, side, centre)
 	var dy := SWEEP_DEPTH * length / STEPS
 	var rows := _rows(segments, y_max, SWEEP_DEPTH * length)
 	var hits := PackedFloat32Array()
@@ -110,14 +104,13 @@ static func _band(hits: PackedFloat32Array, top: int, past: float, depth: float)
 
 
 ## The mesh cut by the vertical plane at [param s] along [param side]: segments `(t1, y1, t2, y2)`.
-static func _slice(triangles: Array[Dictionary], f: Vector3, side: Vector3, s: float) -> PackedVector4Array:
+static func _slice(faces: PackedVector3Array, f: Vector3, side: Vector3, s: float) -> PackedVector4Array:
 	var out := PackedVector4Array()
-	for tri: Dictionary in triangles:
+	for t in faces.size() / 3:
 		var points: Array[Vector2] = []
-		var corners: Array = [tri.a, tri.b, tri.c]
 		for k in 3:
-			var a: Vector3 = corners[k]
-			var b: Vector3 = corners[(k + 1) % 3]
+			var a := faces[t * 3 + k]
+			var b := faces[t * 3 + (k + 1) % 3]
 			var sa := a.dot(side) - s
 			var sb := b.dot(side) - s
 			if sa * sb > 0.0 or sa == sb:

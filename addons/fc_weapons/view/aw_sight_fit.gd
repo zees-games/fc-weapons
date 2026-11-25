@@ -5,6 +5,7 @@ extends RefCounted
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
 const OwnSight := preload("aw_own_sight.gd")
+const Extent := preload("aw_face_extent.gd")
 const Cut := preload("aw_sight_cut.gd")
 const CutJob := preload("aw_sight_cut_job.gd")
 
@@ -70,10 +71,25 @@ static func fit(art: AwWeaponVisual, weapon: Node3D, holder: Node3D, dressed_lin
 	return {"line": line, "aim": Transform3D(basis, Vector3(0.0, 0.0, -relief) - basis * (line.rear as Vector3)), "sight": sight}
 
 
+## [method IronSight.from_marks] with the back end read natively ([Extent]) instead of by a script walk over every triangle (50-100 ms for a rifle):
+## the same line, the corners walked from the same faces.
+static func marked_line(weapon: Node, space: Node3D, forward: Vector3) -> Dictionary:
+	var rear := weapon.find_child(IronSight.MARK_REAR, true, false) as Node3D
+	var front := weapon.find_child(IronSight.MARK_FRONT, true, false) as Node3D
+	if rear == null or front == null:
+		return {}
+	var to_space := space.global_transform.affine_inverse()
+	var r := to_space * rear.global_transform.origin
+	var fr := to_space * front.global_transform.origin
+	var f := forward.normalized()
+	var back_t := minf(r.dot(f), Extent.range_along(IronSight.faces_of(weapon, space), f).x)
+	return {"rear": r, "front": fr, "back": r + f * (back_t - r.dot(f)), "marked": true}
+
+
 ## `[line, built]` read off [param weapon]: the marked line, else its own sight, else the measured line for a built ring and post ([] line when none).
 static func _measure_line(art: AwWeaponVisual, weapon: Node3D, holder: Node3D, basis: Basis) -> Array:
 	# Marks a modeller placed win over anything read off the mesh.
-	var line := IronSight.from_marks(weapon, holder, art.model_forward)
+	var line := marked_line(weapon, holder, art.model_forward)
 	if line.is_empty() and art.sight_own:
 		# The rear point stays where the written hold had it, so the eye keeps its distance from the gun.
 		var written := basis.inverse() * (Vector3(0.0, 0.0, -art.aim_eye_relief) - art.aim_offset)
