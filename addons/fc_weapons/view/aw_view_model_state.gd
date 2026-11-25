@@ -33,7 +33,12 @@ var _prewarming := false
 ## Builds a prewarm finished, kept for every view model of the process: a spare view under the loading cover builds them, and the
 ## player's own view takes one the first time it equips that weapon, so that equip is a put-back, not a 30-100 ms sight fit and cut.
 ## Keyed like [member _equip_cache], so a view whose rules or finish differ from the spare's never takes one. 0 limit: keeps every one.
-static var prewarmed := _unlimited_store()
+static var prewarmed: RefCounted:
+	get:
+		if _prewarm_store == null:
+			_prewarm_store = EquipCache.new()
+			_prewarm_store.limit = prewarm_keep_limit
+		return _prewarm_store
 ## How many prewarmed builds are kept (0 keeps every one); the oldest goes first.
 static var prewarm_keep_limit: int = 0:
 	set(value):
@@ -43,10 +48,8 @@ static var prewarm_keep_limit: int = 0:
 static var keep_prewarmed := true
 
 
-static func _unlimited_store() -> RefCounted:
-	var store := EquipCache.new()
-	store.limit = 0
-	return store
+## Made on first use, not at load: a script that holds an instance from load cannot be reloaded, which the parse pass does.
+static var _prewarm_store: RefCounted = null
 
 ## The fitted attachments (what the rig was told) and what [code]aw_attachment_dress.gd[/code] drew for them.
 var _fitting: GSWeaponFitting = null

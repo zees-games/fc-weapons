@@ -52,11 +52,9 @@ const THROW_SECONDS := 0.55
 const THROW_RELEASE := 0.36
 const THROW_BACK := 0.9
 
-## Looking the gun over, as a watcher sees it, in the hand's frame like the swing and timed to the first-person
-## inspect's fraction (AwWeaponPose's INSPECT_KEYS: left side and top to the eye at 0.16-0.42, the right side at
-## 0.56-0.86, back into the hand). Lifted toward the face and rolled further than the first-person keys: at
-## twenty metres a wrist turned 30 degrees reads as the gun at rest. Turned about the grip, so the hand stays on it
-## and the support hand follows the fore-end round.
+## Looking the gun over, as a watcher sees it, timed to the first-person inspect's fraction (AwWeaponPose's INSPECT_KEYS):
+## lifted toward the face and rolled further than those, since at twenty metres a 30 degree wrist reads as the gun at rest.
+## Turned about the grip, so the hand stays on it and the support hand follows the fore-end round.
 const INSPECT_KEYS := [
 	[0.0, Vector3.ZERO, Vector3.ZERO],
 	[0.16, Vector3(0.0, 0.07, 0.05), Vector3(14.0, 22.0, -55.0)],

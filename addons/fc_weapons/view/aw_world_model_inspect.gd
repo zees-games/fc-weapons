@@ -10,10 +10,9 @@ var _inspect_told: bool = false
 var _inspect_was_on: bool = false
 
 
-## How far through looking the gun over, 0 to 1 (1 is none): the first-person inspect's fraction
-## (`AwViewModel.inspect_fraction`), so the hand in the world turns the gun the way the eye sees it turned.
-## Like aiming it is not replicated: the body this client drives (third person, the lab's outside cameras)
-## shows it. An inspect cut short (1 told mid-way) eases out over [constant INSPECT_RELEASE_SECONDS].
+## How far through looking the gun over, 0 to 1 (1 is none): `AwViewModel.inspect_fraction`, so the hand in the world
+## turns the gun the way the eye sees it turned. Not replicated, like aiming. An inspect cut short (1 told mid-way)
+## eases out over [constant INSPECT_RELEASE_SECONDS].
 func on_inspect(fraction: float) -> void:
 	var f := clampf(fraction, 0.0, 1.0) if is_finite(fraction) else 1.0
 	if f < 1.0:
