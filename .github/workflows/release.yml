@@ -10,7 +10,7 @@ on:
 
 jobs:
     validate:
-        uses: gamespice-platform/ci/.github/workflows/validate.yml@v1.4.0
+        uses: gamespice-platform/ci/.github/workflows/validate.yml@v1.4.3
         with:
             suite-timeout: 900
         secrets:
@@ -18,7 +18,7 @@ jobs:
 
     release:
         needs: validate
-        uses: gamespice-platform/ci/.github/workflows/release.yml@v1.4.0
+        uses: gamespice-platform/ci/.github/workflows/release.yml@v1.4.3
         permissions:
             contents: write
         with:
