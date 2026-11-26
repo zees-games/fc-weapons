@@ -261,7 +261,15 @@ func _simulate_aimed(command: GSWeaponCommand, context: GSWeaponContext) -> GSWe
 	if ramp < fire_min and (command.buttons & GSWeaponCommand.BUTTON_ATTACK) != 0:
 		command = command.duplicate_command()
 		command.buttons &= ~GSWeaponCommand.BUTTON_ATTACK
-	var kept := [b.spread, b.spread_moving, b.spread_airborne, b.bloom, b.recoil_pitch, b.recoil_yaw, b.spread_aim, b.recoil_aim]
+	# Kept in float locals, not an array: nothing allocated on an aimed tick, and the f64 copies put back to the bit.
+	var kept_spread := b.spread
+	var kept_moving := b.spread_moving
+	var kept_airborne := b.spread_airborne
+	var kept_bloom := b.bloom
+	var kept_pitch := b.recoil_pitch
+	var kept_yaw := b.recoil_yaw
+	var kept_aim := b.spread_aim
+	var kept_recoil_aim := b.recoil_aim
 	var rk := lerpf(1.0, ads_rules.recoil_for(def.id), ramp)
 	b.recoil_pitch *= rk
 	b.recoil_yaw *= rk
@@ -271,14 +279,14 @@ func _simulate_aimed(command: GSWeaponCommand, context: GSWeaponContext) -> GSWe
 	b.bloom *= k
 	_ease_class_aim(b, def, ramp)
 	var outcome := arsenal.simulate_tick(command, context, _previous_command)
-	b.spread = kept[0]
-	b.spread_moving = kept[1]
-	b.spread_airborne = kept[2]
-	b.bloom = kept[3]
-	b.recoil_pitch = kept[4]
-	b.recoil_yaw = kept[5]
-	b.spread_aim = kept[6]
-	b.recoil_aim = kept[7]
+	b.spread = kept_spread
+	b.spread_moving = kept_moving
+	b.spread_airborne = kept_airborne
+	b.bloom = kept_bloom
+	b.recoil_pitch = kept_pitch
+	b.recoil_yaw = kept_yaw
+	b.spread_aim = kept_aim
+	b.recoil_aim = kept_recoil_aim
 	if outcome.used and outcome.kind == GSWeaponOutcome.KIND_SHOT:
 		_tag_aimed_shots(outcome, art != null and art.aim_scoped)
 	return outcome
