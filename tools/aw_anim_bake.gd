@@ -4,9 +4,10 @@ extends RefCounted
 ## inspect, aim, idle sway) at 60 fps and every drawn part's transform is read back each frame; no number is copied. Used by tools/export_anim_tracks.gd (Nightly's viewer) and the suite.
 ## Space: the view model's own (no hands lens, hands_fov 0), metres, -Z forward; the viewer applies the lens itself (GSViewLens.apply).
 
-const FPS := 60
-const STEP := 1.0 / float(FPS)
-const VERSION := 1
+const Sidecar := preload("res://addons/gs_weapon/view/gs_weapon_anim_sidecar.gd")
+const FPS := Sidecar.FPS
+const STEP := Sidecar.STEP
+const PACK := "fc-weapons"
 ## The menu's viewmodel_fov default (gs-menu GSMenuStock.VIEWMODEL_FOV) and field_of_view default, horizontal degrees on 4:3.
 const VIEWMODEL_FOV_H := 54.0
 const WORLD_FOV_H := 90.0
@@ -17,8 +18,8 @@ const SWAY_DEGREES := 3.0
 const SWAY_SECONDS := 4.0
 
 var _view: AwViewModel = null
-var _tracks: Dictionary = {}
-var _frames := 0
+## The shared recorder: tracks and frame count of the clip being baked.
+var _rec := Sidecar.new()
 ## The reload parts built in code (ammo box, casing, cell ...) the clip drew: index -> {part, shapes}; their tracks are prop.<index>, .scale and .visible.
 var _props: Dictionary = {}
 
@@ -66,27 +67,13 @@ func bake(host: Node, id: StringName, def: GSWeaponDef, model: String = "") -> D
 		clips.append(baked)
 		host.remove_child(view)
 		view.free()
-	return {
-		"version": VERSION,
-		"weapon": String(id),
-		"model": art.model_path.get_file().get_basename(),
-		"asset": "fc-weapons__" + art.model_path.trim_prefix("res://").get_basename().replace("/", "__"),
-		"fps": FPS,
-		"lens": {
-			"viewmodel_fov_h": VIEWMODEL_FOV_H, "world_fov_h": WORLD_FOV_H,
-			"reference_fov": GSViewLens.REFERENCE_FOV, "reference_depth": GSViewLens.REFERENCE_DEPTH,
-			"max_pull_in": GSViewLens.MAX_PULL_IN, "depth_comp": 1.0,
-		},
-		"third_person": _third_person(art),
-		"nodes": {"bolt": String(art.bolt_node), "magazine": String(art.hide_during_reload)},
-		"clips": clips,
-	}
+	return Sidecar.sidecar(String(id), art.model_path.get_file().get_basename(), Sidecar.asset_of(PACK, art.model_path), Sidecar.lens(VIEWMODEL_FOV_H, WORLD_FOV_H),
+		String(art.bolt_node), String(art.hide_during_reload), clips, {"third_person": _third_person(art)})
 
 
 func _clip(name: String, loop: bool, art: AwWeaponVisual, def: GSWeaponDef) -> Dictionary:
-	_tracks = {}
+	_rec.begin()
 	_props = {}
-	_frames = 0
 	_view.on_reload(0.0)
 	_view.on_deploy(1.0)
 	for _i in SETTLE:
@@ -106,19 +93,7 @@ func _clip(name: String, loop: bool, art: AwWeaponVisual, def: GSWeaponDef) -> D
 			_ads()
 		"idle":
 			_idle()
-	var tracks: Array = []
-	for key: String in _tracks:
-		var t: Dictionary = _tracks[key]
-		# a part the game frees mid-clip (a casing, an ammo box) stops reporting: hold its last set, hidden
-		var width: int = {"transform": 7, "position": 3, "visible": 1, "vec2": 2}[t.path]
-		var vals: Array = t.values
-		while vals.size() < width * _frames:
-			if t.path == "visible":
-				vals.append(0.0)
-			else:
-				vals.append_array(vals.slice(vals.size() - width))
-		tracks.append({"target": key, "path": t.path, "values": _round(t.values)})
-	return {"name": name, "length": snappedf(float(_frames) / float(FPS), 0.001), "frames": _frames, "loop": loop, "tracks": tracks}
+	return _rec.finish(name, loop)
 
 
 func _fire(seconds: float, def: GSWeaponDef) -> void:
@@ -202,16 +177,16 @@ func _snap() -> void:
 	var parent := _view.get_parent() as Node3D
 	var to_view := parent.global_transform.affine_inverse() if parent != null else Transform3D.IDENTITY
 	var to_weapon := weapon.global_transform.affine_inverse()
-	_put("weapon", "transform", _t7(to_view * weapon.global_transform))
+	_rec.put("weapon", "transform", Sidecar.t7(to_view * weapon.global_transform))
 	var art: AwWeaponVisual = _view._art
 	if art.bolt_node != &"":
 		var bolt := weapon.find_child(String(art.bolt_node), true, false) as Node3D
 		if bolt != null:
-			_put("bolt", "position", [bolt.position.x, bolt.position.y, bolt.position.z])
+			_rec.put("bolt", "position", [bolt.position.x, bolt.position.y, bolt.position.z])
 	var mag: Node3D = _view._own_magazine()
 	if mag != null:
-		_put("magazine", "transform", _t7(to_weapon * mag.global_transform))
-		_put("magazine.visible", "visible", [1.0 if mag.is_visible_in_tree() else 0.0])
+		_rec.put("magazine", "transform", Sidecar.t7(to_weapon * mag.global_transform))
+		_rec.put("magazine.visible", "visible", [1.0 if mag.is_visible_in_tree() else 0.0])
 	var props: Node3D = _view._props
 	if props != null:
 		for k: Variant in props._nodes:
@@ -219,40 +194,19 @@ func _snap() -> void:
 			if not _props.has(k):
 				_props[k] = {"part": String(n.get_meta(&"part", &"")), "shapes": _shapes(n)}
 			var at := to_view * n.global_transform
-			_put("prop.%d" % k, "transform", _t7(at.orthonormalized()))
-			_put("prop.%d.scale" % k, "position", [at.basis.get_scale().x, at.basis.get_scale().y, at.basis.get_scale().z])
-			_put("prop.%d.visible" % k, "visible", [1.0 if n.is_visible_in_tree() else 0.0], [0.0])
+			_rec.put("prop.%d" % k, "transform", Sidecar.t7(at.orthonormalized()))
+			_rec.put("prop.%d.scale" % k, "position", [at.basis.get_scale().x, at.basis.get_scale().y, at.basis.get_scale().z])
+			_rec.put("prop.%d.visible" % k, "visible", [1.0 if n.is_visible_in_tree() else 0.0], [0.0])
 	var arms: AwViewArms = _view._arms
 	if arms != null and not arms.last_hands.is_empty():
 		var to_arms: Transform3D = to_view * arms.global_transform
 		for k: String in ["right", "left", "right_shoulder", "left_shoulder"]:
 			if arms.last_hands.has(k):
 				var p: Vector3 = to_arms * (arms.last_hands[k] as Vector3)
-				_put("hand.%s" % k, "position", [p.x, p.y, p.z])
+				_rec.put("hand.%s" % k, "position", [p.x, p.y, p.z])
 	var punch := _view.view_punch()
-	_put("view_punch", "vec2", [punch.x, punch.y])
-	_frames += 1
-
-
-func _put(key: String, path: String, values: Array, before: Array = []) -> void:
-	if not _tracks.has(key):
-		var back: Array = []
-		for _i in _frames:
-			back.append_array(before if not before.is_empty() else values)
-		_tracks[key] = {"path": path, "values": back}
-	(_tracks[key].values as Array).append_array(values)
-
-
-static func _t7(t: Transform3D) -> Array:
-	var q := t.basis.orthonormalized().get_rotation_quaternion()
-	return [t.origin.x, t.origin.y, t.origin.z, q.x, q.y, q.z, q.w]
-
-
-static func _round(values: Array) -> Array:
-	var out: Array = []
-	for v: float in values:
-		out.append(snappedf(v, 0.00001))
-	return out
+	_rec.put("view_punch", "vec2", [punch.x, punch.y])
+	_rec.frame_done()
 
 
 ## Where the weapon sits in the hand mount, as AwWorldModel's holder places it (the art's world transform, its basis scaled by the pose's share of the hand scale): 12 floats, basis columns then origin.
