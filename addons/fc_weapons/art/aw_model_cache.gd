@@ -28,6 +28,13 @@ static var _scenes: Dictionary = {}
 ## Path -> AABB in the model's own space.
 static var _bounds: Dictionary = {}
 
+## Path -> the model with its parts merged by material ([method instantiate_merged]).
+static var _merged: Dictionary = {}
+
+## Mesh parts [method instantiate_merged] keeps as their own nodes, by name pattern: found by name later (a sight's glass and
+## reticle, a scope's baked lens).
+const KEEP_SEPARATE := ["*_glass", "reticle*", "scope_*"]
+
 ## "path|forward" -> the bore's offset from the forward axis ([method muzzle_bore]).
 static var _bores: Dictionary = {}
 
@@ -67,6 +74,7 @@ static var _fallback_roots: PackedStringArray = PackedStringArray()
 static func set_asset_root(root: String) -> void:
 	_asset_root = root if root.ends_with("/") else root + "/"
 	_scenes.clear()
+	_merged.clear()
 	_bounds.clear()
 	_complained.clear()
 
@@ -292,6 +300,114 @@ static func instantiate(path: String) -> Node3D:
 	return null
 
 
+## A copy of the model at [param path] with its mesh parts merged by material, or null as [method instantiate].
+##
+## [b]An attachment is dozens of small parts and few materials[/b] (a holo sight: forty parts, five materials), and every
+## part is a draw call in the view and again in each shadow cascade it casts into. Thirty players with sights drew 1000
+## calls a frame instead of 630. Merged, a part costs one draw per material. The look is the same: the same triangles
+## and materials, the transforms baked in. Parts matching [constant KEEP_SEPARATE], parts with children, a skin or blend
+## shapes stay their own nodes under the same names. Merged once per path; the copies share the meshes.
+static func instantiate_merged(path: String) -> Node3D:
+	if not _merged.has(path):
+		var source := instantiate(path)
+		if source == null:
+			return null
+		var merged := merge_by_material(source)
+		source.free()
+		var packed := PackedScene.new()
+		if packed.pack(merged) != OK:
+			merged.free()
+			return instantiate(path)
+		merged.free()
+		_merged[path] = packed
+	return (_merged[path] as PackedScene).instantiate() as Node3D
+
+
+## [param source]'s visible mesh parts merged into one mesh per shadow setting and layer mask, one surface per material,
+## in a new tree named as [param source] (see [method instantiate_merged]); [param source] is left as it was.
+static func merge_by_material(source: Node3D) -> Node3D:
+	var root := Node3D.new()
+	root.name = source.name
+	root.transform = source.transform
+	var tools := {}
+	var looks := {}
+	for node in source.find_children("*", "MeshInstance3D", true, false):
+		var part := node as MeshInstance3D
+		if part.mesh == null or not _shown_under(part, source):
+			continue
+		var to_root := _transform_under(part, source)
+		if _keeps_own_node(part):
+			var copy := part.duplicate() as MeshInstance3D
+			copy.transform = to_root
+			root.add_child(copy)
+			copy.owner = root
+			for inner in copy.find_children("*", "", true, false):
+				inner.owner = root
+			continue
+		var look := "%d|%d" % [part.cast_shadow, part.layers]
+		looks[look] = part
+		for s in part.mesh.get_surface_count():
+			if part.mesh.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES:
+				continue
+			var material := part.get_active_material(s)
+			var key := "%s|%d" % [look, material.get_instance_id() if material != null else 0]
+			if not tools.has(key):
+				var st := SurfaceTool.new()
+				tools[key] = [st, material, look]
+			(tools[key][0] as SurfaceTool).append_from(part.mesh, s, to_root)
+	var meshes := {}
+	for key: String in tools:
+		var row: Array = tools[key]
+		var look: String = row[2]
+		if not meshes.has(look):
+			meshes[look] = ArrayMesh.new()
+		var mesh: ArrayMesh = meshes[look]
+		(row[0] as SurfaceTool).commit(mesh)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, row[1])
+	var n := 0
+	for look: String in meshes:
+		var like: MeshInstance3D = looks[look]
+		var merged := MeshInstance3D.new()
+		merged.name = "Merged%d" % n if n > 0 else "Merged"
+		merged.mesh = meshes[look]
+		merged.cast_shadow = like.cast_shadow
+		merged.layers = like.layers
+		merged.gi_mode = like.gi_mode
+		root.add_child(merged)
+		merged.owner = root
+		n += 1
+	return root
+
+
+static func _keeps_own_node(part: MeshInstance3D) -> bool:
+	if part.get_child_count() > 0 or part.skin != null or part.mesh.get_blend_shape_count() > 0:
+		return true
+	for pattern: String in KEEP_SEPARATE:
+		if String(part.name).match(pattern):
+			return true
+	return false
+
+
+## [param node]'s transform in [param top]'s space, walking the parents (no tree needed).
+static func _transform_under(node: Node3D, top: Node) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var up: Node = node
+	while up != null and up != top:
+		if up is Node3D:
+			t = (up as Node3D).transform * t
+		up = up.get_parent()
+	return t
+
+
+static func _shown_under(node: Node, top: Node) -> bool:
+	var up: Node = node
+	while up != null and up != top:
+		if up is Node3D and not (up as Node3D).visible:
+			return false
+		up = up.get_parent()
+	return true
+
+
 ## The merged bounding box of every mesh in the model, in the model's own space.
 ## Measured once per path.
 ## An empty box for a model that could not be loaded (not remembered, so the model's late-mounted group is measured once it is there).
@@ -409,6 +525,7 @@ static func _collect_vertices(node: Node, at: Transform3D, into: Array[PackedVec
 ## Drops everything. For a test, and for a game unmounting content it will not remount.
 static func clear() -> void:
 	_scenes.clear()
+	_merged.clear()
 	_bounds.clear()
 	_bores.clear()
 	_complained.clear()

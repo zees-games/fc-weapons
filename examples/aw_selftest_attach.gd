@@ -17,6 +17,7 @@ func _attachments() -> void:
 	var atts := AwAttachmentPack.attachments()
 	_check("eleven attachments, each valid and its own item", cat.ids().size() == 11 and atts.all(func(a: GSWeaponAttachment) -> bool: return a.validate().ok and String(a.item()).begins_with("att_")))
 	_check("every attachment model loads; each optic has its glass", atts.all(_model_ok))
+	_check("a part merged by material draws once per material, same triangles, glass and reticle kept by name", _merge_ok(&"holo"))
 
 	var rifle := _def(defs, &"aw_rifle")
 	var marksman := _def(defs, &"aw_marksman")
@@ -153,6 +154,37 @@ func _mounts_valid(defs: Array[GSWeaponDef], cat: GSWeaponAttachments) -> void:
 				gun.free()
 	_check("every weapon x attachment has a socket and a part (%d combos; %s)" % [combos, ", ".join(no_socket)], combos > 100 and no_socket.is_empty())
 	_check("every mount sits on its gun, touching it, bore-centred, sane size (%s)" % [", ".join(bad)], bad.is_empty())
+
+
+## [param id]'s model merged ([method AwModelCache.instantiate_merged]) against the plain one: fewer draws (surfaces), the same
+## triangles, the glass and reticle still found by name.
+func _merge_ok(id: StringName) -> bool:
+	var path := str(AwAttachmentArt.of(id).get("path", ""))
+	var plain := AwModelCache.instantiate(path)
+	var merged := AwModelCache.instantiate_merged(path)
+	if plain == null or merged == null:
+		return false
+	var a := _draws_tris(plain)
+	var b := _draws_tris(merged)
+	var named := merged.find_child("holo_glass", true, false) != null and merged.find_child("reticle", true, false) != null
+	print("  merged %s: %d draws %d tris -> %d draws %d tris" % [id, a.x, a.y, b.x, b.y])
+	plain.free()
+	merged.free()
+	return named and b.x * 4 < a.x and a.y == b.y
+
+
+func _draws_tris(root: Node) -> Vector2i:
+	var out := Vector2i.ZERO
+	for node in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh := (node as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for s in mesh.get_surface_count():
+			out.x += 1
+			var arrays := mesh.surface_get_arrays(s)
+			var idx: Variant = arrays[Mesh.ARRAY_INDEX]
+			out.y += ((idx as PackedInt32Array).size() if idx != null else (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()) / 3
+	return out
 
 
 func _model_ok(a: GSWeaponAttachment) -> bool:

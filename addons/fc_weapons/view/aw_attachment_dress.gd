@@ -9,7 +9,7 @@ extends RefCounted
 static func art_parts(art: AwWeaponVisual, parent: Node3D) -> Array[Node3D]:
 	var out: Array[Node3D] = []
 	for entry in art.attachments:
-		var part := AwModelCache.instantiate(str(entry.get("path", "")))
+		var part := AwModelCache.instantiate_merged(str(entry.get("path", "")))
 		if part == null:
 			continue
 		var turn: Vector3 = entry.get("rotation", Vector3.ZERO)
@@ -33,7 +33,7 @@ static func apply(weapon: Node3D, fitting: GSWeaponFitting, forward: Vector3, be
 	for mount in fitting.mounts():
 		var entry := AwAttachmentArt.of(fitting.attachment_on(mount))
 		var socket := weapon.find_child(String(AwAttachmentArt.socket_name(mount)), true, false) as Node3D
-		var part := AwModelCache.instantiate(str(entry.get("path", ""))) if socket != null else null
+		var part := AwModelCache.instantiate_merged(str(entry.get("path", ""))) if socket != null else null
 		if part == null:
 			continue
 		socket.add_child(part)
