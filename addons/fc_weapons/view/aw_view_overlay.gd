@@ -28,7 +28,9 @@ func setup(host: Node, layer: int) -> void:
 	_viewport = SubViewport.new()
 	_viewport.transparent_bg = true
 	_viewport.disable_3d = false
-	_viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
+	# Off until [method update] turns the pass on. A hidden canvas would already stop a WHEN_VISIBLE port (its texture is not drawn),
+	# but parked rigs (the kill views' spare hands) then still show as live ports in a render census; DISABLED says what they cost.
+	_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_camera = Camera3D.new()
 	_camera.cull_mask = _layer_mask
 	_viewport.add_child(_camera)
@@ -53,6 +55,7 @@ func update(active: bool, source: Camera3D) -> void:
 	# Only from the camera on screen: from any other it draws the view layer (the shown gun) small, somewhere in the world.
 	if not active or source == null or not source.is_inside_tree() or not source.current:
 		_canvas.visible = false
+		_set_mode(SubViewport.UPDATE_DISABLED)
 		return
 	var vp := source.get_viewport()
 	var size := Vector2i(vp.get_visible_rect().size)
@@ -72,3 +75,10 @@ func update(active: bool, source: Camera3D) -> void:
 	_camera.global_transform = source.global_transform
 	_camera.current = true
 	_canvas.visible = true
+	# WHEN_VISIBLE, not ALWAYS: it also stops while the viewport this canvas draws into does (a kill view's picture that is off).
+	_set_mode(SubViewport.UPDATE_WHEN_VISIBLE)
+
+## Sets the port's update mode only when it changes (the setter calls the rendering server every time).
+func _set_mode(mode: SubViewport.UpdateMode) -> void:
+	if _viewport.render_target_update_mode != mode:
+		_viewport.render_target_update_mode = mode

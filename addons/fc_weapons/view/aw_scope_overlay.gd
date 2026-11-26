@@ -45,6 +45,14 @@ func follow(view: Object) -> void:
 		queue_redraw()
 
 
+## The shared lens, without the omni and spot shadow atlas a new SubViewport carries: the lens would redraw
+## every lit caster into it for a picture a few hundred pixels across.
+func _sync_lens() -> void:
+	super._sync_lens()
+	if _port != null and _port.positional_shadow_atlas_size != 0:
+		_port.positional_shadow_atlas_size = 0
+
+
 ## The shared drawing, shifted by [member motion]: lens, rim and reticle move as one, as a scope
 ## tube does in the hands. A full-screen scope's surround is widened so no edge shows through.
 func _draw() -> void:

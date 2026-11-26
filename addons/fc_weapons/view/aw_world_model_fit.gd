@@ -120,7 +120,11 @@ func _apply_shadows() -> void:
 	var mode := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_shadow \
 		else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
-	for mesh in _meshes(self):
+	# The holder, not self: the shot and charge effects hang off self too, and their pooled quads keep shadows off on purpose.
+	# Walking self turned every tracer and flash on a re-fitted gun into a shadow caster (hundreds of surfaces in a 32-player match).
+	if _holder == null:
+		return
+	for mesh in _meshes(_holder):
 		mesh.cast_shadow = mode
 
 
