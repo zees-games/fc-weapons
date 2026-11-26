@@ -190,13 +190,7 @@ static var _row_arsenal: bool = GSWeaponApi.LEVEL >= _ROW_LEVEL
 ## What [method simulate_tick] does when [method GSWeaponArsenal.is_idle_for] holds: with no button
 ## down there is no aim, bash or use, so only the bookkeeping that every tick does is left.
 func _idle_tick(command: GSWeaponCommand, tick: int, prof: bool = false, row := PackedFloat64Array(), still := false) -> GSWeaponOutcome:
-	# Sprinting is just movement: no button is down, so this is the path a sprint usually takes.
-	if _view != null and _player != null:
-		_view.set_sprinting(GSWeaponPlayerBridge.posture_for(_player, tick).sprinting)
-	_notice_holster(tick)
-	_ads_move = 1.0
-	_ads_progress = 0.0
-	_aim_ticks = 0
+	_idle_before(tick)
 	if prof:
 		_lap(PH_IDLE_PRE)
 	var outcome: GSWeaponOutcome
@@ -206,6 +200,23 @@ func _idle_tick(command: GSWeaponCommand, tick: int, prof: bool = false, row := 
 		outcome = arsenal.idle_tick()
 	if prof:
 		_lap(PH_IDLE_ARSENAL)
+	_idle_after(command, tick, prof)
+	return outcome
+
+
+## The idle tick's bookkeeping before the arsenal's step.
+func _idle_before(tick: int) -> void:
+	# Sprinting is just movement: no button is down, so this is the path a sprint usually takes.
+	if _view != null and _player != null:
+		_view.set_sprinting(GSWeaponPlayerBridge.posture_for(_player, tick).sprinting)
+	_notice_holster(tick)
+	_ads_move = 1.0
+	_ads_progress = 0.0
+	_aim_ticks = 0
+
+
+## The idle tick's bookkeeping after the arsenal's step.
+func _idle_after(command: GSWeaponCommand, tick: int, prof: bool = false) -> void:
 	_notice_switch_end()
 	_advance_charge(command, tick)
 	_trigger_down = command.is_pressed(GSWeaponCommand.BUTTON_ATTACK)
@@ -219,7 +230,33 @@ func _idle_tick(command: GSWeaponCommand, tick: int, prof: bool = false, row := 
 	if prof:
 		_lap(PH_COPY)
 
+
+## Whether this gs-weapon has [method GSWeaponArsenal.idle_batch_add] (API 57); named through call(), so this parses on older ones.
+const _BATCH_LEVEL := 57
+static var _batch_arsenal: bool = GSWeaponApi.LEVEL >= _BATCH_LEVEL
+
+
+## [method simulate_idle_row] on a server, its weapon's native idle call joined to a batch (fc-weapons 45, gs-weapon API
+## 57, [method GSWeaponArsenal.idle_batch_add]): appends this rig's entry to [param entries] for gs-sim's
+## [code]GSSimWeaponIdleBatch.run[/code] over the posture rows (row [param k], still flag at its [code][9][/code]) and does
+## the rig's whole idle tick around it. Null (nothing done) when it cannot join: not a server, phase timers on, an older
+## gs-weapon, or a weapon with no twin that provably holds; then call [method simulate_idle_row]. The caller runs the batch
+## before reading the weapon's state, and calls [method idle_batch_declined] for each entry the batch declines.
+func idle_batch(command: GSWeaponCommand, tick: int, entries: Array, k: int) -> GSWeaponOutcome:
+	if not _batch_arsenal or role != Role.SERVER or phase_timers:
+		return null
+	var outcome: GSWeaponOutcome = arsenal.call(&"idle_batch_add", entries, k)
+	if outcome == null:
+		return null
+	_last_tick = tick
+	_idle_before(tick)
+	_idle_after(command, tick)
 	return outcome
+
+
+## The script idle step for an entry [method idle_batch] joined and the batch declined (a decline changed nothing).
+func idle_batch_declined() -> void:
+	arsenal.idle_tick()
 
 
 ## Copies [param command] into the rig's own previous command: nothing outside the rig holds that object, so it is

@@ -81,7 +81,10 @@ extends RefCounted
 # 44: the scope's lens renders the scene only while live: shown, raised past AwScopeGlass.live_from (0.3; 0 brings back the hip lens),
 #     in the tree and under a current camera, one frame at a time; otherwise the baked lens shows. AwScopeGlass.update() takes the aim
 #     fraction, live_at(aim), side_for(pixels): the picture is sized to the lens on screen (128 to 384). Additive.
-const LEVEL := 44
+# 45: AwWeaponRig.idle_batch(command, tick, entries, k) / idle_batch_declined(): a server joins its idle weapons' native idle
+#     calls into one gs-sim GSSimWeaponIdleBatch.run per tick (needs gs-weapon API 57; null on older ones or when a weapon cannot
+#     join, then simulate_idle_row). Same bits. Additive.
+const LEVEL := 45
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
