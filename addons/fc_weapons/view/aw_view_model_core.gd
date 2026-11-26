@@ -712,6 +712,10 @@ func _unstow(key: String) -> bool:
 	_attachments.clear()
 	_scope_glass = null
 	_attachments.append_array(slot.attachments)
+	# The kept glass is driven again: left without updates it would hold whatever render mode it was stowed in.
+	for node: Variant in slot.attachments:
+		if node is Node3D and (node as Node3D).name == &"ScopeGlass":
+			_scope_glass = node
 	_rear_rings.clear()
 	_rear_rings.append_array(slot.rear_rings)
 	_sight_line = slot.sight_line

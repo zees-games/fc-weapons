@@ -1,10 +1,17 @@
 extends RefCounted
 
-## The scope's lens as real glass: a disc at the ocular showing the world through a second camera that rides the scope, at all times (hip, idle, in sway).
+## The scope's lens as real glass: a disc at the ocular showing the world through a second camera that rides the scope while the scope is raised.
 ## The camera looks down the tube (-Z) in the model's space, on the view layer so the gun is not in its own lens; a reticle is drawn in the disc's shader.
+## The second camera draws the whole scene again, so it renders only while it is live (see [method update]); the rest of the time the model's baked lens shows.
 ## Not built headless (nothing renders). Preloaded by path (no `class_name`), as aw_scope_housing.gd is.
 
+## The largest lens picture (pixels a side); a smaller lens on screen gets a smaller one, in steps of [constant RESOLUTION_STEP].
 const RESOLUTION := 384
+const MIN_RESOLUTION := 128
+const RESOLUTION_STEP := 64
+## How far into the aim (0 at the hip, 1 aimed) the lens starts rendering the scene. Below it the baked lens shows and nothing is drawn twice.
+## 0 renders it at the hip as well: a whole second scene pass every frame for a lens a few dozen pixels wide.
+static var live_from := 0.3
 ## How far in front of the ocular the disc sits (metres in model space), so it covers the baked glass.
 const DISC_LIFT := 0.0012
 const SIDES := 48
@@ -68,7 +75,10 @@ static func build(style: Dictionary, view_layer: int) -> Node3D:
 	port.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	port.transparent_bg = false
 	port.msaa_3d = Viewport.MSAA_2X
+	# No omni or spot shadows in the lens: its own shadow atlas would redraw every lit caster for a picture this size.
+	port.positional_shadow_atlas_size = 0
 	root.add_child(port)
+	root.set_meta(&"radius", radius)
 
 	var camera := Camera3D.new()
 	camera.name = "Lens"
@@ -98,31 +108,89 @@ static func build(style: Dictionary, view_layer: int) -> Node3D:
 	return root
 
 
+## Whether the lens renders the scene at [param aim] (0 at the hip, 1 aimed): from [member live_from] on.
+static func live_at(aim: float) -> bool:
+	return aim >= live_from
+
+
+## The lens picture's side (pixels) for a lens [param pixels] wide on screen: rounded up to [constant RESOLUTION_STEP], within
+## [constant MIN_RESOLUTION] and [constant RESOLUTION].
+static func side_for(pixels: float) -> int:
+	return clampi(ceili(maxf(pixels, 1.0) / RESOLUTION_STEP) * RESOLUTION_STEP, MIN_RESOLUTION, RESOLUTION)
+
+
 ## Points the lens camera, once per frame: [param main] is the camera the view model hangs from, [param fov_scale] the zoom the glass shows
-## (the scope's current level, 0 or less leaves the main camera's own), [param shown] whether the glass is seen this frame.
-static func update(root: Node3D, main: Camera3D, fov_scale: float, shown: bool) -> void:
+## (the scope's current level, 0 or less leaves the main camera's own), [param shown] whether the glass is seen this frame, [param aim] how far
+## the scope is raised (0 at the hip, 1 aimed).
+## The lens renders only while shown, raised past [member live_from], in the tree and seen through a current camera; then it is armed for one
+## frame at a time (UPDATE_ONCE), so a view model that stops calling this (parked, hidden, stowed) stops the second render on its own.
+static func update(root: Node3D, main: Camera3D, fov_scale: float, shown: bool, aim: float = 1.0) -> void:
 	if not is_instance_valid(root):
 		return
 	root.visible = shown
 	var port := root.get_node_or_null("Port") as SubViewport
 	if port == null:
 		return
-	port.render_target_update_mode = SubViewport.UPDATE_ALWAYS if shown else SubViewport.UPDATE_DISABLED
+	var live := shown and live_at(aim) and main != null and main.current and root.is_visible_in_tree()
+	var disc := root.get_node_or_null("Disc") as Node3D
+	if disc != null:
+		disc.visible = live
+	for baked: Variant in root.get_meta(&"baked", []):
+		if is_instance_valid(baked):
+			(baked as Node3D).visible = not live
+	port.render_target_update_mode = SubViewport.UPDATE_ONCE if live else SubViewport.UPDATE_DISABLED
 	var camera := port.get_node_or_null("Lens") as Camera3D
-	if camera == null or main == null or not shown:
+	if camera == null or not live:
 		return
 	# The camera looks down the tube from the ocular: the disc's own transform without its scale.
 	camera.global_transform = Transform3D(root.global_transform.basis.orthonormalized(), root.global_transform.origin)
 	var scale_by := fov_scale if fov_scale > 0.0 else 1.0
 	camera.fov = clampf(rad_to_deg(2.0 * atan(tan(deg_to_rad(main.fov) * 0.5) * scale_by)), 1.0, 120.0)
+	if camera.environment == null:
+		camera.environment = _lens_environment(main)
+	var side := side_for(_lens_pixels(root, main))
+	if port.size.x != side:
+		port.size = Vector2i(side, side)
 
 
-## The baked placeholders (see [constant BAKED]) of [param model], hidden: the live glass and housing take their place.
-static func hide_baked(model: Node) -> void:
+## How many pixels wide the lens is on [param main]'s screen.
+static func _lens_pixels(root: Node3D, main: Camera3D) -> float:
+	var depth := -(main.global_transform.affine_inverse() * root.global_position).z
+	if depth <= 0.001:
+		return float(RESOLUTION)
+	var radius := float(root.get_meta(&"radius", 0.0)) * root.global_transform.basis.get_scale().x
+	var height := main.get_viewport().get_visible_rect().size.y
+	return radius / (depth * tan(deg_to_rad(main.fov) * 0.5)) * height
+
+
+## The scene's environment for the lens without its screen-space and volume passes (SSAO, SSIL, SSR, SDFGI, volumetric fog): their buffers
+## would be built again for a small picture. Null when the scene has none (the lens then uses the world's, as before).
+static func _lens_environment(main: Camera3D) -> Environment:
+	var source := main.environment
+	if source == null and main.get_world_3d() != null:
+		source = main.get_world_3d().environment
+	if source == null:
+		return null
+	var env := source.duplicate() as Environment
+	env.ssao_enabled = false
+	env.ssil_enabled = false
+	env.ssr_enabled = false
+	env.sdfgi_enabled = false
+	env.volumetric_fog_enabled = false
+	return env
+
+
+## The baked placeholders (see [constant BAKED]) of [param model], hidden: the live glass and housing take their place. With [param glass]
+## (built by [method build]) they are kept on it, and [method update] shows them again whenever the lens is not live.
+static func hide_baked(model: Node, glass: Node3D = null) -> void:
+	var found: Array[Node3D] = []
 	for named in BAKED:
 		var node := model.find_child(String(named), true, false) as Node3D
 		if node != null:
 			node.visible = false
+			found.append(node)
+	if glass != null:
+		glass.set_meta(&"baked", found)
 
 
 ## A disc of [param radius] facing +Z (toward the eye), UVs mapped across it.

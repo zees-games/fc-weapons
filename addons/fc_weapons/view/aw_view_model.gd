@@ -384,7 +384,7 @@ func advance(delta: float) -> void:
 	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
 	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
 	if _scope_glass != null:
-		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and visible and not scope_body_active())
+		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and is_visible_in_tree() and not scope_body_active(), _aim_fraction)
 	if _arms != null:
 		_arms.visible = not (scoped or scope_picture_up() or arms_hidden_by_scope())
 
@@ -642,13 +642,13 @@ func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
 			var housing := _add_built(ScopeHousing.build(art.scope_style), Transform3D(Basis.IDENTITY, ScopeHousing.origin(art.scope_style)))
 			if housing != null:
 				_attachments.append(housing)
-			# Real glass in the lens, so the scene shows through it at the hip too; the model's baked placeholders give way.
+			# Real glass in the lens, live while the scope is raised; the model's baked placeholders show the rest of the time.
 			var glass := ScopeGlass.build(art.scope_style, view_layer) if art.aim_scoped else null
 			if glass != null:
 				_holder.add_child(glass)
 				_attachments.append(glass)
 				_scope_glass = glass
-				ScopeGlass.hide_baked(_holder)
+				ScopeGlass.hide_baked(_holder, glass)
 		6:
 			# The hand reach's mesh spans and the glove's texture means are cached by what they measure, so each is its own stage
 			# and [method _reach_for] after them reads both back: together they were a 50-90 ms frame for a rifle.

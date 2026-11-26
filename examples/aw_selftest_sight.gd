@@ -760,7 +760,7 @@ func _scope_align() -> void:
 
 
 func _scope_glass() -> void:
-	_begin("scope glass: not built headless or without an ocular, baked placeholders hidden, zoom scale follows the level")
+	_begin("scope glass: not built headless or without an ocular, baked placeholders hidden, live only when raised, zoom scale follows the level")
 	const Glass := preload("res://addons/fc_weapons/view/aw_scope_glass.gd")
 	var art := AwWeaponVisual.make(&"sniper")
 	AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[&"sniper"])
@@ -774,12 +774,18 @@ func _scope_glass() -> void:
 	var other := Node3D.new()
 	other.name = "barrel"
 	model.add_child(other)
-	Glass.hide_baked(model)
+	var kept := Node3D.new()
+	Glass.hide_baked(model, kept)
+	_check("the hidden baked parts are kept on the glass", (kept.get_meta(&"baked", []) as Array).size() == Glass.BAKED.size())
+	kept.free()
 	var hidden := 0
 	for named in Glass.BAKED:
 		hidden += 0 if (model.get_node(String(named)) as Node3D).visible else 1
 	_check("every baked lens part is hidden and the rest stays", hidden == Glass.BAKED.size() and other.visible)
 	model.free()
+	_check("the lens is not live at the hip, live once raised past live_from", not Glass.live_at(0.0) and Glass.live_at(1.0) and Glass.live_at(Glass.live_from))
+	_check("the lens picture fits the lens on screen (%d %d %d)" % [Glass.side_for(10.0), Glass.side_for(200.0), Glass.side_for(4000.0)],
+		Glass.side_for(10.0) == Glass.MIN_RESOLUTION and Glass.side_for(200.0) == 256 and Glass.side_for(4000.0) == Glass.RESOLUTION)
 	var camera := Camera3D.new()
 	add_child(camera)
 	var view := AwViewModel.new()
