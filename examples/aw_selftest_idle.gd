@@ -23,10 +23,29 @@ func _idle_parity(r2: AwWeaponRig, cat: GSWeaponCatalogue, cmd: GSWeaponCommand)
 
 ## On a server rig with an idle posture, idle_batch plus one native GSSimWeaponIdleBatch run leaves the rig, the outcome and
 ## the weapon's state where simulate_idle_row does, over moving and settled postures (skipped without that gs-sim class).
+## Run with [member AwWeaponRig.idle_batch_lean] on and off: the straight bookkeeping writes and the helpers it stands for agree.
 func _batch_parity(cat: GSWeaponCatalogue, slot: int) -> void:
-	if not ClassDB.class_exists(&"GSSimWeaponIdleBatch") or preload("res://addons/gs_weapon/gs_weapon_api.gd").LEVEL < 57:
-		_check("skip: GSSimWeaponIdleBatch or gs-weapon API 57 missing", true)
+	if not ClassDB.class_exists(&"GSSimWeaponIdleBatch") or preload("res://addons/gs_weapon/gs_weapon_api.gd").LEVEL < 58:
+		_check("skip: GSSimWeaponIdleBatch or gs-weapon API 58 missing", true)
+		_check("skip: GSSimWeaponIdleBatch or gs-weapon API 58 missing", true)
 		return
+	var was := AwWeaponRig.idle_batch_lean
+	for lean in [true, false]:
+		AwWeaponRig.idle_batch_lean = lean
+		_batch_parity_run(cat, slot, lean)
+	AwWeaponRig.idle_batch_lean = was
+
+
+## The rig's idle bookkeeping fields, for [method _batch_parity_run].
+func _rig_fields(r: AwWeaponRig) -> Array:
+	var prev: GSWeaponCommand = r.get(&"_previous_command")
+	var out := [r.get(&"_last_tick"), prev.slot if prev != null else -9, prev.buttons if prev != null else -9]
+	for f in [&"_was_switching", &"_switch_started", &"_ads_move", &"_ads_progress", &"_aim_ticks", &"_charge_started", &"_trigger_down"]:
+		out.append(r.get(f))
+	return out
+
+
+func _batch_parity_run(cat: GSWeaponCatalogue, slot: int, lean: bool) -> void:
 	var batch: Object = ClassDB.instantiate(&"GSSimWeaponIdleBatch")
 	var ctx := GSWeaponContext.new()
 	var still := [false]
@@ -44,9 +63,10 @@ func _batch_parity(cat: GSWeaponCatalogue, slot: int) -> void:
 		r.arsenal.idle_still = func() -> bool: return still[0]
 		rigs.append(r)
 	var cmd := GSWeaponCommand.new()
-	cmd.slot = slot
 	var joined := 0
 	for tick in range(10, 90):
+		# Slot 0 (keep what is in hand) on some ticks, so the previous command is copied on the change.
+		cmd.slot = 0 if tick % 13 < 4 else slot
 		ctx.tick = tick
 		ctx.speed = 0.0 if tick % 20 < 10 else 4.0 + tick % 3
 		ctx.crouched = tick % 7 == 0
@@ -66,7 +86,7 @@ func _batch_parity(cat: GSWeaponCatalogue, slot: int) -> void:
 				rigs[1].idle_batch_declined()
 		same = same and a.used == b.used and a.kind == b.kind and a.refusal == b.refusal \
 			and rigs[0].arsenal.current().behaviour.state == rigs[1].arsenal.current().behaviour.state \
-			and rigs[0].arsenal.snapshot() == rigs[1].arsenal.snapshot()
-	_check("idle_batch plus one native batch run matches simulate_idle_row on a server rig (%d of 80 ticks joined)" % joined, same and joined > 40)
+			and rigs[0].arsenal.snapshot() == rigs[1].arsenal.snapshot() and _rig_fields(rigs[0]) == _rig_fields(rigs[1])
+	_check("idle_batch (lean %s) plus one native batch run matches simulate_idle_row on a server rig, rig fields too (%d of 80 ticks joined)" % [lean, joined], same and joined > 40)
 	for r in rigs:
 		r.queue_free()

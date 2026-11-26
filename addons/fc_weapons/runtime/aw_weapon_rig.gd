@@ -249,9 +249,27 @@ func idle_batch(command: GSWeaponCommand, tick: int, entries: Array, k: int) -> 
 	if outcome == null:
 		return null
 	_last_tick = tick
-	_idle_before(tick)
-	_idle_after(command, tick)
+	if not idle_batch_lean or _view != null or command.buttons != 0:
+		_idle_before(tick)
+		_idle_after(command, tick)
+		return outcome
+	# _idle_before and _idle_after for a joined server weapon: would_idle held this tick, so no button is down now or in
+	# the previous command and no switch or charge is under way; what they would do comes down to these writes.
+	_was_switching = false
+	_switch_started = -1
+	_ads_move = 1.0
+	_ads_progress = 0.0
+	_aim_ticks = 0
+	_charge_started = -1
+	_trigger_down = false
+	if _previous_command == null or _previous_command.buttons != 0 or _previous_command.slot != command.slot:
+		_keep_previous(command)
 	return outcome
+
+
+## Whether [method idle_batch] writes its bookkeeping straight (true) or through [method _idle_before] and
+## [method _idle_after] (false: the fallback, same result). A game cvar may set it.
+static var idle_batch_lean := true
 
 
 ## The script idle step for an entry [method idle_batch] joined and the batch declined (a decline changed nothing).
