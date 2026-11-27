@@ -40,6 +40,8 @@ var _charges: Array[Node3D] = []
 var _rings: Dictionary = {}
 var _turn: Dictionary = {}
 var _flash_script: GDScript = null
+## The ring a size with none reads as (read only, so no default array is made per shot).
+const NO_RING: Array = []
 ## Bus to the shared layered shot (an [AwShotLayers]) on it.
 var _layers: Dictionary = {}
 ## The quads and flash lights every remote [AwShotFx] draws from, built on the first ask. Effects are top-level and
@@ -265,7 +267,7 @@ func _next_flash(category: String, def: GSWeaponDef, suppressed: bool) -> Node3D
 		return null
 	var extra := {GSWeaponMuzzle.KEY: GSWeaponMuzzle.flash_name(def)}
 	var size: int = _flash_script.call("size_for", category, extra, suppressed)
-	var ring: Array = _rings.get(size, [])
+	var ring: Array = _rings.get(size, NO_RING)
 	if ring.is_empty():
 		return null
 	var turn: int = (int(_turn.get(size, -1)) + 1) % ring.size()

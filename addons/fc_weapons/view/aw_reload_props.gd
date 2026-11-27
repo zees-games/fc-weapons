@@ -57,7 +57,7 @@ func show_at(seq: RefCounted, f: float, to_holder: Transform3D, size: float) -> 
 				continue
 			add_child(node)
 			if on_top.is_valid():
-				on_top.call(node)
+				on_top.call(node)  # perf-lint: allow dynamic_call Callable.call, not a call by name
 			_nodes[e.index] = node
 		node.transform = Transform3D(turned.scaled(Vector3.ONE * size), at)
 		node.visible = at.is_finite()

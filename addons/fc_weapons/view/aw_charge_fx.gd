@@ -110,7 +110,7 @@ func advance(delta: float) -> void:
 		return
 
 	if follow.is_valid():
-		global_position = (follow.call() as Transform3D).origin
+		global_position = (follow.call() as Transform3D).origin  # perf-lint: allow dynamic_call Callable.call, not a call by name
 
 	var level := _charge
 	var punch := 1.0

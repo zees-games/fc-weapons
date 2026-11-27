@@ -64,7 +64,7 @@ func _aim_along_wall_barrel(context: GSWeaponContext) -> void:
 	var art := current_art()
 	if def == null or art == null or ads_rules == null or not ads_rules.wall_shot_for(def.id) or not (_player is Node3D):
 		return
-	var turn := wall_barrel(context.origin, context.direction, art, context.speed, ads_progress(), float(context.extra.get(&"strafe", _drive_strafe)))
+	var turn := wall_barrel(context.origin, context.direction, art, context.speed, ads_progress(), float(context.extra.get(&"strafe", _drive_strafe)))  # perf-lint: allow dynamic_call Dictionary.get (context.extra)
 	if turn != Basis.IDENTITY:
 		var aim := _look_basis(context.direction)
 		context.direction = (aim * (turn * Vector3.FORWARD)).normalized()
@@ -73,15 +73,23 @@ func _aim_along_wall_barrel(context: GSWeaponContext) -> void:
 ## The rotation (view space) a wall puts on the held gun's barrel for an eye at [param origin] looking along [param direction].
 func wall_barrel(origin: Vector3, direction: Vector3, art: AwWeaponVisual, speed: float, aim: float, strafe: float = 0.0) -> Basis:
 	var node := _player as Node3D
-	if node == null or not node.is_inside_tree() or node.get_world_3d() == null:
+	if node == null or not node.is_inside_tree():
+		return Basis.IDENTITY
+	var world := node.get_world_3d()
+	if world == null:
 		return Basis.IDENTITY
 	var eye := Transform3D(_look_basis(direction), origin)
-	var exclude: Array[RID] = []
+	# Reused: barrel_turn copies it into its query and keeps no reference.
+	var exclude := _wall_barrel_exclude
+	exclude.clear()
 	if node is CollisionObject3D:
 		exclude.append((node as CollisionObject3D).get_rid())
 	var mask := (_fx.collision_mask if _fx != null else wall_shot_mask) | wall_extra_mask
-	return AwWallSlam.barrel_turn(node.get_world_3d().direct_space_state, eye, art.hip_muzzle(arsenal.fitting_at(arsenal.current_slot()) if arsenal != null else null), ads_rules.view_scale_for(art.id),
+	return AwWallSlam.barrel_turn(world.direct_space_state, eye, art.hip_muzzle(arsenal.fitting_at(arsenal.current_slot()) if arsenal != null else null), ads_rules.view_scale_for(art.id),
 		ads_rules.wall_for(art.id), 1.0, 1.0, speed, aim, mask, true, exclude, strafe)
+
+
+var _wall_barrel_exclude: Array[RID] = []
 
 
 ## The class's aim factors and hip spread (gs-weapon switches both the instant the aim bit is set) follow the sights' ramp.

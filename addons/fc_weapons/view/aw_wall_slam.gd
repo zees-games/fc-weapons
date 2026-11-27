@@ -203,7 +203,7 @@ static func _sweep(space: PhysicsDirectSpaceState3D, from: Vector3, dir: Vector3
 	q.transform = Transform3D(Basis.IDENTITY, from)
 	q.motion = dir * maxf(length - radius, 0.0)
 	q.collision_mask = mask
-	q.exclude = exclude.duplicate()
+	q.exclude = exclude  # the setter copies it into the query
 	for _hop in range(4):
 		var fractions := space.cast_motion(q)
 		if fractions.size() < 2 or fractions[0] >= 1.0:
@@ -215,7 +215,7 @@ static func _sweep(space: PhysicsDirectSpaceState3D, from: Vector3, dir: Vector3
 		probe_q.exclude = q.exclude
 		var rest := space.get_rest_info(probe_q)
 		if ignore_characters and not rest.is_empty():
-			var body := instance_from_id(int(rest.get("collider_id", 0)))
+			var body := instance_from_id(int(rest.get("collider_id", 0)))  # perf-lint: allow dynamic_call Dictionary.get (rest info)
 			if body is CharacterBody3D:
 				q.exclude.append(rest["rid"])
 				continue

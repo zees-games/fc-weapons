@@ -151,7 +151,7 @@ func _drawn_gun_world_share() -> float:
 		var length := gap.length()
 		if length < 0.05:
 			continue
-		var query := PhysicsRayQueryParameters3D.create(eye, point - gap / length * 0.02, wall_mask, _wall_exclude().duplicate())
+		var query := PhysicsRayQueryParameters3D.create(eye, point - gap / length * 0.02, wall_mask, _wall_exclude())  # the query copies the list
 		query.collide_with_areas = false
 		for _hop in 4:
 			var found := space.intersect_ray(query)
@@ -219,7 +219,7 @@ func _world_near(space: PhysicsDirectSpaceState3D, eye: Vector3, radius: float) 
 func _advance_wall(delta: float) -> void:
 	# A scope body is grown metres long about the eye: its muzzle is not where the held gun's is, and pulling it back would move the lens.
 	var on: bool = feel_rules.wall_retract > 0.0 and _weapon != null and is_inside_tree() \
-		and not (_aim_fraction > 0.0 and has_method(&"scope_body_active") and bool(call(&"scope_body_active")))
+		and not (_aim_fraction > 0.0 and scope_body_active())
 	var w := _wall_numbers()
 	var target := 0.0
 	if on:
@@ -254,7 +254,7 @@ func _keep_off_near_plane(rest: Vector3 = Vector3.INF) -> void:
 	var eye := camera.global_transform
 	var clear := camera.near + NEAR_CLEAR
 	var deficit := 0.0
-	if _arms != null and _arms.has_method(&"nearest_hand_depth"):
+	if _arms != null:
 		var hand: float = clear - _arms.nearest_hand_depth(eye)
 		if hand < 1.0:
 			deficit = hand
@@ -341,12 +341,29 @@ func _screen_offset(to_muzzle: Vector3, cam: Node3D) -> Vector2:
 	var depth := maxf(-local.z, 0.05)
 	return Vector2(local.x, local.y) / depth
 
+## Whether a scope body is shown about the eye; the scope layer says when.
+func scope_body_active() -> bool:
+	return false
+
+
 ## The wall response's numbers for the held weapon (the profile's, or the defaults).
 func _wall_numbers() -> Dictionary:
 	if ads_rules != null and _art != null:
 		return ads_rules.wall_for(_art.id)
-	var out := {}
-	for key: String in ["reach", "margin", "stiffness", "damping", "push", "nudge", "max", "floor_look", "lean", "spread", "lean_rate", "cast", "impulse"]:
+	if _default_wall_numbers.is_empty():
+		_default_wall_numbers = _make_default_wall_numbers()
+	return _default_wall_numbers
+
+
+## The defaults' numbers, built once and only read after.
+static var _default_wall_numbers: Dictionary = {}  # perf-lint: allow untyped_array same shape as AwAdsRules.wall_for's row
+## The wall response's number names.
+const WALL_KEYS: Array[String] = ["reach", "margin", "stiffness", "damping", "push", "nudge", "max", "floor_look", "lean", "spread", "lean_rate", "cast", "impulse"]
+
+
+static func _make_default_wall_numbers() -> Dictionary:  # perf-lint: allow untyped_array same shape as AwAdsRules.wall_for's row
+	var out := {}  # perf-lint: allow untyped_array same shape as AwAdsRules.wall_for's row
+	for key: String in WALL_KEYS:
 		out[key] = float(AwAdsRules.SPECS["wall_" + key]["default"])
 	return out
 

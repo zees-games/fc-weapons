@@ -140,16 +140,20 @@ static func pull(rig: Object, target: Object) -> void:
 	if rig == null or target == null:
 		return
 
-	var arsenal: Variant = rig.get("arsenal")
+	var typed := rig as AwWeaponRig
+	var arsenal: Variant = typed.arsenal if typed != null else rig.get(&"arsenal")  # perf-lint: allow dynamic_call duck-typed rig, the typed rig takes the branch before it
+	var fire_seq: int = typed.fire_seq if typed != null else int(rig.get(&"fire_seq"))  # perf-lint: allow dynamic_call duck-typed rig fallback
+	var fire_kind: int = typed.fire_kind if typed != null else int(rig.get(&"fire_kind"))  # perf-lint: allow dynamic_call duck-typed rig fallback
+	var charge: float = typed.charge_shown if typed != null else float(rig.get(&"charge_shown"))  # perf-lint: allow dynamic_call duck-typed rig fallback
 
 	if arsenal is GSWeaponArsenal:
 		GSWeaponNetSync.pull(arsenal, target)
 		target.set(&"net_reloading", (arsenal as GSWeaponArsenal).is_reloading())
 		target.set(&"net_switching", (arsenal as GSWeaponArsenal).is_switching())
 
-	target.set(&"net_fire_seq", int(rig.get("fire_seq")) % FIRE_SEQ_WRAP)
-	target.set(&"net_fire_kind", int(rig.get("fire_kind")))
-	target.set(&"net_charge", roundi(clampf(float(rig.get("charge_shown")), 0.0, 1.0) * CHARGE_MAX))
+	target.set(&"net_fire_seq", fire_seq % FIRE_SEQ_WRAP)
+	target.set(&"net_fire_kind", fire_kind)
+	target.set(&"net_charge", roundi(clampf(charge, 0.0, 1.0) * CHARGE_MAX))
 
 
 # --- Receiving --------------------------------------------------------------
