@@ -18,6 +18,7 @@ const SIDES := 48
 ## Baked placeholders in the model (tools/add_scope_lens.py) the live glass replaces.
 const BAKED := [&"scope_lens", &"scope_reticle", &"scope_eyecup", &"scope_eyecup_lip"]
 
+const _NO_BAKED: Array = []
 const SHADER := """
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque, shadows_disabled;
@@ -128,18 +129,18 @@ static func update(root: Node3D, main: Camera3D, fov_scale: float, shown: bool, 
 	if not is_instance_valid(root):
 		return
 	root.visible = shown
-	var port := root.get_node_or_null("Port") as SubViewport
+	var port := root.get_node_or_null(^"Port") as SubViewport
 	if port == null:
 		return
 	var live := shown and live_at(aim) and main != null and main.current and root.is_visible_in_tree()
-	var disc := root.get_node_or_null("Disc") as Node3D
+	var disc := root.get_node_or_null(^"Disc") as Node3D
 	if disc != null:
 		disc.visible = live
-	for baked: Variant in root.get_meta(&"baked", []):
+	for baked: Variant in (root.get_meta(&"baked") if root.has_meta(&"baked") else _NO_BAKED):
 		if is_instance_valid(baked):
 			(baked as Node3D).visible = not live
 	port.render_target_update_mode = SubViewport.UPDATE_ONCE if live else SubViewport.UPDATE_DISABLED
-	var camera := port.get_node_or_null("Lens") as Camera3D
+	var camera := port.get_node_or_null(^"Lens") as Camera3D
 	if camera == null or not live:
 		return
 	# The camera looks down the tube from the ocular: the disc's own transform without its scale.
