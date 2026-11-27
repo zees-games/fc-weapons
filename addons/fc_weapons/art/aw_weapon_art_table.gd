@@ -206,7 +206,10 @@ static func pose_weight(pose: StringName) -> float:
 ## that edits an art duplicates it first; [method add_source], [method remove_source] and dressers drop the cache.
 static func table() -> Dictionary:
 	if not _table.is_empty():
-		return _table
+		# Built while a late addon group was still streaming: its models were missing, so rows hold base-rifle stand-ins. Rebuild once the group is mounted.
+		if not _built_pending or AwModelCache.late_pending():
+			return _table
+		_table = {}
 
 	var out: Dictionary = {}
 
@@ -220,10 +223,12 @@ static func table() -> Dictionary:
 			dresser.call(out)
 
 	_table = out
+	_built_pending = AwModelCache.late_pending()
 	return out
 
 
 static var _table: Dictionary = {}
+static var _built_pending := false
 
 
 ## Forgets the cached table.

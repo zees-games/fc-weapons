@@ -27,6 +27,7 @@ var _warm_usec := 0
 
 ## The cached picture of [param id]'s model, or null when it has no art.
 func texture(id: StringName) -> Texture2D:
+	_drop_stale()
 	if _textures.has(id):
 		return _textures[id]
 	var art := AwWeaponArtTable.get_art(id)
@@ -34,7 +35,18 @@ func texture(id: StringName) -> Texture2D:
 	if art != null and art.model_path != "":
 		made = _build(art)
 	_textures[id] = made
+	_cached_pending = _cached_pending or AwModelCache.late_pending()
 	return made
+
+
+## Pictures cached while a late addon group was still streaming were drawn from stand-in art (or none); forget them once the group is mounted.
+func _drop_stale() -> void:
+	if _cached_pending and not AwModelCache.late_pending():
+		_textures.clear()
+		_cached_pending = false
+
+
+var _cached_pending := false
 
 
 ## How many ids have been resolved, null results included.
@@ -61,6 +73,7 @@ func is_warming() -> bool:
 ## [method texture] of each is a cache hit. Without a display (headless draws nothing to read back) each id gets the
 ## viewport [method texture] makes instead, a frame at a time. Emits [signal warmed] at the end.
 func warm(ids: Array = []) -> void:
+	_drop_stale()
 	var list: Array = ids if not ids.is_empty() else AwWeaponArtTable.table().keys()
 	for id: Variant in list:
 		var key := StringName(id)
