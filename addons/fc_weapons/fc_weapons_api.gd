@@ -97,7 +97,10 @@ extends RefCounted
 #     AwWorldModel.person_cache (static; off resolves the person and carry every frame, for parity). Additive.
 # 50: AwWorldModel.native_hold (static, default on; with gs-sim's world_hold module the holder pose is composed by
 #     GSSimWorldHold, same bits; off, or without the library, the script composes it). Additive.
-const LEVEL := 50
+# 51: with native_hold on and gs-sim's GSSimWorldHoldBatch loaded, every held gun joins the central ticker (as with
+#     central_tick) and the ticker poses all holders and support hands in one native call a frame, same bits.
+#     set_ticking still starts and stops a gun. Additive.
+const LEVEL := 51
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

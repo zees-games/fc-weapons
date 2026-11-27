@@ -109,6 +109,26 @@ var _hold_tried := false
 var _hold_keys_dirty := true
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
+## Whether `GSSimWorldHoldBatch` exists, looked up once: with it and [member native_hold], every gun joins the
+## ticker ([code]aw_world_ticks.gd[/code]), which poses all holders in one native call a frame.
+static var _batch_known := -1
+## This frame's row for the ticker's batch (see [code]GSSimWorldHoldBatch.step[/code] for the layout) and its flags.
+const ROW_SIZE := 16
+const ROW_ACTING := 1
+const ROW_LOOKING := 2
+const ROW_POSE := 4
+const ROW_SUPPORT := 8
+var _hold_row := PackedFloat64Array()
+var _row_flags := 0
+## The batch holding this gun's slot (-1 none), and what the slot was last given: the person, the
+## art (rest, sprint carry) and support point, the action keys.
+var _batch: Object = null
+var _batch_slot := -1
+var _batch_person: Object = null
+var _batch_art: Object = null
+var _batch_support := Vector3.INF
+var _batch_art_set := false
+var _batch_keys_dirty := true
 
 ## The person's gun-arm carry (gs-player-char API 22's `GSHumanoidFigure.carry`, duck-typed), the weapon id its class was last set for, and whether the character is mid-switch.
 ## While there is one it draws the kick, the reload roll and the sprint. Whether a held gun hands them to it (off: the model's own kick and reload dip, the clip's arms):
@@ -135,6 +155,19 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE or what == NOTIFICATION_EXIT_TREE:
 		_draws_own_epoch = -1
 		_owner_ok = false
+	elif what == NOTIFICATION_PREDELETE and _batch_slot >= 0 and _batch != null:
+		_batch.call(&"close", _batch_slot)
+		_batch_slot = -1
+
+
+func _wants_central() -> bool:
+	if central_tick:
+		return true
+	if not native_hold:
+		return false
+	if _batch_known < 0:
+		_batch_known = int(ClassDB.class_exists(&"GSSimWorldHoldBatch"))
+	return _batch_known == 1
 
 
 func _ready() -> void:
@@ -386,6 +419,7 @@ func action_fraction() -> float:
 func _start_action(keys: Array, seconds: float, hides: bool) -> void:
 	_action_keys = keys
 	_hold_keys_dirty = true
+	_batch_keys_dirty = true
 	_action_seconds = seconds
 	_action_hides = hides
 	_action = 0.0
@@ -474,9 +508,12 @@ func advance(delta: float) -> void:
 	if not is_finite(delta) or delta < 0.0:
 		return
 
+	# Run by the ticker with its native batch: the support hand and the pose go into a row (see _post_row).
+	var via: Node = _batch_via if native_hold else null
+	_row_flags = 0
 	_reload_blend = move_toward(_reload_blend, 1.0 if _reloading else 0.0, delta / 0.2)
 	_reload_time += delta
-	_follow_person()
+	_follow_person(via != null)
 	_advance_wall(delta)
 	if _wall_amount <= 0.0 and _wall_was and _kick <= 0.00001:
 		_wall_was = false
@@ -488,6 +525,8 @@ func advance(delta: float) -> void:
 	var looking := _inspect_shown > 0.0
 	if not _wall_was and _kick <= 0.00001 and _action >= 1.0 and _sprint <= 0.0 and not _sprint_was_on and _reload_blend <= 0.0 \
 			and not _reloading and not looking and not _inspect_was_on:
+		if _row_flags != 0:
+			_post_row(via, looked, false)
 		return
 	_inspect_was_on = looking
 	_sprint_was_on = _sprint > 0.0
@@ -499,6 +538,11 @@ func advance(delta: float) -> void:
 	var acting := _action < 1.0
 	if acting:
 		_action = minf(1.0, _action + delta / maxf(_action_seconds, 0.01))
+	if via != null:
+		_show_in_hand(not (_action_hides and _action >= THROW_RELEASE and _action < THROW_BACK))
+		_row_flags |= ROW_POSE | (ROW_ACTING if acting else 0) | (ROW_LOOKING if looking else 0)
+		_post_row(via, looked, true)
+		return
 	if native_hold and _hold_kernel() != null:
 		_show_in_hand(not (_action_hides and _action >= THROW_RELEASE and _action < THROW_BACK))
 		_holder.transform = _hold_natively(acting, looking, looked)
@@ -549,24 +593,84 @@ func _hold_kernel() -> Object:
 func _hold_natively(acting: bool, looking: bool, looked: Array) -> Transform3D:
 	if _hold_keys_dirty:
 		_hold_keys_dirty = false
-		var rows := PackedFloat64Array()
-		for key: Array in _action_keys:
-			var pos: Vector3 = key[1]
-			var rot: Vector3 = key[2]
-			rows.append_array([float(key[0]), pos.x, pos.y, pos.z, rot.x, rot.y, rot.z])
-		_hold_native.call(&"set_keys", rows)
+		_hold_native.call(&"set_keys", _key_rows(_action_keys))
 	var sprint := _sprint if _art != null else 0.0
 	var sprint_offset := Vector3.ZERO
 	var sprint_degrees := Vector3.ZERO
 	if sprint > 0.0:
-		var own_offset := _art.sprint_world_offset.is_finite()
-		var own_turn := _art.sprint_world_rotation.is_finite()
-		var base: Array = AwWeaponArtTable.sprint_world(_art.pose) if not (own_offset and own_turn) else _NO_SPRINT
-		sprint_offset = _art.sprint_world_offset if own_offset else base[0]
-		sprint_degrees = _art.sprint_world_rotation if own_turn else base[1]
+		var carry := _sprint_world()
+		sprint_offset = carry[0]
+		sprint_degrees = carry[1]
 	return _hold_native.call(&"hold", acting, _action, looking, looked[0], looked[1],
 		_reload_blend if _carry == null else 0.0, _rest(), sprint, sprint_offset, sprint_degrees,
 		_wall_amount * wall_tilt_per_m, _kick + _wall_amount)
+
+
+## The art's sprint carry at full blend: its own offset and degrees, or its pose's. Needs [member _art].
+func _sprint_world() -> Array:
+	var own_offset := _art.sprint_world_offset.is_finite()
+	var own_turn := _art.sprint_world_rotation.is_finite()
+	var base: Array = AwWeaponArtTable.sprint_world(_art.pose) if not (own_offset and own_turn) else _NO_SPRINT
+	return [_art.sprint_world_offset if own_offset else base[0], _art.sprint_world_rotation if own_turn else base[1]]
+
+
+## Posts this frame's row to the ticker [param via]: the support hand when [member _row_flags] asks for it, and the
+## holder's pose when [param posed] (the same inputs [method _hold_natively] passes). The slot is told about a new
+## person, art, support point or action keys first. The ticker's step runs it and calls [method _finish_frame].
+func _post_row(via: Variant, looked: Array, posed: bool) -> void:
+	var batch: Object = via.batch
+	if _batch_slot < 0 or batch != _batch:
+		_batch = batch
+		_batch_slot = batch.call(&"open", _holder)
+		_batch_person = null
+		_batch_art_set = false
+		_batch_keys_dirty = true
+		_hold_row.resize(ROW_SIZE)
+		if not via.support_keys_set:
+			via.support_keys_set = true
+			batch.call(&"set_support_keys", _key_rows(RELOAD_SUPPORT_KEYS))
+	if _row_flags & ROW_SUPPORT and _owner_cache != _batch_person:
+		_batch_person = _owner_cache
+		batch.call(&"set_person", _batch_slot, _owner_cache)
+	if not _batch_art_set or _art != _batch_art or _support_local != _batch_support:
+		_batch_art_set = true
+		_batch_art = _art
+		_batch_support = _support_local
+		var carry: Array = _sprint_world() if _art != null else [Vector3.ZERO, Vector3.ZERO]
+		batch.call(&"set_art", _batch_slot, _rest(), carry[0], carry[1], _support_local)
+	if posed and _batch_keys_dirty:
+		_batch_keys_dirty = false
+		batch.call(&"set_keys", _batch_slot, _key_rows(_action_keys))
+	_hold_row[0] = _batch_slot
+	_hold_row[1] = _row_flags
+	if posed:
+		var moved: Vector3 = looked[0]
+		var degrees: Vector3 = looked[1]
+		_hold_row[2] = _action
+		_hold_row[3] = moved.x
+		_hold_row[4] = moved.y
+		_hold_row[5] = moved.z
+		_hold_row[6] = degrees.x
+		_hold_row[7] = degrees.y
+		_hold_row[8] = degrees.z
+		_hold_row[9] = _reload_blend if _carry == null else 0.0
+		_hold_row[10] = _sprint if _art != null else 0.0
+		_hold_row[11] = _wall_amount * wall_tilt_per_m
+		_hold_row[12] = _kick + _wall_amount
+	_hold_row[13] = _reload_blend
+	_hold_row[14] = _reload_time
+	_hold_row[15] = _reload_period
+	via.post(self, _hold_row, posed)
+
+
+## Action keys as the kernels take them: seven floats a key (time, position, degrees).
+static func _key_rows(keys: Array) -> PackedFloat64Array:
+	var rows := PackedFloat64Array()
+	for key: Array in keys:
+		var pos: Vector3 = key[1]
+		var rot: Vector3 = key[2]
+		rows.append_array([float(key[0]), pos.x, pos.y, pos.z, rot.x, rot.y, rot.z])
+	return rows
 
 
 ## The frame's end on either path: the magazine follows the hand, and goes back into the gun once the reload is over.
@@ -685,7 +789,7 @@ const _NO_SPRINT: Array = []
 
 
 ## Reads the person's sprint blend and tells it where the support hand goes: every frame, because the holder moves.
-func _follow_person() -> void:
+func _follow_person(batching: bool = false) -> void:
 	var person := _person()
 	if person == null:
 		_sprint = 0.0
@@ -698,7 +802,11 @@ func _follow_person() -> void:
 		return
 	var two := _art != null and _weapon != null and visible and _weapon.visible and _support_local.is_finite() \
 		and (_art.hands == 2 or (_art.hands == 0 and AwWeaponArtTable.pose_two_handed(_art.pose)))
-	if two:
+	if two and batching:
+		# The ticker's step computes _support_world natively and calls set_support_grip.
+		_row_flags |= ROW_SUPPORT
+		_support_sent = true
+	elif two:
 		person.call(&"set_support_grip", _support_world())
 		_support_sent = true
 	else:

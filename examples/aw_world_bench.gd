@@ -9,6 +9,7 @@ const GUNS := 32
 const FRAMES := 600
 const STEP := 1.0 / 60.0
 const IDS: Array[StringName] = [&"rifle", &"pistol", &"launcher", &"knife"]
+const WorldTicks := preload("res://addons/fc_weapons/view/aw_world_ticks.gd")
 
 
 class Carry extends RefCounted:
@@ -59,7 +60,14 @@ func _ready() -> void:
 		_people.append(person)
 	await get_tree().process_frame
 	await get_tree().physics_frame
+	# "advance_batch" is the ticker's frame with GameSpice Sim's batch: every gun's row, then one native step.
+	var ticks: Node = WorldTicks.new()
+	var batch_one := func(g: AwWorldModel) -> void:
+		g._batch_via = ticks if ticks.batch != null else null
+		g.advance(STEP)
+		g._batch_via = null
 	var parts := {
+		"advance_batch": batch_one,
 		"advance": func(g: AwWorldModel) -> void: g.advance(STEP),
 		"advance_script": func(g: AwWorldModel) -> void: g.advance(STEP),
 		"follow_person": func(g: AwWorldModel) -> void: g._follow_person(),
@@ -70,20 +78,21 @@ func _ready() -> void:
 		"move_magazine": func(g: AwWorldModel) -> void: g._move_magazine(),
 		"empty_call": func(_g: AwWorldModel) -> void: pass,
 	}
-	print("aw_world_bench: guns=%d frames=%d carry=%s native_hold=%s" % [GUNS, FRAMES, carry, ClassDB.class_exists(&"GSSimWorldHold")])
+	print("aw_world_bench: guns=%d frames=%d carry=%s native_hold=%s batch=%s" % [GUNS, FRAMES, carry, ClassDB.class_exists(&"GSSimWorldHold"), ticks.batch != null])
 	var was := AwWorldModel.native_hold
 	for part: String in parts:
 		# "advance" runs with the native hold where the library has it, "advance_script" with the switch off.
 		AwWorldModel.native_hold = part != "advance_script"
-		var usec := _run(parts[part])
+		var usec := _run(parts[part], Callable(ticks, &"_flush") if part == "advance_batch" else Callable())
 		print("aw_world_bench: %-14s %7.2f us/gun/frame" % [part, float(usec) / float(GUNS * FRAMES)])
 	AwWorldModel.native_hold = was
+	ticks.free()
 	get_tree().quit(0)
 
 
 ## Steps every gun [constant FRAMES] frames through the same script of events and returns the
-## microseconds spent in [param part] alone.
-func _run(part: Callable) -> int:
+## microseconds spent in [param part] alone, with [param after] (if valid) once after all guns.
+func _run(part: Callable, after: Callable = Callable()) -> int:
 	var spent := 0
 	for frame in FRAMES:
 		for i in GUNS:
@@ -100,6 +109,8 @@ func _run(part: Callable) -> int:
 		var t := Time.get_ticks_usec()
 		for held in _guns:
 			part.call(held)
+		if after.is_valid():
+			after.call()
 		spent += Time.get_ticks_usec() - t
 	return spent
 
