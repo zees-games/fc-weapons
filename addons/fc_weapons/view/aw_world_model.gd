@@ -155,6 +155,8 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE or what == NOTIFICATION_EXIT_TREE:
 		_draws_own_epoch = -1
 		_owner_ok = false
+		_wall_carrier_known = false
+		_wall_from = Vector3.INF
 	elif what == NOTIFICATION_PREDELETE and _batch_slot >= 0 and _batch != null:
 		_batch.call(&"close", _batch_slot)
 		_batch_slot = -1
@@ -217,7 +219,11 @@ func equip(art: AwWeaponVisual) -> GSResult:
 	_deferred = false
 	_late_wait = false
 
+	if _art != null and _art.changed.is_connected(_on_art_changed):
+		_art.changed.disconnect(_on_art_changed)
 	_art = art
+	if art != null:
+		art.changed.connect(_on_art_changed)
 
 	if art == null:
 		_id = &""
@@ -227,6 +233,8 @@ func equip(art: AwWeaponVisual) -> GSResult:
 	_holder.transform = _rest()
 	_support_local = Vector3.INF
 	_eject_local = Vector3.INF
+	_wall_from = Vector3.INF
+	_two_known = false
 
 	if not art.has_model():
 		return GSResult.success(null)
@@ -271,6 +279,7 @@ func _build_model(art: AwWeaponVisual) -> GSResult:
 
 	_apply_shadows()
 	_support_local = _support_point_for(art)
+	_two_known = false
 	_budget_spent += Time.get_ticks_usec() - started
 	return GSResult.success(null)
 
@@ -292,7 +301,10 @@ func clear() -> void:
 	_send_support(false)
 	_clear_models()
 	_deferred = false
+	if _art != null and _art.changed.is_connected(_on_art_changed):
+		_art.changed.disconnect(_on_art_changed)
 	_art = null
+	_two_known = false
 	_id = &""
 
 
@@ -614,6 +626,14 @@ func _sprint_world() -> Array:
 	return [_art.sprint_world_offset if own_offset else base[0], _art.sprint_world_rotation if own_turn else base[1]]
 
 
+## The art said it changed ([signal Resource.changed]; an edit that should show live calls its
+## [method Resource.emit_changed], since plain property sets do not): the batch slot gets the rest pose and sprint
+## carry again on the next row. The script and single-kernel holds read the art every frame already.
+func _on_art_changed() -> void:
+	_batch_art_set = false
+	_two_known = false
+
+
 ## Posts this frame's row to the ticker [param via]: the support hand when [member _row_flags] asks for it, and the
 ## holder's pose when [param posed] (the same inputs [method _hold_natively] passes). The slot is told about a new
 ## person, art, support point or action keys first. The ticker's step runs it and calls [method _finish_frame].
@@ -709,6 +729,7 @@ static func wall_pull(hit: float, gun_length: float, arm: float = WALL_ARM, marg
 func _advance_wall(delta: float) -> void:
 	_wall_clock += delta
 	if wall_response and _wall_clock >= WALL_PROBE_EVERY and _weapon != null and _weapon.visible and is_inside_tree():
+		_wall_still += _wall_clock
 		_wall_clock = 0.0
 		_wall_target = _probe_wall()
 	elif not wall_response or _weapon == null:
@@ -717,7 +738,22 @@ func _advance_wall(delta: float) -> void:
 	if _wall_target == 0.0 and _wall_amount < 0.002:
 		_wall_amount = 0.0
 
+## Seconds a hand that has not moved since the last probe keeps that answer, so a door closing in front of a still
+## player still shows within this long.
+const WALL_STILL_SECONDS := 0.5
+
 var _wall_query: PhysicsRayQueryParameters3D
+## The probe's exclusions, assigned whole: [code]query.exclude[/code] hands back a copy, so appending to it excluded nothing.
+## The carrier's body first (looked up once per tree entry), then any character a hop passed this probe.
+var _wall_exclude: Array[RID] = []
+var _wall_carrier := RID()
+var _wall_carrier_known := false
+var _wall_exclude_grown := true
+## The last probe's ray start and direction, its answer and the seconds since it was asked of the physics server.
+var _wall_from := Vector3.INF
+var _wall_forward := Vector3.ZERO
+var _wall_last := 0.0
+var _wall_still := 0.0
 
 
 func _probe_wall() -> float:
@@ -733,7 +769,17 @@ func _probe_wall() -> float:
 	forward = forward.normalized()
 	var hand := _holder.global_position
 	var from := hand - forward * WALL_ARM
-	var length := hand.distance_to(muzzle_transform().origin)
+	if from == _wall_from and forward == _wall_forward and _wall_still < WALL_STILL_SECONDS:
+		return _wall_last
+	_wall_from = from
+	_wall_forward = forward
+	_wall_still = 0.0
+	_wall_last = _cast_wall(world.direct_space_state, from, forward, hand.distance_to(muzzle_transform().origin))
+	return _wall_last
+
+
+## The pull for a ray from [param from] along [param forward], past the carrier's own body and any character.
+func _cast_wall(space: PhysicsDirectSpaceState3D, from: Vector3, forward: Vector3, length: float) -> float:
 	if _wall_query == null:
 		_wall_query = PhysicsRayQueryParameters3D.new()
 		_wall_query.collide_with_areas = false
@@ -741,16 +787,25 @@ func _probe_wall() -> float:
 	query.from = from
 	query.to = from + forward * (WALL_ARM + length + WALL_MARGIN)
 	query.collision_mask = wall_mask
-	query.exclude.clear()
-	var body := _carrier_body()
-	if body is CollisionObject3D:
-		query.exclude.append((body as CollisionObject3D).get_rid())
+	if not _wall_carrier_known:
+		_wall_carrier_known = true
+		var body := _carrier_body()
+		_wall_carrier = (body as CollisionObject3D).get_rid() if body is CollisionObject3D else RID()
+		_wall_exclude_grown = true
+	if _wall_exclude_grown:
+		_wall_exclude_grown = false
+		_wall_exclude.clear()
+		if _wall_carrier.is_valid():
+			_wall_exclude.append(_wall_carrier)
+		query.exclude = _wall_exclude
 	for _hop in range(6):
-		var found := world.direct_space_state.intersect_ray(query)
+		var found := space.intersect_ray(query)
 		if found.is_empty():
 			return 0.0
 		if found["collider"] is CharacterBody3D:
-			query.exclude.append(found["rid"])
+			_wall_exclude.append(found["rid"])
+			query.exclude = _wall_exclude
+			_wall_exclude_grown = true
 			continue
 		return wall_pull(from.distance_to(found["position"]), length, WALL_ARM, WALL_MARGIN, wall_max_pull)
 	return 0.0
@@ -788,6 +843,11 @@ func _sprint_carry() -> void:
 const _NO_SPRINT: Array = []
 
 
+## Whether the art held now takes a support hand ([member _two_art]); asked again after an equip, a model or an art edit.
+var _two_known := false
+var _two_art := false
+
+
 ## Reads the person's sprint blend and tells it where the support hand goes: every frame, because the holder moves.
 func _follow_person(batching: bool = false) -> void:
 	var person := _person()
@@ -800,8 +860,11 @@ func _follow_person(batching: bool = false) -> void:
 	_sprint = clampf(float(blend), 0.0, 1.0) if blend != null else 0.0
 	if not (_person_grips if person_cache else person.has_method(&"set_support_grip")):
 		return
-	var two := _art != null and _weapon != null and visible and _weapon.visible and _support_local.is_finite() \
-		and (_art.hands == 2 or (_art.hands == 0 and AwWeaponArtTable.pose_two_handed(_art.pose)))
+	if not _two_known:
+		_two_known = true
+		_two_art = _art != null and _support_local.is_finite() \
+			and (_art.hands == 2 or (_art.hands == 0 and AwWeaponArtTable.pose_two_handed(_art.pose)))
+	var two := _two_art and _weapon != null and visible and _weapon.visible
 	if two and batching:
 		# The ticker's step computes _support_world natively and calls set_support_grip.
 		_row_flags |= ROW_SUPPORT

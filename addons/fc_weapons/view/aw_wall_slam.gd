@@ -106,14 +106,17 @@ static func probe_from(space: PhysicsDirectSpaceState3D, eye: Transform3D, reach
 	var best := INF
 	var best_normal := Vector3.ZERO
 	for dir: Vector3 in [muzzle_dir, forward]:
-		var query := PhysicsRayQueryParameters3D.create(from, from + dir * (reach + margin), mask, exclude.duplicate())
+		# Exclusions are assigned whole: query.exclude hands back a copy, so appending to it excluded nothing.
+		var skip: Array[RID] = exclude.duplicate()
+		var query := PhysicsRayQueryParameters3D.create(from, from + dir * (reach + margin), mask, skip)
 		query.collide_with_areas = false
 		for _hop in range(8):
 			var found := space.intersect_ray(query)
 			if found.is_empty():
 				break
 			if ignore_characters and found["collider"] is CharacterBody3D:
-				query.exclude.append(found["rid"])
+				skip.append(found["rid"])
+				query.exclude = skip
 				continue
 			var n: Vector3 = found["normal"]
 			if _ignored_surface(n, found["position"].y - from.y, pitch_down, floor_look):
@@ -151,7 +154,8 @@ static func probe_sides(space: PhysicsDirectSpaceState3D, eye: Transform3D, reac
 	var sides := {"up": 0.0, "down": 0.0, "left": 0.0, "right": 0.0}
 	for key: String in offsets:
 		var dir: Vector3 = (muzzle_dir * reach + (offsets[key] as Vector3) * spread).normalized()
-		var q := PhysicsRayQueryParameters3D.create(from, from + dir * (reach + margin), mask, exclude.duplicate())
+		var skip: Array[RID] = exclude.duplicate()
+		var q := PhysicsRayQueryParameters3D.create(from, from + dir * (reach + margin), mask, skip)
 		q.collide_with_areas = false
 		var d := INF
 		for _hop in range(8):
@@ -159,7 +163,8 @@ static func probe_sides(space: PhysicsDirectSpaceState3D, eye: Transform3D, reac
 			if f.is_empty():
 				break
 			if ignore_characters and f["collider"] is CharacterBody3D:
-				q.exclude.append(f["rid"])
+				skip.append(f["rid"])
+				q.exclude = skip
 				continue
 			var fn: Vector3 = f["normal"]
 			if _ignored_surface(fn, f["position"].y - from.y, pitch_down, floor_look):
@@ -203,7 +208,8 @@ static func _sweep(space: PhysicsDirectSpaceState3D, from: Vector3, dir: Vector3
 	q.transform = Transform3D(Basis.IDENTITY, from)
 	q.motion = dir * maxf(length - radius, 0.0)
 	q.collision_mask = mask
-	q.exclude = exclude.duplicate()
+	var skip: Array[RID] = exclude.duplicate()
+	q.exclude = skip
 	for _hop in range(4):
 		var fractions := space.cast_motion(q)
 		if fractions.size() < 2 or fractions[0] >= 1.0:
@@ -212,12 +218,13 @@ static func _sweep(space: PhysicsDirectSpaceState3D, from: Vector3, dir: Vector3
 		var probe_q := _sweep_probe
 		probe_q.transform = Transform3D(Basis.IDENTITY, at)
 		probe_q.collision_mask = mask
-		probe_q.exclude = q.exclude
+		probe_q.exclude = skip
 		var rest := space.get_rest_info(probe_q)
 		if ignore_characters and not rest.is_empty():
 			var body := instance_from_id(int(rest.get("collider_id", 0)))
 			if body is CharacterBody3D:
-				q.exclude.append(rest["rid"])
+				skip.append(rest["rid"])
+				q.exclude = skip
 				continue
 		out["distance"] = (q.motion * fractions[0]).length() + radius
 		out["height"] = at.y - from.y

@@ -151,14 +151,17 @@ func _drawn_gun_world_share() -> float:
 		var length := gap.length()
 		if length < 0.05:
 			continue
-		var query := PhysicsRayQueryParameters3D.create(eye, point - gap / length * 0.02, wall_mask, _wall_exclude().duplicate())
+		# Exclusions are assigned whole: query.exclude hands back a copy, so appending to it excluded nothing.
+		var skip: Array[RID] = _wall_exclude().duplicate()
+		var query := PhysicsRayQueryParameters3D.create(eye, point - gap / length * 0.02, wall_mask, skip)
 		query.collide_with_areas = false
 		for _hop in 4:
 			var found := space.intersect_ray(query)
 			if found.is_empty():
 				break
 			if wall_ignore_characters and found["collider"] is CharacterBody3D:
-				query.exclude.append(found["rid"])
+				skip.append(found["rid"])
+				query.exclude = skip
 				continue
 			share = minf(share, eye.distance_to(found["position"]) / length)
 			break

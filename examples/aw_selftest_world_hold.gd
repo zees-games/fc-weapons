@@ -6,7 +6,8 @@ extends RefCounted
 ## so the comparison still runs; with it, the kernel must have been made. A third pass steps the gun the way the
 ## ticker does with its native batch (`aw_world_ticks.gd`'s `advance_all`), and the bench's 32 guns go through all
 ## three; each frame compares the holder, the support grip the person was given and the magazine. Reports through
-## the suite's `_begin`, `_check` and `_end`.
+## the suite's `_begin`, `_check` and `_end`. Partway through, the art is edited and says so ([signal Resource.changed]),
+## so a batch slot that kept the old rest pose shows as a difference.
 
 const FRAMES := 130
 const STEP := 1.0 / 60.0
@@ -99,6 +100,9 @@ func _pass(mode: int, carry: bool) -> Array[PackedByteArray]:
 			held.on_inspect(float(frame - 45) / 30.0)
 		if frame >= 30 and frame < 50:
 			held._wall_amount = 0.02 + 0.001 * frame
+		if frame == 62:
+			held._art.world_offset += Vector3(0.0, 0.01, -0.02)
+			held._art.emit_changed()
 		if ticks != null:
 			ticks.advance_all([held], STEP)
 		else:
@@ -181,7 +185,74 @@ func _bench_pass(mode: int) -> Array[PackedByteArray]:
 	return out
 
 
+## A box body of [param size] at [param at] under [param parent]; a character when [param character].
+static func _box(parent: Node, at: Vector3, size: Vector3, character := false) -> CollisionObject3D:
+	var body: CollisionObject3D = CharacterBody3D.new() if character else StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	parent.add_child(body)
+	body.global_position = at
+	return body
+
+
+## The wall probe looks past its carrier's own body and past characters: a ray's exclusions are assigned whole
+## ([code]query.exclude[/code] hands back a copy, so appending to it used to exclude nothing).
+func _wall_exclusions() -> void:
+	suite._begin("the wall probe excludes its carrier and passes characters")
+	var carrier := StaticBody3D.new()
+	suite.add_child(carrier)
+	var person := Person.new()
+	carrier.add_child(person)
+	var held := AwWorldModel.new()
+	held._own_tick = true
+	person.add_child(held)
+	held.equip(suite._dressed(&"rifle"))
+	held.set_ticking(false)
+	held.set_process(false)
+	var hand := held._holder.global_position
+	var forward := Vector3.FORWARD
+	var length := hand.distance_to(held.muzzle_transform().origin)
+	var flat := Vector3(4.0, 4.0, 0.1)
+	var own := CollisionShape3D.new()
+	var own_box := BoxShape3D.new()
+	own_box.size = flat
+	own.shape = own_box
+	carrier.add_child(own)
+	own.global_position = hand + forward * 0.05
+	await suite.get_tree().physics_frame
+	await suite.get_tree().physics_frame
+	var plain := PhysicsRayQueryParameters3D.create(hand - forward * AwWorldModel.WALL_ARM, hand + forward * length)
+	var crossed := held.get_world_3d().direct_space_state.intersect_ray(plain)
+	var pull := held._probe_wall()
+	suite._check("the carrier's own body crosses the probe's ray (hit %s) yet the probe sees no wall (pull %.3f)"
+		% [not crossed.is_empty(), pull], not crossed.is_empty() and crossed["collider"] == carrier and pull == 0.0)
+	var stranger := _box(suite, hand + forward * 0.05 + Vector3(0.0, 0.0, -0.02), flat, true)
+	var wall := _box(suite, hand + forward * (length * 0.5), flat)
+	await suite.get_tree().physics_frame
+	await suite.get_tree().physics_frame
+	held._wall_from = Vector3.INF
+	pull = held._probe_wall()
+	var face := (hand - forward * AwWorldModel.WALL_ARM).distance_to(wall.global_position) - flat.z * 0.5
+	var want := AwWorldModel.wall_pull(face, length, AwWorldModel.WALL_ARM, AwWorldModel.WALL_MARGIN, held.wall_max_pull)
+	suite._check("a character in front of a wall is passed and the wall pulls the gun (pull %.4f, want %.4f)" % [pull, want],
+		want > 0.0 and absf(pull - want) < 0.001)
+	wall.free()
+	await suite.get_tree().physics_frame
+	var kept := held._probe_wall()
+	held._wall_still = AwWorldModel.WALL_STILL_SECONDS
+	var fresh := held._probe_wall()
+	suite._check("a still hand keeps the last answer until %.1f s pass, then asks again (kept %.4f, then %.4f)"
+		% [AwWorldModel.WALL_STILL_SECONDS, kept, fresh], kept == pull and fresh == 0.0)
+	stranger.free()
+	carrier.free()
+	suite._end()
+
+
 func run() -> void:
+	await _wall_exclusions()
 	suite._begin("native hold matches the script to the bit")
 	var library := ClassDB.class_exists(&"GSSimWorldHold")
 	var batched := ClassDB.class_exists(&"GSSimWorldHoldBatch")
