@@ -37,7 +37,7 @@ func _ready() -> void:
 	await _shot_fx_pool()
 	await _fx_pool()
 	await _previews()
-	await _late_art()
+	preload("aw_selftest_late_art.gd").new(self).run()
 	_grenades()
 	_rockets()
 	_attachments()
