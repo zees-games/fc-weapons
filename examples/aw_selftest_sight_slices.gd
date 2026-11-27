@@ -87,3 +87,35 @@ func posed() -> void:
 		place.free()
 	suite._check("a posed view out in the world measures no sight line again (%d lines, then %d)" % [counts[0], counts[1]], counts[0] > 0 and counts[1] == counts[0])
 
+
+
+## A refit (a second cut on the same build) cuts the whole part, not the last copy; no hole puts the whole part back; the cache keeps its limit.
+func refit() -> void:
+	var Cut = AwViewModel.SightFit.Cut
+	Cut.cache.clear()
+	var space := Node3D.new()
+	var mi := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radial_segments = 64
+	sphere.rings = 32
+	mi.mesh = sphere
+	space.add_child(mi)
+	var wide: Dictionary = Cut.cone(Transform3D(Basis.IDENTITY, Vector3(0, 0, -0.5)), 12.0)
+	var narrow: Dictionary = Cut.cone(Transform3D(Basis.IDENTITY, Vector3(0.05, 0, -0.5)), 6.0)
+	AwViewModel.SightFit.begin([space], space, narrow).run()
+	var alone: int = (mi.mesh as Mesh).surface_get_array_len(0)
+	mi.mesh = sphere
+	AwViewModel.SightFit.begin([space], space, wide).run()
+	AwViewModel.SightFit.begin([space], space, narrow).run()
+	var refitted := mi.mesh as Mesh
+	AwViewModel.SightFit.begin([space], space, {}).run()
+	var back: bool = mi.mesh == sphere
+	var limit: int = Cut.cache_limit
+	Cut.cache_limit = 1
+	AwViewModel.SightFit.begin([space], space, wide).run()
+	var kept: int = Cut.cache.size()
+	Cut.cache_limit = limit
+	space.free()
+	Cut.cache.clear()
+	suite._check("sight refit cuts the whole part (%d vertices, alone %d), no hole restores it, cache keeps its limit" % [refitted.surface_get_array_len(0), alone],
+		refitted != sphere and Cut.source_of(refitted) == sphere and refitted.surface_get_array_len(0) == alone and back and kept == 1)

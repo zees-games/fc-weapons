@@ -86,7 +86,9 @@ extends RefCounted
 #     join, then simulate_idle_row). Same bits. Additive.
 # 46: AwWeaponRig.idle_batch_lean (static, default true): idle_batch writes the rig's idle bookkeeping straight instead of
 #     through its idle helpers; false is the fallback. Same bits. Additive.
-const LEVEL := 46
+# 47: AwViewModel.SightFit.Cut (aw_sight_cut.gd) cache_limit (cuts kept, least recently used dropped first, 0 keeps every one) and source_of(mesh): a refit cuts
+#     the whole part again instead of the last cut copy. Additive.
+const LEVEL := 47
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
