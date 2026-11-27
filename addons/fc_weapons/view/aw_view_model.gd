@@ -57,8 +57,10 @@ func equip(art: AwWeaponVisual) -> GSResult:
 	_forget_mesh_walks()
 	_late_art = null
 	var head := _equip_head(art, true)
-	if not head.ok and art != null and AwModelCache.late_pending():
+	# Drawn while a late group streams: the model may be missing, or a stand-in under this id; look again after the mount.
+	if art != null and AwModelCache.late_pending():
 		_late_art = art
+		_late_failed = not head.ok
 	if not head.ok or head.value_or(null) == null:
 		return head
 	if not _reused:
@@ -336,13 +338,16 @@ func on_reset() -> void:
 
 ## The art whose model was missing when equipped while a late addon group was on its way: drawn again once the group is mounted.
 var _late_art: AwWeaponVisual = null
+var _late_failed := false
 
 
 func _process(delta: float) -> void:
 	if _late_art != null and not AwModelCache.late_pending():
 		var again := _late_art
 		_late_art = null
-		equip(again)
+		var fresh := AwWeaponArtTable.upgraded(again)
+		if fresh != null or _late_failed:
+			equip(fresh if fresh != null else again)
 	smooth_reload()
 	smooth_deploy()
 	advance(delta)

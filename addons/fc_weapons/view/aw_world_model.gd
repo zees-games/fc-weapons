@@ -174,12 +174,14 @@ func equip(art: AwWeaponVisual) -> GSResult:
 	if not art.has_model():
 		return GSResult.success(null)
 
+	_late_wait = AwModelCache.late_pending()
+	_late_failed = false
 	if not _budget_left():
 		_deferred = true
 		return GSResult.success(null)
 
 	var built := _build_model(art)
-	_late_wait = not built.ok and AwModelCache.late_pending()
+	_late_failed = not built.ok
 	return built
 
 
@@ -404,6 +406,7 @@ func _cycle_seconds() -> float:
 
 ## The model was missing at equip while a late addon group was on its way: built again once the group is mounted.
 var _late_wait := false
+var _late_failed := false
 
 
 ## One frame of the gun however it is ticked.
@@ -411,7 +414,11 @@ func _tick(delta: float) -> void:
 	if _late_wait and not AwModelCache.late_pending():
 		# The group is mounted now.
 		_late_wait = false
-		_deferred = _art != null
+		var fresh := AwWeaponArtTable.upgraded(_art)
+		if fresh != null:
+			equip(fresh)
+		elif _late_failed:
+			_deferred = _art != null
 	if _deferred:
 		_build_deferred()
 	# Hidden (the local player's own, a switch), one frame lets go of the support hand, then the

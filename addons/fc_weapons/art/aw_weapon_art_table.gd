@@ -293,6 +293,18 @@ static func get_art(id: StringName) -> AwWeaponVisual:
 	return table().get(id, null)
 
 
+## The table's row for [param art]'s id when it now names another model than [param art] does: [param art] was drawn from a
+## stand-in while a late addon group streamed (the base rifle under a carbine's id) and the real row is there since the mount.
+## Null when the row is the same model, so a view keeps what it has.
+static func upgraded(art: AwWeaponVisual) -> AwWeaponVisual:
+	if art == null or art.id == &"":
+		return null
+	var row := get_art(art.id)
+	if row == null or row == art or row.model_path == art.model_path:
+		return null
+	return row
+
+
 # --- Melee ------------------------------------------------------------------
 #
 # [b]Every melee model points along +Y, not +Z.[/b] Kenney's tools stand upright on

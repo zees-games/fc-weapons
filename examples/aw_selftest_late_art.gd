@@ -59,4 +59,43 @@ func run() -> void:
 	previews.queue_free()
 	AwWeaponArtTable.remove_source(&"aw_selftest_late")
 	AwWeaponArtTable.remove_source(&"aw_selftest_late_base")
+	_run_models()
 	suite._end()
+
+
+## A first-person or world model equipped with a stand-in row while the group streams must swap to the real model
+## (a different file under the same id) once the group is mounted, not keep the stand-in for the match.
+func _run_models() -> void:
+	var rows := AwWeaponArt.weapon_rows("")
+	var stand := str((rows[rows.keys()[0]] as Dictionary)["model"])
+	var real := str((rows[rows.keys()[1]] as Dictionary)["model"])
+	var mounted := [false]
+	var stand_art := AwWeaponVisual.new()
+	stand_art.id = &"aw_late_gun"
+	stand_art.model_path = stand
+	var real_art := AwWeaponVisual.new()
+	real_art.id = &"aw_late_gun"
+	real_art.model_path = real
+	AwWeaponArtTable.add_source(&"aw_selftest_late_gun", func() -> Array[AwWeaponVisual]: return [real_art if mounted[0] else stand_art])
+	ProjectSettings.set_setting(AwModelCache.LATE_PENDING, true)
+	AwWeaponArtTable.drop_cache()
+	suite._check("upgraded() offers nothing while the row is unchanged", AwWeaponArtTable.upgraded(AwWeaponArtTable.get_art(&"aw_late_gun")) == null)
+	var view := AwViewModel.new()
+	suite.add_child(view)
+	view.equip(AwWeaponArtTable.get_art(&"aw_late_gun"))
+	var world := AwWorldModel.new()
+	suite.add_child(world)
+	world.equip(AwWeaponArtTable.get_art(&"aw_late_gun"))
+	suite._check("pending, both hold the stand-in model", view._art.model_path == stand and world._art.model_path == stand)
+	mounted[0] = true
+	view._process(0.0)
+	suite._check("still pending, the view keeps the stand-in", view._art.model_path == stand)
+	ProjectSettings.set_setting(AwModelCache.LATE_PENDING, false)
+	suite._check("upgraded() offers the real row once mounted", AwWeaponArtTable.upgraded(stand_art) == real_art)
+	view._process(0.0)
+	world._tick(0.0)
+	suite._check("mounted, the view model uses the real model", view._art.model_path == real)
+	suite._check("mounted, the world model uses the real model", world._art.model_path == real)
+	view.queue_free()
+	world.queue_free()
+	AwWeaponArtTable.remove_source(&"aw_selftest_late_gun")
