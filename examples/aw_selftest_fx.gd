@@ -415,6 +415,7 @@ func _would_idle() -> void:
 	_check("a set-up rig with nothing pressed idles on a weapon that needs no context", idles)
 	_idle_parity(r2, cat, cmd)
 	_batch_parity(cat, r2.arsenal.current_slot() if ok else 0)
+	_cool_parity(cat)
 	cmd.buttons = GSWeaponCommand.BUTTON_ATTACK
 	_check("a pressed attack does not", ok and idles and not r2.would_idle(cmd))
 	r2.queue_free()

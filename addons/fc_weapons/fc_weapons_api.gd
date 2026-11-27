@@ -88,7 +88,11 @@ extends RefCounted
 #     through its idle helpers; false is the fallback. Same bits. Additive.
 # 47: AwViewModel.SightFit.Cut (aw_sight_cut.gd) cache_limit (cuts kept, least recently used dropped first, 0 keeps every one) and source_of(mesh): a refit cuts
 #     the whole part again instead of the last cut copy. Additive.
-const LEVEL := 47
+# 48: AwWeaponRig.would_cool(command, tick, sprinting, blocks_fire), simulate_cooling_row(command, tick, row) and
+#     cooling_batch(command, tick, entries, k): a server takes a trigger held inside its cadence from the posture row in one
+#     native call (or joined to the idle batch) instead of a context and the full tick (needs gs-weapon API 59; would_cool is
+#     false on older ones). Same bits. Additive.
+const LEVEL := 48
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
