@@ -6,7 +6,8 @@ extends Node
 ## loop's metadata, never on Engine's (see docs/gdscript-hazards.md). Each model answers whether it
 ## stays on the list, so turning the switch off hands it back its own `_process`.
 
-var _models: Array = []
+## Typed, yet each entry is read into a Variant: a model freed since it joined is still on the list until this frame drops it.
+var _models: Array[Node] = []
 
 
 func join(model: Node) -> void:

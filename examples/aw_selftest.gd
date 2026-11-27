@@ -5,7 +5,7 @@ extends "aw_selftest_sight.gd"
 ## What it cannot see is how they look: tools/screenshot.sh in game-fatal-contact renders the hands.
 
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
-const CHECKS := 666
+const CHECKS := 669
 
 func _ready() -> void:
 	print("fc-weapons self-test")
@@ -56,6 +56,7 @@ func _ready() -> void:
 	preload("aw_selftest_world_inspect.gd").new(self).run()
 	await preload("aw_selftest_central_tick.gd").new(self).run()
 	await preload("aw_selftest_frame_cache.gd").new(self).run()
+	preload("aw_selftest_world_hold.gd").new(self).run()
 	await _equip_budget()
 	_would_idle()
 	_carrier_cache()

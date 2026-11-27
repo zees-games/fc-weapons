@@ -95,7 +95,9 @@ extends RefCounted
 # 49: AwWeaponPose.sample_field(keys, t, field) samples one field of a key list without building an Array;
 #     AwAdsRules.revision, touch() and static cache_values (values resolved once per revision and weapon);
 #     AwWorldModel.person_cache (static; off resolves the person and carry every frame, for parity). Additive.
-const LEVEL := 49
+# 50: AwWorldModel.native_hold (static, default on; with gs-sim's world_hold module the holder pose is composed by
+#     GSSimWorldHold, same bits; off, or without the library, the script composes it). Additive.
+const LEVEL := 50
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

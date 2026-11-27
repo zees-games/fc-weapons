@@ -98,6 +98,15 @@ var _told_switching := -1
 var _sprint_offset := Vector3.ZERO
 var _sprint_turn := Basis.IDENTITY
 var _sprint: float = 0.0
+## Whether [method advance] hands the holder's pose arithmetic (the action keys, the Euler turns, the reload dip, the sprint carry,
+## the wall tilt and the compose) to GameSpice Sim's `GSSimWorldHold` when the library is loaded. Bit for bit the script's answer;
+## off (or without the library) the script does it. Reached through [ClassDB] by name only.
+static var native_hold := true
+## This model's `GSSimWorldHold`, made on first use; [member _hold_tried] stops a second lookup without the library.
+var _hold_native: Object = null
+var _hold_tried := false
+## The action keys changed since the kernel was last given them.
+var _hold_keys_dirty := true
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
 
@@ -376,6 +385,7 @@ func action_fraction() -> float:
 
 func _start_action(keys: Array, seconds: float, hides: bool) -> void:
 	_action_keys = keys
+	_hold_keys_dirty = true
 	_action_seconds = seconds
 	_action_hides = hides
 	_action = 0.0
@@ -486,10 +496,18 @@ func advance(delta: float) -> void:
 	# the spring the view model runs would be arithmetic nobody ever sees the result of.
 	_kick = move_toward(_kick, 0.0, _kick * 12.0 * delta + 0.0002)
 
+	var acting := _action < 1.0
+	if acting:
+		_action = minf(1.0, _action + delta / maxf(_action_seconds, 0.01))
+	if native_hold and _hold_kernel() != null:
+		_show_in_hand(not (_action_hides and _action >= THROW_RELEASE and _action < THROW_BACK))
+		_holder.transform = _hold_natively(acting, looking, looked)
+		_finish_frame()
+		return
+
 	var turn := Basis.IDENTITY
 	var moved := Vector3.ZERO
-	if _action < 1.0:
-		_action = minf(1.0, _action + delta / maxf(_action_seconds, 0.01))
+	if acting:
 		var at := AwWeaponPose.sample_keys(_action_keys, _action)
 		moved = at[0]
 		var degrees: Vector3 = at[1]
@@ -515,6 +533,44 @@ func advance(delta: float) -> void:
 	_holder.transform = Transform3D(
 		low * _sprint_turn * turn * rest.basis, rest.origin + moved + _sprint_offset + Vector3(0.0, 0.0, _kick + _wall_amount)
 	)
+	_finish_frame()
+
+
+## The kernel when [member native_hold] may use it: made once through [ClassDB], null without the library.
+func _hold_kernel() -> Object:
+	if _hold_native == null and not _hold_tried:
+		_hold_tried = true
+		if ClassDB.class_exists(&"GSSimWorldHold"):
+			_hold_native = ClassDB.instantiate(&"GSSimWorldHold")
+	return _hold_native
+
+
+## The holder's transform from the kernel, given what the script settled this frame; the same inputs the script path reads.
+func _hold_natively(acting: bool, looking: bool, looked: Array) -> Transform3D:
+	if _hold_keys_dirty:
+		_hold_keys_dirty = false
+		var rows := PackedFloat64Array()
+		for key: Array in _action_keys:
+			var pos: Vector3 = key[1]
+			var rot: Vector3 = key[2]
+			rows.append_array([float(key[0]), pos.x, pos.y, pos.z, rot.x, rot.y, rot.z])
+		_hold_native.call(&"set_keys", rows)
+	var sprint := _sprint if _art != null else 0.0
+	var sprint_offset := Vector3.ZERO
+	var sprint_degrees := Vector3.ZERO
+	if sprint > 0.0:
+		var own_offset := _art.sprint_world_offset.is_finite()
+		var own_turn := _art.sprint_world_rotation.is_finite()
+		var base: Array = AwWeaponArtTable.sprint_world(_art.pose) if not (own_offset and own_turn) else _NO_SPRINT
+		sprint_offset = _art.sprint_world_offset if own_offset else base[0]
+		sprint_degrees = _art.sprint_world_rotation if own_turn else base[1]
+	return _hold_native.call(&"hold", acting, _action, looking, looked[0], looked[1],
+		_reload_blend if _carry == null else 0.0, _rest(), sprint, sprint_offset, sprint_degrees,
+		_wall_amount * wall_tilt_per_m, _kick + _wall_amount)
+
+
+## The frame's end on either path: the magazine follows the hand, and goes back into the gun once the reload is over.
+func _finish_frame() -> void:
 	_move_magazine()
 	if _mag != null and _reload_blend <= 0.0 and not _reloading:
 		# Seated again and the reload over: the gun is one mesh once more.

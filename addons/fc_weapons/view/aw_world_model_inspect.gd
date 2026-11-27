@@ -26,16 +26,20 @@ func inspect_fraction() -> float:
 	return _inspect if _inspect_shown > 0.0 else 1.0
 
 
+## [method _inspect_turn]'s answer when no inspect shows: one shared, read-only pair, so an idle gun allocates nothing.
+const _NO_TURN: Array = [Vector3.ZERO, Vector3.ZERO]
+
+
 ## The inspect's turn about the grip at [param delta] into the frame: [offset, degrees], zero when none shows.
 ## A fraction not told again this frame (the inspect ended or was cut) lets go over [constant INSPECT_RELEASE_SECONDS].
 func _inspect_turn(delta: float, told: bool) -> Array:
 	if _inspect_shown <= 0.0:
-		return [Vector3.ZERO, Vector3.ZERO]
+		return _NO_TURN
 	if not told:
 		_inspect_shown = maxf(0.0, _inspect_shown - delta / INSPECT_RELEASE_SECONDS)
 		if _inspect_shown <= 0.0:
 			_inspect = 1.0
-			return [Vector3.ZERO, Vector3.ZERO]
+			return _NO_TURN
 	var at := AwWeaponPose.sample_keys(INSPECT_KEYS, _inspect)
 	var share := smoothstep(0.0, 1.0, _inspect_shown)
 	return [(at[0] as Vector3) * share, (at[1] as Vector3) * share]
