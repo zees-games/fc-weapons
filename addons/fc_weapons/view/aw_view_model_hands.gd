@@ -64,7 +64,7 @@ func _place_hands() -> void:
 		AwHandsFrame.place(_hands_frame, self, _animated, scale)
 		anchor = _hands_frame
 	hands_reached.emit(anchor, grip, fore, pose)
-	if _arms == null or not _arms.has_method("reach"):
+	if _arms == null:
 		return
 	var into := Transform3D.IDENTITY
 	if _arms.get_parent() == _animated:
@@ -73,23 +73,25 @@ func _place_hands() -> void:
 	aim = into * aim
 	grip = into * grip
 	fore = into * fore
-	if "run" in _arms:
-		_arms.set("run", _pose.run_amount())
-		_arms.set("run_phase", _pose.run_phase())
-	if "cycle_grip" in _arms:
-		_arms.set("cycle_grip", _cycle_grip if _cycle_t >= 0.0 else 0.0)
-	if "throw_grip" in _arms:
-		_arms.set("throw_grip", _pose.windup_fraction())
-	if "support_free" in _arms:
-		_arms.set("support_free", in_seq or (_has_well and not _feeds and _reload_fraction > 0.0 and _reload_fraction < 1.0))
-	# A game's own arms may answer the older three-argument reach; they get no axes.
-	if _arms.get_method_argument_count("reach") >= 6:
-		_arms.call(
-			"reach", grip, fore, pose,
-			aim.basis * _grip_axis, aim.basis * _fore_axis, _grip_radius
-		)
-	else:
-		_arms.call("reach", grip, fore, pose)
+	# _arms is an AwViewArms: its fields and reach are set directly (no lookup by name each frame).
+	_arms.run = _pose.run_amount()
+	_arms.run_phase = _pose.run_phase()
+	if _arms_cycle_grip:
+		_arms.set(&"cycle_grip", _cycle_grip if _cycle_t >= 0.0 else 0.0)  # perf-lint: allow dynamic_call a game's arms subclass may add it; looked up once per arms
+	_arms.throw_grip = _pose.windup_fraction()
+	_arms.support_free = in_seq or (_has_well and not _feeds and _reload_fraction > 0.0 and _reload_fraction < 1.0)
+	_arms.reach(grip, fore, pose, aim.basis * _grip_axis, aim.basis * _fore_axis, _grip_radius)
+
+
+## Whether [member _arms] has a `cycle_grip` field (AwViewArms has none; a game's subclass may), asked once per arms node.
+var _arms_cycle_grip: bool:
+	get:
+		if _arms != _arms_cycle_of:
+			_arms_cycle_of = _arms
+			_arms_cycle_known = _arms != null and "cycle_grip" in _arms
+		return _arms_cycle_known
+var _arms_cycle_of: Object = null
+var _arms_cycle_known := false
 
 ## Where the support hand is this frame: on the fore-end, or, through a reload of a weapon with
 ## a magazine, to the well, down with the old magazine and out of sight, back up with the next
@@ -105,19 +107,31 @@ func _support_hand() -> Vector3:
 	if _feeds:
 		return AwWeaponPose.sample_keys(_feed_keys, f)[0]
 	var below := _well + Vector3(0.0, -0.24, 0.08)
-	var keys := [
-		[0.0, _fore_at, Vector3.ZERO],
-		[0.08, _fore_at, Vector3.ZERO],
-		[0.16, _well + Vector3(0.0, -0.03, 0.0), Vector3.ZERO],
-		[0.30, below, Vector3.ZERO],
-		[0.40, below + Vector3(0.0, -0.04, 0.0), Vector3.ZERO],
-		[0.50, _well + Vector3(0.0, -0.08, 0.0), Vector3.ZERO],
-		[0.58, _well + Vector3(0.0, -0.035, 0.0), Vector3.ZERO],
-		[0.64, _well + Vector3(0.0, -0.03, 0.0), Vector3.ZERO],
-		[0.78, _fore_at, Vector3.ZERO],
-		[1.0, _fore_at, Vector3.ZERO],
-	]
+	# The magazine-swap keys, rewritten in place each frame (one array kept, no ten-row literal per frame).
+	var keys := _well_keys
+	(keys[0] as Array)[1] = _fore_at
+	(keys[1] as Array)[1] = _fore_at
+	(keys[2] as Array)[1] = _well + Vector3(0.0, -0.03, 0.0)
+	(keys[3] as Array)[1] = below
+	(keys[4] as Array)[1] = below + Vector3(0.0, -0.04, 0.0)
+	(keys[5] as Array)[1] = _well + Vector3(0.0, -0.08, 0.0)
+	(keys[6] as Array)[1] = _well + Vector3(0.0, -0.035, 0.0)
+	(keys[7] as Array)[1] = _well + Vector3(0.0, -0.03, 0.0)
+	(keys[8] as Array)[1] = _fore_at
+	(keys[9] as Array)[1] = _fore_at
 	return AwWeaponPose.sample_keys(keys, f)[0]
+
+
+## The times of [method _support_hand]'s magazine-swap keys; the positions are written each frame.
+const WELL_KEY_TIMES := [0.0, 0.08, 0.16, 0.30, 0.40, 0.50, 0.58, 0.64, 0.78, 1.0]
+var _well_keys: Array[Array] = _make_well_keys()
+
+
+static func _make_well_keys() -> Array[Array]:
+	var out: Array[Array] = []
+	for t: float in WELL_KEY_TIMES:
+		out.append([t, Vector3.ZERO, Vector3.ZERO])
+	return out
 
 ## The support hand through a bolt's or pump's cycle: from the fore-end to the handle, riding it back and home, and away again. A pump's
 ## handle is the fore-end itself ([member AwWeaponVisual.cycle_at] empty), so the hand stays and travels with it.
@@ -161,19 +175,19 @@ func _build_feed_keys(art: AwWeaponVisual) -> Array:
 	return keys
 
 ## A fed round in the hand: where it is this frame in the holder's (model) space, and whether
-## it is drawn; empty when it is in the gun or not yet fetched.
-func _fed_round(fraction: float) -> Dictionary:
+## it is drawn; Vector3.INF when it is in the gun or not yet fetched.
+func _fed_round(fraction: float) -> Vector3:
 	var count := maxi(1, _art.load_count)
 	var span := (FEED_END - FEED_START) / float(count)
 	var into := fraction - FEED_START
 	if into < 0.0 or fraction >= FEED_END:
-		return {}
+		return Vector3.INF
 	var local := fmod(into, span) / span
 	if local >= FEED_AT_SEAT:
-		return {}
+		return Vector3.INF
 	var hand := _support_hand() + FEED_CARRY
 	var at := _holder.transform.affine_inverse() * hand
-	return {"at": at} if at.is_finite() else {}
+	return at if at.is_finite() else Vector3.INF
 
 ## Where the muzzle is right now in world space, for a flash, a tracer and a shell; the simulation never reads it.
 func muzzle_transform() -> Transform3D:

@@ -50,7 +50,7 @@ func step(trace: Callable, tick_rate: int) -> bool:
 		velocity.y -= gravity * dt
 		velocity *= damp_factor(rules, dt)
 		var to := position + velocity * dt
-		var hit: Dictionary = trace.call(position, to)
+		var hit: Dictionary = trace.call(position, to)  # perf-lint: allow dynamic_call Callable.call, not a call by name
 		if hit.is_empty():
 			position = to
 		else:

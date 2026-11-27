@@ -209,7 +209,7 @@ func _reach_for(art: AwWeaponVisual) -> void:
 
 	_grip_at = to_aim * grip
 	_fore_at = to_aim * fore
-	_fore_aimed_at = to_aim * (r.get("fore_aimed", fore) as Vector3)
+	_fore_aimed_at = to_aim * (r.get("fore_aimed", fore) as Vector3)  # perf-lint: allow dynamic_call Dictionary.get (the reach row)
 	# After the fore-end: the keys start and end on it.
 	_feed_keys = _build_feed_keys(art) if _feeds else []
 	_grip_axis = (to_aim.basis * grip_axis).normalized()
@@ -383,7 +383,7 @@ func _advance_cycle(delta: float) -> void:
 	_cycle_t += delta
 	var f := (_cycle_t - _cycle_wait) / _cycle_len
 	_set_bolt(cycle_back(f))
-	var cues: Array = CYCLE_CUES.get(_art.cycle_style, [])
+	var cues: Array = CYCLE_CUES.get(_art.cycle_style, NO_CUES)
 	if cues.size() == 2:
 		if _cycle_heard == 0 and f >= 0.0:
 			_cycle_heard = 1
@@ -494,9 +494,9 @@ func _animate_magazine(fraction: float) -> void:
 	if _feeds:
 		# Fetched, carried to where its push starts and pushed home (_build_feed_keys).
 		var fed := _fed_round(f)
-		shown = not fed.is_empty()
+		shown = fed.is_finite()
 		if shown:
-			at = fed.at
+			at = fed
 	elif _art.magazine_loose:
 		# A round fed by hand: in sight only while it is carried in.
 		shown = f >= 0.36 and f < 0.58

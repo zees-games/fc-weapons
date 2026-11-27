@@ -125,6 +125,7 @@ var _windup_target: float = -1.0
 var _windup_f: float = 0.0
 var _windup_w: float = 0.0
 var _windup_hold: float = 0.0
+var _windup_out: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]  # [method _windup_sample]'s [offset, degrees], reused: read it before the next call
 
 ## Where full aim moves the weapon to, relative to where it rests. Set by the view model
 ## from the art, because the resting place is the art's and so is the sight line.
@@ -788,9 +789,12 @@ func _windup_shown() -> float:
 
 
 ## The windup's [offset, degrees] as drawn this frame, zero when none is.
-func _windup_sample() -> Array:
+func _windup_sample() -> Array[Vector3]:
 	var shown := _windup_shown()
 	if shown <= 0.0:
-		return [Vector3.ZERO, Vector3.ZERO]
+		_windup_out.fill(Vector3.ZERO)
+		return _windup_out
 	var s := sample_keys(tunables.windup_keys, lerpf(tunables.windup_start, 1.0, clampf(_windup_f, 0.0, 1.0)))
-	return [(s[0] as Vector3) * shown, (s[1] as Vector3) * shown]
+	_windup_out[0] = (s[0] as Vector3) * shown
+	_windup_out[1] = (s[1] as Vector3) * shown
+	return _windup_out

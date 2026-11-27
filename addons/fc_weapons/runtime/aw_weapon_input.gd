@@ -41,6 +41,17 @@ const SLOT_ACTION_PREFIX := "weapon_slot_"
 ## How many slot actions to look for.
 const MAX_SLOTS := 8
 
+## The slot actions' names, made once rather than per tick.
+static var _slot_actions: Array[StringName] = _make_slot_actions()
+
+
+static func _make_slot_actions() -> Array[StringName]:
+	var out: Array[StringName] = []
+	for slot in range(1, MAX_SLOTS + 1):
+		out.append(StringName(SLOT_ACTION_PREFIX + str(slot)))
+	return out
+
+
 ## Action name to button bit.
 var actions: Dictionary = DEFAULT_ACTIONS.duplicate()
 
@@ -91,7 +102,7 @@ func sample() -> void:
 			_latched |= bit
 
 	for slot in range(1, MAX_SLOTS + 1):
-		var action := StringName(SLOT_ACTION_PREFIX + str(slot))
+		var action: StringName = _slot_actions[slot - 1]
 
 		if InputMap.has_action(action) and Input.is_action_just_pressed(action):
 			_slot = slot

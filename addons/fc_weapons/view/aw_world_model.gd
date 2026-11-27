@@ -253,7 +253,7 @@ func muzzle_transform() -> Transform3D:
 	if distance <= 0.0:
 		distance = AwModelCache.muzzle_distance(_art.model_path, _art.model_forward)
 
-	distance = maxf(distance, float(_dressed.get("reach", 0.0)))
+	distance = maxf(distance, float(_dressed.get("reach", 0.0)))  # perf-lint: allow dynamic_call Dictionary.get (the fitted optic's row)
 
 	return _weapon.global_transform * Transform3D(
 		Basis.IDENTITY,
@@ -492,7 +492,7 @@ func advance(delta: float) -> void:
 	var carry := _sprint_carry()
 	var low := Basis.from_euler(Vector3(-deg_to_rad(_wall_amount * wall_tilt_per_m), 0.0, 0.0))
 	_holder.transform = Transform3D(
-		low * carry[1] * turn * rest.basis, rest.origin + moved + carry[0] + Vector3(0.0, 0.0, _kick + _wall_amount)
+		low * carry.basis * turn * rest.basis, rest.origin + moved + carry.origin + Vector3(0.0, 0.0, _kick + _wall_amount)
 	)
 	_move_magazine()
 	if _mag != null and _reload_blend <= 0.0 and not _reloading:
@@ -554,7 +554,7 @@ func _probe_wall() -> float:
 	var from := hand - forward * WALL_ARM
 	var length := hand.distance_to(muzzle_transform().origin)
 	if _wall_query == null:
-		_wall_query = PhysicsRayQueryParameters3D.new()
+		_wall_query = PhysicsRayQueryParameters3D.new()  # perf-lint: allow alloc made once, then reused
 		_wall_query.collide_with_areas = false
 	var query := _wall_query
 	query.from = from
@@ -564,8 +564,9 @@ func _probe_wall() -> float:
 	var body := _carrier_body()
 	if body is CollisionObject3D:
 		query.exclude.append((body as CollisionObject3D).get_rid())
+	var space := world.direct_space_state
 	for _hop in range(6):
-		var found := world.direct_space_state.intersect_ray(query)
+		var found := space.intersect_ray(query)
 		if found.is_empty():
 			return 0.0
 		if found["collider"] is CharacterBody3D:
@@ -588,15 +589,15 @@ func _rest() -> Transform3D:
 	return Transform3D(rest.basis.scaled(Vector3.ONE * AwWeaponArtTable.pose_world_factor(_art.pose)), rest.origin)
 
 
-## The sprint carry at the current blend: [offset, rotation basis], in the hand's frame, about the grip.
-func _sprint_carry() -> Array:
+## The sprint carry at the current blend: its offset and rotation basis, in the hand's frame, about the grip.
+func _sprint_carry() -> Transform3D:
 	if _art == null or _sprint <= 0.0:
-		return [Vector3.ZERO, Basis.IDENTITY]
+		return Transform3D.IDENTITY
 	var base := AwWeaponArtTable.sprint_world(_art.pose)
 	var offset: Vector3 = _art.sprint_world_offset if _art.sprint_world_offset.is_finite() else base[0]
 	var degrees: Vector3 = _art.sprint_world_rotation if _art.sprint_world_rotation.is_finite() else base[1]
 	degrees *= _sprint
-	return [offset * _sprint, Basis.from_euler(Vector3(deg_to_rad(degrees.x), deg_to_rad(degrees.y), deg_to_rad(degrees.z)))]
+	return Transform3D(Basis.from_euler(Vector3(deg_to_rad(degrees.x), deg_to_rad(degrees.y), deg_to_rad(degrees.z))), offset * _sprint)
 
 
 ## Reads the person's sprint blend and tells it where the support hand goes: every frame, because the holder moves.

@@ -511,7 +511,7 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 			var to: Vector3 = fx["to"]
 			var tail_on: Variant = fx.get("follow")
 			if tail_on is Callable and (tail_on as Callable).is_valid():
-				var now: Variant = (tail_on as Callable).call()
+				var now: Variant = (tail_on as Callable).call()  # perf-lint: allow dynamic_call Callable.call, not a call by name
 				if now is Transform3D:
 					from = (now as Transform3D).origin
 			var length: float = fx["length"]
@@ -534,7 +534,7 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 			var light: Variant = fx.get("light")
 			if light is OmniLight3D and is_instance_valid(light):
 				if fx.has("light_rel") and (fx["follow"] as Callable).is_valid():
-					(light as OmniLight3D).global_transform = (fx["follow"] as Callable).call() * (fx["light_rel"] as Transform3D)
+					(light as OmniLight3D).global_transform = (fx["follow"] as Callable).call() * (fx["light_rel"] as Transform3D)  # perf-lint: allow dynamic_call Callable.call, not a call by name
 				(light as OmniLight3D).light_energy = float(fx["energy"]) * (1.0 - through)
 		&"spark":
 			var near := _distance_scale(node.global_position)
@@ -561,7 +561,7 @@ func _animate(fx: Dictionary, node: Node3D, through: float) -> void:
 func _follow(fx: Dictionary, node: Node3D) -> void:
 	var follow: Variant = fx.get("follow")
 	if follow is Callable and (follow as Callable).is_valid():
-		var now: Variant = (follow as Callable).call()
+		var now: Variant = (follow as Callable).call()  # perf-lint: allow dynamic_call Callable.call, not a call by name
 		if now is Transform3D:
 			node.global_transform = (now as Transform3D) * (fx["rel"] as Transform3D)
 			var pack: Variant = fx.get("pack")

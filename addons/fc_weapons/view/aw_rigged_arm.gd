@@ -21,6 +21,11 @@ extends Node3D
 ## from the index knuckle to the little finger's: right-handed, so that is the palm of a right
 ## hand.
 
+## How much of its bend each finger segment takes, knuckle to tip.
+const FINGER_CURL := [1.0, 0.95, 0.8]
+## The same for the thumb's segments.
+const THUMB_CURL := [0.55, 0.8, 0.8]
+
 ## Where the file's two surfaces are named, so a game's colours land on the right one.
 const SURFACE_GLOVE := "Glove"
 const SURFACE_SLEEVE := "Sleeve"
@@ -212,7 +217,7 @@ func _curl_fingers(rho: float, open: float) -> void:
 			# A segment bends by its own length over the radius; the knuckle takes the most
 			# and the tip the least, as a real finger round a handle does.
 			var angle := clampf(float(_seg_len[bone]) / rho, 0.0, MAX_CURL)
-			angle *= float([1.0, 0.95, 0.8][j]) * (1.0 - slack)
+			angle *= float(FINGER_CURL[j]) * (1.0 - slack)
 			_bend(bone, flex, angle)
 
 	# The thumb closes across: toward the palm and a little over the fingers.
@@ -220,7 +225,7 @@ func _curl_fingers(rho: float, open: float) -> void:
 	for j in 3:
 		var bone: int = _thumb[j]
 		var tflex: Vector3 = _dir_rest[bone].cross(thumb_n).normalized()
-		var angle: float = clampf(float(_seg_len[bone]) / rho, 0.0, MAX_CURL) * float([0.55, 0.8, 0.8][j])
+		var angle: float = clampf(float(_seg_len[bone]) / rho, 0.0, MAX_CURL) * float(THUMB_CURL[j])
 		_bend(bone, tflex, angle * (1.0 - slack))
 
 

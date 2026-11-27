@@ -195,6 +195,8 @@ var _cycle_shift := Vector3.ZERO
 const CYCLE_WAIT := 0.12
 const CYCLE_SPLIT: Array[float] = [0.4, 0.5, 1.0]
 ## The cycle of each style as {cue back, cue forward}: the sounds gs-audio ships.
+## An empty list to default a lookup to (read only, so no default array is made per frame): a cycle style's cues, an optic's ocular.
+const NO_CUES: Array = []
 const CYCLE_CUES := {&"bolt": [&"bolt_back", &"bolt_fwd"], &"pump": [&"pump_back", &"pump_fwd"]}
 
 ## A cycled gun's part moved: the handling sound of the bolt or the pump, to play at the gun.

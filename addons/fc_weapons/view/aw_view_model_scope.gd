@@ -78,7 +78,7 @@ func aim_fov_scale() -> float:
 func scope_zoom_scale() -> float:
 	if _art == null:
 		return 1.0
-	var base := float(_dressed.get("zoom", 0.0))
+	var base := float(_dressed.get("zoom", 0.0))  # perf-lint: allow dynamic_call Dictionary.get (_dressed is the fitted optic's row)
 	base = base if base > 0.0 else _art.aim_zoom
 	var zoom := base if ads_rules == null else ads_rules.zoom_for(_art.id, base)
 	return ScopeView.scale_at(zoom_scales(), _zoom_level, zoom)
@@ -109,7 +109,7 @@ func cycle_zoom() -> int:
 
 ## Whether the weapon's view is a scope: its own, unless a fitted optic replaced the built-in one, then that optic's.
 func _aim_scoped() -> bool:
-	return bool(_dressed.get("scoped", false)) or (_art.aim_scoped and not bool(_dressed.get("replaced", false)))
+	return bool(_dressed.get("scoped", false)) or (_art.aim_scoped and not bool(_dressed.get("replaced", false)))  # perf-lint: allow dynamic_call Dictionary.get (_dressed is the fitted optic's row)
 
 
 ## Whether the view is through a scope right now: a scoped weapon at (nearly) full aim.
@@ -139,7 +139,7 @@ func has_scope() -> bool:
 func scope_style() -> Dictionary:
 	if _art == null:
 		return {}
-	var ocular: Array = _dressed.get("ocular", [])
+	var ocular: Array = _dressed.get("ocular", NO_CUES)
 	if ocular.is_empty():
 		return _art.scope_style
 	if _style_art != _art or not is_same(ocular, _style_ocular):
@@ -152,8 +152,8 @@ func scope_style() -> Dictionary:
 ## Whether the scope is drawn as its body this frame: [member scope_body] on, the lens view, and an `ocular` in the weapon's scope style.
 ## A fitted optic that replaced the built-in scope has its own ocular, or else the flat lens is used.
 func scope_body_active() -> bool:
-	var own: bool = not (_dressed.get("ocular", []) as Array).is_empty()
-	return scope_body and scope_is_lens() and (own or not bool(_dressed.get("replaced", false))) and not Describe.scope_ocular(scope_style()).is_empty()
+	var own: bool = not (_dressed.get("ocular", NO_CUES) as Array).is_empty()  # perf-lint: allow dynamic_call Dictionary.get (_dressed is the fitted optic's row)
+	return scope_body and scope_is_lens() and (own or not bool(_dressed.get("replaced", false))) and not Describe.scope_ocular(scope_style()).is_empty()  # perf-lint: allow dynamic_call Dictionary.get (_dressed is the fitted optic's row)
 
 
 ## The ocular's centre and a point on its edge, in global space, for [AwScopeOverlay]; empty unless [method scope_body_active] and drawn.
@@ -174,7 +174,7 @@ func _scope_body_growth(radius: float) -> float:
 	if is_inside_tree():
 		var rect := get_viewport().get_visible_rect().size
 		share = minf(rect.x, rect.y) / rect.y if rect.y > 0.0 else 1.0
-	var circle := float(scope_style().get("lens_circle", SCOPE_BODY_CIRCLE))
+	var circle := float(scope_style().get("lens_circle", SCOPE_BODY_CIRCLE))  # perf-lint: allow dynamic_call Dictionary.get (the scope style)
 	var want := scope_body_relief * tan(deg_to_rad(fov) * 0.5) * circle * share
 	var lens := absf(scale.x) if not is_zero_approx(scale.x) else 1.0
 	return maxf(want / (radius * lens * maxf(_art.view_scale, 0.001)), 0.001)

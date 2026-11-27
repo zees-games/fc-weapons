@@ -55,7 +55,7 @@ static func los_from_ray(blocked: Callable) -> Callable:
 	return func(from: Vector3, to: Vector3) -> bool:
 		var offset := to - from
 		var dist := offset.length()
-		return dist <= 0.0 or not bool(blocked.call(from, offset / dist, dist))
+		return dist <= 0.0 or not bool(blocked.call(from, offset / dist, dist))  # perf-lint: allow dynamic_call Callable.call, not a call by name
 
 
 ## Resolves a utility grenade that went off at its position; returns the blast's events for the host to use further.
