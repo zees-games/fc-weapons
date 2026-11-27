@@ -42,13 +42,15 @@ func _work() -> void:
 		if not Cut._invertible(to_space.basis):
 			Cut._warn_once(mi.mesh, "sight cut skipped a mesh with a flat transform", {"node": mi.name})
 			continue
-		var span: Array = await _span(mi.mesh, to_space.basis.transposed() * axis)
+		# The whole part, not the hole the last fitting cut in it.
+		var mesh := Cut.source_of(mi.mesh)
+		var span: Array = await _span(mesh, to_space.basis.transposed() * axis)
 		if span.is_empty():
 			continue
 		var shift := (to_space.origin - eye).dot(axis)
 		lo = minf(lo, float(span[0]) + shift)
 		hi = maxf(hi, float(span[1]) + shift)
-		parts.append([mi.mesh, to_space])
+		parts.append([mesh, to_space])
 	var front := lo + (hi - lo) * _from
 	var planes := Cut.planes_of(_cut)
 	var nearest := INF

@@ -57,10 +57,6 @@ func _yield_if_spent() -> void:
 
 
 func _apply() -> void:
-	if _cut.is_empty():
-		_finished = true
-		return
-	var planes := Cut.planes_of(_cut)
 	var meshes: Array[MeshInstance3D] = []
 	for root: Variant in _roots:
 		if not (root is Node):
@@ -72,37 +68,53 @@ func _apply() -> void:
 			var mi := n as MeshInstance3D
 			if mi != null and (mi.mesh is ArrayMesh or mi.mesh is PrimitiveMesh):
 				meshes.append(mi)
+	if _cut.is_empty():
+		# No hole for this fitting: a part cut for the last one gets its whole mesh back.
+		for mi in meshes:
+			_wear(mi, Cut.source_of(mi.mesh))
+		_finished = true
+		return
+	var planes := Cut.planes_of(_cut)
 	for mi in meshes:
 		if not is_instance_valid(mi) or mi.mesh == null:
 			continue
+		# Cut from the whole part: a refit (another fitting on the same build) recutting the last cut copy kept the old hole and
+		# grew the mesh by a de-indexed copy each time.
+		var source := Cut.source_of(mi.mesh)
 		var to_space := Cut.to_space_of(mi, _space)
-		var cache_key := "%d|%s|%s|%s|%s|%s" % [mi.mesh.get_instance_id(), to_space, _cut.eye, _cut.axis, _cut.tan, _cut.stop]
-		var done: Dictionary
-		if Cut.cache.has(cache_key):
-			done = Cut.cache[cache_key]
-		else:
-			done = await _cut_mesh(mi.mesh, to_space, planes)
+		var cache_key := "%d|%s|%s|%s|%s|%s" % [source.get_instance_id(), to_space, _cut.eye, _cut.axis, _cut.tan, _cut.stop]
+		var done := Cut.cached(cache_key)
+		if done.is_empty():
+			done = await _cut_mesh(source, to_space, planes)
 			if not is_instance_valid(mi):
 				continue
-		Cut.cache[cache_key] = done
+		Cut.remember(cache_key, done)
+		_wear(mi, done.mesh)
 		if int(done.removed) == 0:
 			continue
 		result.removed += int(done.removed)
 		result.near = minf(result.near, float(done.near))
 		result.far = maxf(result.far, float(done.far))
-		var overrides: Array[Material] = []
-		for s in mi.get_surface_override_material_count():
-			overrides.append(mi.get_surface_override_material(s))
-		mi.mesh = done.mesh
-		for s in mini(overrides.size(), mi.mesh.get_surface_count()):
-			mi.set_surface_override_material(s, overrides[s])
 	if result.removed == 0:
 		result.near = 0.0
 	_finished = true
 
 
+## Puts [param mesh] on [param mi], keeping its surface material overrides.
+func _wear(mi: MeshInstance3D, mesh: Mesh) -> void:
+	if not is_instance_valid(mi) or mesh == null or mi.mesh == mesh:
+		return
+	var overrides: Array[Material] = []
+	for s in mi.get_surface_override_material_count():
+		overrides.append(mi.get_surface_override_material(s))
+	mi.mesh = mesh
+	for s in mini(overrides.size(), mi.mesh.get_surface_count()):
+		mi.set_surface_override_material(s, overrides[s])
+
+
 ## `{mesh, removed, near, far}`: [param mesh] with the region taken out of each triangle surface; the mesh itself when nothing is.
 func _cut_mesh(mesh: Mesh, to_space: Transform3D, planes: Array) -> Dictionary:
+	var source := mesh
 	if mesh is PrimitiveMesh:
 		var baked := ArrayMesh.new()
 		baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, (mesh as PrimitiveMesh).get_mesh_arrays())
@@ -144,7 +156,8 @@ func _cut_mesh(mesh: Mesh, to_space: Transform3D, planes: Array) -> Dictionary:
 		if out.get_surface_count() > s:
 			out.surface_set_material(s, mesh.surface_get_material(s))
 	if removed == 0:
-		return {"mesh": mesh, "removed": 0, "near": 0.0, "far": 0.0}
+		return {"mesh": source, "removed": 0, "near": 0.0, "far": 0.0}
+	out.set_meta(Cut.SOURCE_META, source)
 	return {"mesh": out, "removed": removed, "near": near, "far": far}
 
 

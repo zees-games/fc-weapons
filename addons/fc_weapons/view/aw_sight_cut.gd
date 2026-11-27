@@ -12,8 +12,14 @@ const POST_CLEAR := 0.03
 const IronSight := preload("res://addons/gs_weapon/view/gs_weapon_iron_sight.gd")
 
 const CHANNEL := "aw.sightcut"
+## Meta on a cut copy: the mesh it was cut from, so a refit cuts the whole part again, not the last hole.
+const SOURCE_META := &"aw_cut_source"
 
+## Cuts made, by source mesh and cut: `{mesh, removed, near, far}`. Least recently used first; [method cached] and [method remember] keep the order.
 static var cache: Dictionary = {}
+## How many cuts [member cache] keeps (0 keeps every one); the least recently used is dropped first. A cut mesh is a de-indexed copy of
+## a whole gun part (several MB for a 40k-triangle rifle), and every fitting of every gun is a cut of its own.
+static var cache_limit: int = 128
 static var _tree: Dictionary = {}
 static var _spans: Dictionary = {}
 static var _warned: Dictionary = {}
@@ -52,6 +58,32 @@ static func short_of_front(cut: Dictionary, node: Node, space: Node3D, from: flo
 static func front_job(cut: Dictionary, node: Node, space: Node3D, from: float = 0.55) -> RefCounted:
 	# Loaded here, not preloaded: the job preloads this script, and a preload cycle is refused.
 	return load("res://addons/fc_weapons/view/aw_sight_front_job.gd").new(cut, node, space, from)
+
+
+## The mesh [param mesh] was cut from, or [param mesh] itself when it is no cut copy.
+static func source_of(mesh: Mesh) -> Mesh:
+	if mesh == null or not mesh.has_meta(SOURCE_META):
+		return mesh
+	var source: Variant = mesh.get_meta(SOURCE_META)
+	return source as Mesh if source is Mesh else mesh
+
+
+## The cut kept under [param key] (moved to most recently used), or `{}`.
+static func cached(key: String) -> Dictionary:
+	if not cache.has(key):
+		return {}
+	var done: Dictionary = cache[key]
+	cache.erase(key)
+	cache[key] = done
+	return done
+
+
+## Keeps [param done] under [param key], dropping the least recently used past [member cache_limit].
+static func remember(key: String, done: Dictionary) -> void:
+	cache.erase(key)
+	cache[key] = done
+	while cache_limit > 0 and cache.size() > cache_limit:
+		cache.erase(cache.keys()[0])
 
 
 ## A mesh's collision-style triangle tree, built natively once: [method short_of_front] asks it one segment instead of walking every triangle in script.

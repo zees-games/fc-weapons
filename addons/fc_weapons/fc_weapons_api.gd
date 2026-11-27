@@ -78,7 +78,9 @@ extends RefCounted
 #     (INSPECT_KEYS, about the grip), told by the body this client drives; not replicated, like aiming. Additive.
 # 43: AwWorldModel.central_tick (one ticker node runs every held gun's frame, own `_process` off), set_ticking(on) and
 #     is_ticking(), which work either way, and world_ticks(). Off by default; same transforms per frame. Additive.
-const LEVEL := 43
+# 44: AwViewModel.SightFit.Cut (aw_sight_cut.gd) cache_limit (cuts kept, least recently used dropped first, 0 keeps every one) and source_of(mesh): a refit cuts
+#     the whole part again instead of the last cut copy. Additive.
+const LEVEL := 44
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,
