@@ -64,7 +64,7 @@ func _place_hands() -> void:
 		AwHandsFrame.place(_hands_frame, self, _animated, scale)
 		anchor = _hands_frame
 	hands_reached.emit(anchor, grip, fore, pose)
-	if _arms == null or not _arms.has_method("reach"):
+	if _arms == null:
 		return
 	var into := Transform3D.IDENTITY
 	if _arms.get_parent() == _animated:
@@ -73,23 +73,22 @@ func _place_hands() -> void:
 	aim = into * aim
 	grip = into * grip
 	fore = into * fore
-	if "run" in _arms:
-		_arms.set("run", _pose.run_amount())
-		_arms.set("run_phase", _pose.run_phase())
-	if "cycle_grip" in _arms:
-		_arms.set("cycle_grip", _cycle_grip if _cycle_t >= 0.0 else 0.0)
-	if "throw_grip" in _arms:
-		_arms.set("throw_grip", _pose.windup_fraction())
-	if "support_free" in _arms:
-		_arms.set("support_free", in_seq or (_has_well and not _feeds and _reload_fraction > 0.0 and _reload_fraction < 1.0))
-	# A game's own arms may answer the older three-argument reach; they get no axes.
-	if _arms.get_method_argument_count("reach") >= 6:
-		_arms.call(
-			"reach", grip, fore, pose,
-			aim.basis * _grip_axis, aim.basis * _fore_axis, _grip_radius
-		)
-	else:
-		_arms.call("reach", grip, fore, pose)
+	# _arms is an AwViewArms (its reach takes the axes; an override keeps the signature): typed calls, no name lookups.
+	_arms.run = _pose.run_amount()
+	_arms.run_phase = _pose.run_phase()
+	if _arms_cycle_for != _arms:
+		_arms_cycle_for = _arms
+		_arms_has_cycle = &"cycle_grip" in _arms
+	if _arms_has_cycle:
+		_arms.set(&"cycle_grip", _cycle_grip if _cycle_t >= 0.0 else 0.0)  # perf-lint: allow dynamic_call a game's own arms may add it
+	_arms.throw_grip = _pose.windup_fraction()
+	_arms.support_free = in_seq or (_has_well and not _feeds and _reload_fraction > 0.0 and _reload_fraction < 1.0)
+	_arms.reach(grip, fore, pose, aim.basis * _grip_axis, aim.basis * _fore_axis, _grip_radius)
+
+
+## The arms [member _arms_has_cycle] was read from, and whether they have a `cycle_grip` (AwViewArms itself has none).
+var _arms_cycle_for: AwViewArms = null
+var _arms_has_cycle := false
 
 ## Where the support hand is this frame: on the fore-end, or, through a reload of a weapon with
 ## a magazine, to the well, down with the old magazine and out of sight, back up with the next

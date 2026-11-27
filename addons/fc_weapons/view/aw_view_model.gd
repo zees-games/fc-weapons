@@ -424,7 +424,7 @@ func _advance_aim(delta: float) -> void:
 	if ads_rules != null and _art != null:
 		time = ads_rules.aim_time_for(_art.id, time)
 		_pose.aim_sway_scale = ads_rules.sway_for(_art.id)
-		_pose.gun_strafe = ads_rules.strafe_for(_art.id)
+		_pose.gun_strafe = ads_rules.strafe_for(_art.id, _strafe_into)
 	if not can_aim():
 		_aim_held = false
 	# Lowering out of a scope takes at least SCOPE_LOWER_TIME, so the overlay and the zoom ease out over several frames, not two.
@@ -664,6 +664,9 @@ func _equip_stage(art: AwWeaponVisual, stage: int) -> void:
 
 static var _parts_warmed := false
 var _prewarm_stage := -1
+
+## The Dictionary [method AwAdsRules.strafe_for] refills every frame for the pose (no new one a frame).
+var _strafe_into: Dictionary = {}
 ## Reload parts [method prewarm_step] still has to build and drop, one a call.
 var _parts_left: Array = []
 ## The parts' material kinds go first, one shader compile a call: the cell built and dressed in one call was a

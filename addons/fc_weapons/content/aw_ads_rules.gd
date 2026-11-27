@@ -320,13 +320,19 @@ func wall_for(id: StringName) -> Dictionary:
 
 
 ## This gun's strafe sway: tilt, yaw, aimed and response multipliers that its profile sets; a key left at -1 is absent, so the server's `mp_vm_strafe_*` value applies.
-func strafe_for(id: StringName) -> Dictionary:
-	var out := {}
-	for key: String in ["tilt", "yaw", "aimed", "response"]:
-		var v := float(value_for(id, "strafe_" + key))
+## [param into], when given, is cleared and filled instead of a new Dictionary (a caller asking every frame keeps one).
+func strafe_for(id: StringName, into: Variant = null) -> Dictionary:
+	var out: Dictionary = into if into is Dictionary else {}
+	out.clear()
+	for i in _STRAFE_KEYS.size():
+		var v := float(value_for(id, _STRAFE_FIELDS[i]))
 		if v >= 0.0:
-			out[key] = v
+			out[_STRAFE_KEYS[i]] = v
 	return out
+
+
+const _STRAFE_KEYS: Array[String] = ["tilt", "yaw", "aimed", "response"]
+const _STRAFE_FIELDS: Array[String] = ["strafe_tilt", "strafe_yaw", "strafe_aimed", "strafe_response"]
 
 
 ## Metres added to the art's hip place (view space: +X right, +Y up, +Z toward the eye).
