@@ -248,6 +248,7 @@ func idle_batch(command: GSWeaponCommand, tick: int, entries: Array, k: int) -> 
 	var outcome: GSWeaponOutcome = arsenal.call(&"idle_batch_add", entries, k)
 	if outcome == null:
 		return null
+	_batch_cooling = false
 	_last_tick = tick
 	if not idle_batch_lean or _view != null or command.buttons != 0:
 		_idle_before(tick)
@@ -272,9 +273,79 @@ func idle_batch(command: GSWeaponCommand, tick: int, entries: Array, k: int) -> 
 static var idle_batch_lean := true
 
 
-## The script idle step for an entry [method idle_batch] joined and the batch declined (a decline changed nothing).
+## The script step for an entry [method idle_batch] or [method cooling_batch] joined and the batch declined (a decline
+## changed nothing).
 func idle_batch_declined() -> void:
-	arsenal.idle_tick()
+	if _batch_cooling:
+		arsenal.call(&"cooling_batch_declined")
+	else:
+		arsenal.idle_tick()
+
+
+## Whether this gs-weapon has the cooling lane (API 59, [method GSWeaponArsenal.cooling_row_for]); named through call(),
+## so this parses on older ones.
+const _COOL_LEVEL := 59
+static var _cool_arsenal: bool = GSWeaponApi.LEVEL >= _COOL_LEVEL
+## Whether the entry this rig last joined to a batch was a cooling one ([method cooling_batch]), for [method idle_batch_declined].
+var _batch_cooling := false
+
+
+## Whether [method simulate_tick] on a server would only cool this tick (fc-weapons 47, gs-weapon API 59): the trigger held
+## inside the weapon's cadence, nothing else pressed (the aim button neither), no switch, charge or burst, a behaviour
+## whose held tick its posture row carries. [param sprinting] and [param blocks_fire] are the carrier's this tick, as the
+## context would say. Then [method simulate_cooling_row] (or [method cooling_batch]) does the same as the full tick with no
+## context built.
+func would_cool(command: GSWeaponCommand, tick: int, sprinting: bool, blocks_fire: bool) -> bool:
+	return _cool_arsenal and _ready_for_use and role == Role.SERVER and arsenal != null \
+		and (command.buttons & ads_button) == 0 \
+		and arsenal.call(&"cooling_row_for", command, _previous_command, tick, sprinting, blocks_fire)
+
+
+## [method simulate_tick] for a command [method would_cool] just answered true for, with the arsenal's
+## [member GSWeaponArsenal.idle_posture] as [param row] (as [method simulate_idle_row] takes it): one native idle-row call.
+func simulate_cooling_row(command: GSWeaponCommand, tick: int, row: PackedFloat64Array) -> GSWeaponOutcome:
+	_last_tick = tick
+	_cool_before(tick)
+	var outcome: GSWeaponOutcome = arsenal.call(&"cooling_tick_row", tick, row)
+	_cool_after(command, tick)
+	return outcome
+
+
+## [method simulate_cooling_row] joined to a GSSimWeaponIdleBatch like [method idle_batch] (same entries and rows; call
+## [method idle_batch_declined] for a declined entry). Null when it cannot join (phase timers on, a reload finishing, a
+## weapon with no twin): then [method simulate_cooling_row].
+func cooling_batch(command: GSWeaponCommand, tick: int, entries: Array, k: int) -> GSWeaponOutcome:
+	if phase_timers:
+		return null
+	var outcome: GSWeaponOutcome = arsenal.call(&"cooling_batch_add", entries, k, tick)
+	if outcome == null:
+		return null
+	_batch_cooling = true
+	_last_tick = tick
+	_cool_before(tick)
+	_cool_after(command, tick)
+	return outcome
+
+
+## What [method simulate_tick] does around the arsenal on a cooling tick: no aim (the aim button is up), no use, no bash.
+func _cool_before(tick: int) -> void:
+	if _view != null and _player != null:
+		_view.set_sprinting(GSWeaponPlayerBridge.posture_for(_player, tick).sprinting)
+	_notice_holster(tick)
+	_ads_move = 1.0
+	_ads_progress = 0.0
+	var def := arsenal.current_def()
+	if def != null and ads_rules != null:
+		ads_rules.set_def_row(def.id, def.params.get("ads"))
+	_aim_ticks = 0
+
+
+func _cool_after(command: GSWeaponCommand, tick: int) -> void:
+	_notice_switch_end()
+	_advance_charge(command, tick)
+	_trigger_down = true
+	_update_presentation(tick)
+	_keep_previous(command)
 
 
 ## Copies [param command] into the rig's own previous command: nothing outside the rig holds that object, so it is
@@ -287,64 +358,6 @@ func _keep_previous(command: GSWeaponCommand) -> void:
 	_previous_command.buttons = command.buttons
 	_previous_command.yaw = command.yaw
 	_previous_command.pitch = command.pitch
-
-
-## The arsenal's tick with the spread scaled while the command holds the aim button. The scale
-## is put back after, so the def is never left changed; it follows the command, so a replay agrees.
-func _simulate_aimed(command: GSWeaponCommand, context: GSWeaponContext) -> GSWeaponOutcome:
-	_ads_move = 1.0
-	_ads_progress = 0.0
-	var def := arsenal.current_def()
-	if def != null and ads_rules != null:
-		ads_rules.set_def_row(def.id, def.params.get("ads"))
-	if not _can_aim(command, def, context):
-		_aim_ticks = 0
-		return arsenal.simulate_tick(command, context, _previous_command)
-	var art: AwWeaponVisual = AwWeaponArtTable.table().get(def.id, null)
-	var b := def.tuning as GSWeaponBallistics
-	if b == null:
-		return arsenal.simulate_tick(command, context, _previous_command)
-	_aim_ticks += 1
-	_ads_move = ads_rules.move_speed_for(def.id)
-	# The spread closes as the sights come up, over the weapon's aim time, counted in ticks so a replay agrees.
-	var seconds := ads_rules.aim_time_for(def.id, art.aim_time if art != null else 0.16)
-	var ramp := clampf(float(_aim_ticks) / maxf(seconds * float(tick_rate), 1.0), 0.0, 1.0)
-	_ads_progress = ramp
-	var k := lerpf(1.0, ads_rules.spread_for(def.id), ramp)
-	# A shot before the fire threshold is held back; at 1 nothing fires until the sights are up, at 0 a quick scope is allowed.
-	var fire_min := ads_rules.quickscope_fire_min_for(def.id)
-	if ramp < fire_min and (command.buttons & GSWeaponCommand.BUTTON_ATTACK) != 0:
-		command = command.duplicate_command()
-		command.buttons &= ~GSWeaponCommand.BUTTON_ATTACK
-	# Kept in float locals, not an array: nothing allocated on an aimed tick, and the f64 copies put back to the bit.
-	var kept_spread := b.spread
-	var kept_moving := b.spread_moving
-	var kept_airborne := b.spread_airborne
-	var kept_bloom := b.bloom
-	var kept_pitch := b.recoil_pitch
-	var kept_yaw := b.recoil_yaw
-	var kept_aim := b.spread_aim
-	var kept_recoil_aim := b.recoil_aim
-	var rk := lerpf(1.0, ads_rules.recoil_for(def.id), ramp)
-	b.recoil_pitch *= rk
-	b.recoil_yaw *= rk
-	b.spread *= k
-	b.spread_moving *= k
-	b.spread_airborne *= k
-	b.bloom *= k
-	_ease_class_aim(b, def, ramp)
-	var outcome := arsenal.simulate_tick(command, context, _previous_command)
-	b.spread = kept_spread
-	b.spread_moving = kept_moving
-	b.spread_airborne = kept_airborne
-	b.bloom = kept_bloom
-	b.recoil_pitch = kept_pitch
-	b.recoil_yaw = kept_yaw
-	b.spread_aim = kept_aim
-	b.recoil_aim = kept_recoil_aim
-	if outcome.used and outcome.kind == GSWeaponOutcome.KIND_SHOT:
-		_tag_aimed_shots(outcome, art != null and art.aim_scoped)
-	return outcome
 
 
 ## Marks the start of a reconciliation replay.

@@ -90,3 +90,90 @@ func _batch_parity_run(cat: GSWeaponCatalogue, slot: int, lean: bool) -> void:
 	_check("idle_batch (lean %s) plus one native batch run matches simulate_idle_row on a server rig, rig fields too (%d of 80 ticks joined)" % [lean, joined], same and joined > 40)
 	for r in rigs:
 		r.queue_free()
+
+
+## On a server rig, would_cool then simulate_cooling_row (or cooling_batch plus one native GSSimWeaponIdleBatch run) leaves
+## the outcome, the weapon's state, the arsenal's snapshot and the rig's fields where simulate_tick with the same posture
+## does, over every carried weapon, a trigger held and let go, aimed now and then (skipped before gs-weapon API 59).
+func _cool_parity(cat: GSWeaponCatalogue) -> void:
+	if preload("res://addons/gs_weapon/gs_weapon_api.gd").LEVEL < 59:
+		_check("skip: gs-weapon API 59 missing", true)
+		_check("skip: gs-weapon API 59 missing", true)
+		return
+	_cool_parity_run(cat, false)
+	if ClassDB.class_exists(&"GSSimWeaponIdleBatch"):
+		_cool_parity_run(cat, true)
+	else:
+		_check("skip: GSSimWeaponIdleBatch missing", true)
+
+
+func _cool_posture(tick: int) -> GSWeaponContext:
+	var ctx := GSWeaponContext.new()
+	ctx.tick = tick
+	ctx.speed = 0.0 if tick % 23 < 9 else 3.0 + tick % 4
+	ctx.crouched = tick % 11 == 0
+	ctx.airborne = tick % 37 == 5
+	return ctx
+
+
+func _cool_parity_run(cat: GSWeaponCatalogue, batched: bool) -> void:
+	var batch: Object = ClassDB.instantiate(&"GSSimWeaponIdleBatch") if batched else null
+	var rigs: Array[AwWeaponRig] = []
+	var same := true
+	for i in 2:
+		var r := AwWeaponRig.new()
+		r.catalogue = cat
+		r.role = AwWeaponRig.Role.SERVER
+		add_child(r)
+		same = same and r.setup().ok
+		r.give_everything()
+		r.arsenal.idle_posture = func() -> GSWeaponContext: return _cool_posture(_cool_now[0])
+		r.arsenal.idle_still = func() -> bool: return _cool_posture(_cool_now[0]).speed == 0.0
+		rigs.append(r)
+	var cooled := 0
+	var detail := ""
+	var tick := 10
+	for slot in rigs[0].arsenal._slots.keys():
+		for r in rigs:
+			r.arsenal.equip(slot)
+		for n in 160:
+			tick += 1
+			_cool_now[0] = tick
+			var cmd := GSWeaponCommand.new()
+			var phase := tick % 40
+			cmd.buttons = GSWeaponCommand.BUTTON_ATTACK if phase < 30 else 0
+			if phase >= 24 and phase < 27:
+				cmd.buttons |= GSWeaponCommand.BUTTON_AIM
+			var a := rigs[0].simulate_tick(cmd, tick, _cool_posture(tick))
+			var post := _cool_posture(tick)
+			var b: GSWeaponOutcome = null
+			if rigs[1].would_cool(cmd, tick, post.sprinting, post.sprint_blocks_fire):
+				cooled += 1
+				var row := PackedFloat64Array([post.speed, 1.0 if post.airborne else 0.0, 1.0 if post.crouched else 0.0, 0.0, 0.0, 0.0, 0.0, tick, post.hurt_tick])
+				if batched:
+					var entries: Array = []
+					b = rigs[1].cooling_batch(cmd, tick, entries, 0)
+					if b != null:
+						row.append(1.0 if post.speed == 0.0 else 0.0)
+						var declined: PackedInt32Array = batch.call(&"run", entries, row, 10)
+						if not declined.is_empty():
+							rigs[1].idle_batch_declined()
+				if b == null:
+					b = rigs[1].simulate_cooling_row(cmd, tick, row.slice(0, 9))
+			else:
+				b = rigs[1].simulate_tick(cmd, tick, _cool_posture(tick))
+			var ok := a.used == b.used and a.kind == b.kind and a.refusal == b.refusal \
+				and rigs[0].arsenal.current().behaviour.state == rigs[1].arsenal.current().behaviour.state \
+				and rigs[0].arsenal.snapshot() == rigs[1].arsenal.snapshot() and _rig_fields(rigs[0]) == _rig_fields(rigs[1])
+			if not ok and same:
+				detail = "slot %d tick %d buttons %d" % [slot, tick, cmd.buttons]
+			same = same and ok
+	_check("would_cool then %s matches simulate_tick on a server rig, rig fields too (%d cooled ticks)" \
+		% ["cooling_batch and one native batch run" if batched else "simulate_cooling_row", cooled] + ("; first differs at " + detail if detail != "" else ""), same and cooled > 100)
+	for r in rigs:
+		r.queue_free()
+
+
+## The tick [method _cool_parity_run]'s idle posture answers for.
+var _cool_now := [0]
+

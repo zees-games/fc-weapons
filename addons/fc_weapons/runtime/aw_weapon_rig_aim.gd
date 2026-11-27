@@ -130,3 +130,61 @@ func ads_move_scale() -> float:
 ## How far into the aim-in the last simulated command was (0 at the hip, 1 fully aimed), by ticks.
 func ads_progress() -> float:
 	return _ads_progress
+
+
+## The arsenal's tick with the spread scaled while the command holds the aim button. The scale
+## is put back after, so the def is never left changed; it follows the command, so a replay agrees.
+func _simulate_aimed(command: GSWeaponCommand, context: GSWeaponContext) -> GSWeaponOutcome:
+	_ads_move = 1.0
+	_ads_progress = 0.0
+	var def := arsenal.current_def()
+	if def != null and ads_rules != null:
+		ads_rules.set_def_row(def.id, def.params.get("ads"))
+	if not _can_aim(command, def, context):
+		_aim_ticks = 0
+		return arsenal.simulate_tick(command, context, _previous_command)
+	var art: AwWeaponVisual = AwWeaponArtTable.table().get(def.id, null)
+	var b := def.tuning as GSWeaponBallistics
+	if b == null:
+		return arsenal.simulate_tick(command, context, _previous_command)
+	_aim_ticks += 1
+	_ads_move = ads_rules.move_speed_for(def.id)
+	# The spread closes as the sights come up, over the weapon's aim time, counted in ticks so a replay agrees.
+	var seconds := ads_rules.aim_time_for(def.id, art.aim_time if art != null else 0.16)
+	var ramp := clampf(float(_aim_ticks) / maxf(seconds * float(tick_rate), 1.0), 0.0, 1.0)
+	_ads_progress = ramp
+	var k := lerpf(1.0, ads_rules.spread_for(def.id), ramp)
+	# A shot before the fire threshold is held back; at 1 nothing fires until the sights are up, at 0 a quick scope is allowed.
+	var fire_min := ads_rules.quickscope_fire_min_for(def.id)
+	if ramp < fire_min and (command.buttons & GSWeaponCommand.BUTTON_ATTACK) != 0:
+		command = command.duplicate_command()
+		command.buttons &= ~GSWeaponCommand.BUTTON_ATTACK
+	# Kept in float locals, not an array: nothing allocated on an aimed tick, and the f64 copies put back to the bit.
+	var kept_spread := b.spread
+	var kept_moving := b.spread_moving
+	var kept_airborne := b.spread_airborne
+	var kept_bloom := b.bloom
+	var kept_pitch := b.recoil_pitch
+	var kept_yaw := b.recoil_yaw
+	var kept_aim := b.spread_aim
+	var kept_recoil_aim := b.recoil_aim
+	var rk := lerpf(1.0, ads_rules.recoil_for(def.id), ramp)
+	b.recoil_pitch *= rk
+	b.recoil_yaw *= rk
+	b.spread *= k
+	b.spread_moving *= k
+	b.spread_airborne *= k
+	b.bloom *= k
+	_ease_class_aim(b, def, ramp)
+	var outcome := arsenal.simulate_tick(command, context, _previous_command)
+	b.spread = kept_spread
+	b.spread_moving = kept_moving
+	b.spread_airborne = kept_airborne
+	b.bloom = kept_bloom
+	b.recoil_pitch = kept_pitch
+	b.recoil_yaw = kept_yaw
+	b.spread_aim = kept_aim
+	b.recoil_aim = kept_recoil_aim
+	if outcome.used and outcome.kind == GSWeaponOutcome.KIND_SHOT:
+		_tag_aimed_shots(outcome, art != null and art.aim_scoped)
+	return outcome
