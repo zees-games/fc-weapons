@@ -537,6 +537,11 @@ func _advance_wall(delta: float) -> void:
 		_wall_amount = 0.0
 
 var _wall_query: PhysicsRayQueryParameters3D
+## [member _wall_query]'s exclude list (the carrier's body), the carrier it was made for, and whether the last probe
+## grew the query's copy past it by stepping over a character.
+var _wall_exclude: Array[RID] = []
+var _wall_carrier := RID()
+var _wall_grown := false
 
 
 func _probe_wall() -> float:
@@ -560,17 +565,25 @@ func _probe_wall() -> float:
 	query.from = from
 	query.to = from + forward * (WALL_ARM + length + WALL_MARGIN)
 	query.collision_mask = wall_mask
-	query.exclude.clear()
+	# The query keeps its exclude list between probes; it is set again only when the carrier changes or the last probe grew it.
 	var body := _carrier_body()
-	if body is CollisionObject3D:
-		query.exclude.append((body as CollisionObject3D).get_rid())
+	var carrier: RID = (body as CollisionObject3D).get_rid() if body is CollisionObject3D else RID()
+	if carrier != _wall_carrier or _wall_grown:
+		_wall_carrier = carrier
+		_wall_exclude.clear()
+		if carrier.is_valid():
+			_wall_exclude.append(carrier)
+		query.exclude = _wall_exclude
+		_wall_grown = false
 	var space := world.direct_space_state
+	var skips := 0
 	for _hop in range(6):
 		var found := space.intersect_ray(query)
 		if found.is_empty():
 			return 0.0
 		if found["collider"] is CharacterBody3D:
-			query.exclude.append(found["rid"])
+			skips = AwWallSlam.skip_body(query, _wall_exclude, skips, found["rid"])
+			_wall_grown = true
 			continue
 		return wall_pull(from.distance_to(found["position"]), length, WALL_ARM, WALL_MARGIN, wall_max_pull)
 	return 0.0
