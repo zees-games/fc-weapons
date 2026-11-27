@@ -19,7 +19,7 @@ on:
 
 jobs:
     validate:
-        uses: gamespice-platform/ci/.github/workflows/validate.yml@v1.4.4
+        uses: gamespice-platform/ci/.github/workflows/validate.yml@v1.4.5
         with:
             efficiency: true
             hygiene: true
