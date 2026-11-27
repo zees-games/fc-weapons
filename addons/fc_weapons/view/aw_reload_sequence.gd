@@ -422,12 +422,12 @@ func _mid(name: StringName) -> float:
 
 ## The support hand at [param f], in Aim space.
 func left_hand(f: float) -> Vector3:
-	return AwWeaponPose.sample_keys(left_keys, f)[0]
+	return AwWeaponPose.sample_field(left_keys, f, 1)
 
 
 ## The firing hand's offset from its grip at [param f].
 func right_offset(f: float) -> Vector3:
-	return AwWeaponPose.sample_keys(right_keys, f)[0]
+	return AwWeaponPose.sample_field(right_keys, f, 1)
 
 
 ## The phase playing at [param f], or an empty name outside the reload.

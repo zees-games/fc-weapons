@@ -459,7 +459,7 @@ func _apply_aim(f: float) -> void:
 		_pose.pivot = hip.origin
 		return
 
-	var ocular := Describe.scope_ocular(scope_style()) if scope_body_active() else []
+	var ocular := _scope_ocular() if scope_body_active() else _NO_OCULAR
 	var grow := 1.0 if ocular.is_empty() else _scope_body_growth(float(ocular[1]))
 	# The scope body view: the eye is where the camera is, in this rig's space (GSViewLens pulls the rig along z).
 	var eye := Vector3(0.0, 0.0, -position.z)

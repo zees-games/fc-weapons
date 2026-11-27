@@ -82,6 +82,16 @@ var base: Dictionary = defaults()
 var weapons: Dictionary = {}
 ## Weapon id (String) -> keys a weapon's own profile sets (`extra: params: ads:`); below the server's `weapons`, above the default.
 var def_rows: Dictionary = {}
+## Counts every change made through this class ([method set_value], [method set_def_row], [method adopt_wire]); the
+## resolved values below are kept until it moves. Code that writes [member base], [member weapons] or [member def_rows]
+## in place calls [method touch].
+var revision := 0
+## False reads every value through the rows each call (the uncached path, kept for parity checks).
+static var cache_values := true
+## Weapon id -> key -> resolved value, valid for [member _cache_rev]; and weapon id -> [method wall_for]'s numbers.
+var _cache: Dictionary[StringName, Dictionary] = {}
+var _wall_cache: Dictionary[StringName, Dictionary] = {}
+var _cache_rev := -1
 
 
 static func defaults() -> Dictionary:
@@ -144,15 +154,44 @@ func set_value(id: StringName, key: String, value: Variant) -> bool:
 		var row: Dictionary = weapons.get(String(id), {})
 		row[key] = clean
 		weapons[String(id)] = row
+	revision += 1
 	return true
 
 
-## The effective value of [param key] for [param id]: its override, else the default.
+## Drops the resolved values after [member base], [member weapons] or [member def_rows] were changed in place.
+func touch() -> void:
+	revision += 1
+
+
+## The effective value of [param key] for [param id]: its override, else the default. Resolved once per
+## [member revision] and weapon (the view reads a dozen of these a frame).
 func value_for(id: StringName, key: String) -> Variant:
-	var row: Dictionary = weapons.get(String(id), {})
+	if not cache_values:
+		return _value_now(id, key)
+	if _cache_rev != revision:
+		_cache.clear()
+		_wall_cache.clear()
+		_cache_rev = revision
+	var row: Dictionary = _cache.get(id, _NO_ROW)
+	if row.is_empty():
+		row = {}
+		_cache[id] = row
 	if row.has(key):
 		return row[key]
-	var own: Dictionary = def_rows.get(String(id), {})
+	var v: Variant = _value_now(id, key)
+	row[key] = v
+	return v
+
+
+const _NO_ROW: Dictionary = {}  # perf-lint: allow untyped_array a row holds any spec's value
+
+
+func _value_now(id: StringName, key: String) -> Variant:
+	var name := String(id)
+	var row: Dictionary = weapons.get(name, _NO_ROW)  # perf-lint: allow untyped_array a row holds any spec's value
+	if row.has(key):
+		return row[key]
+	var own: Dictionary = def_rows.get(name, _NO_ROW)  # perf-lint: allow untyped_array a row holds any spec's value
 	return own.get(key, base.get(key, SPECS[key]["default"]))
 
 
@@ -177,6 +216,7 @@ func set_def_row(id: StringName, row: Variant) -> void:
 		def_rows.erase(String(id))
 	else:
 		def_rows[String(id)] = clean
+	revision += 1
 
 
 func enabled_for(id: StringName) -> bool:
@@ -312,11 +352,21 @@ func wall_shot_for(id: StringName) -> bool:
 
 ## The wall response's numbers for [param id]: reach (share of the gun's real length), margin (m), stiffness, damping,
 ## push (back, with approach speed), nudge (up and sideways, slow), max (m), floor_look (degrees down before the floor counts), lean (strength of the tilt toward or away from where the gun meets the wall), spread (m, how far above, below and beside the muzzle the lean probes sample) lean_rate (1/s, how fast the lean eases), cast (m, radius of the sphere swept along the gun; 0 = rays only) and impulse (how far walking into the wall and strafing along it shove the gun).
+## Kept per [member revision] and weapon: callers read it and must not change it.
 func wall_for(id: StringName) -> Dictionary:
+	if cache_values and _cache_rev == revision and _wall_cache.has(id):
+		return _wall_cache[id]
 	var out := {}
-	for key: String in ["reach", "margin", "stiffness", "damping", "push", "nudge", "max", "floor_look", "lean", "spread", "lean_rate", "cast", "impulse"]:
-		out[key] = float(value_for(id, "wall_" + key))
+	for i in _WALL_KEYS.size():
+		out[_WALL_KEYS[i]] = float(value_for(id, _WALL_FIELDS[i]))
+	if cache_values:
+		_wall_cache[id] = out
 	return out
+
+
+const _WALL_KEYS: Array[String] = ["reach", "margin", "stiffness", "damping", "push", "nudge", "max", "floor_look", "lean", "spread", "lean_rate", "cast", "impulse"]
+const _WALL_FIELDS: Array[String] = ["wall_reach", "wall_margin", "wall_stiffness", "wall_damping", "wall_push", "wall_nudge", "wall_max",
+	"wall_floor_look", "wall_lean", "wall_spread", "wall_lean_rate", "wall_cast", "wall_impulse"]
 
 
 ## This gun's strafe sway: tilt, yaw, aimed and response multipliers that its profile sets; a key left at -1 is absent, so the server's `mp_vm_strafe_*` value applies.
@@ -388,6 +438,7 @@ func adopt_wire(text: String) -> bool:
 			for key: String in tree["w"][id]:
 				if key in PREDICTED:
 					var _ok := set_value(StringName(id), key, tree["w"][id][key])
+	revision += 1
 	changed.emit()
 	return true
 

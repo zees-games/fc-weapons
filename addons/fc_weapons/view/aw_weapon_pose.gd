@@ -487,22 +487,35 @@ func offset() -> Transform3D:
 	# the whole gun across the screen rather than turning it in the hand.
 	var deploy_keys: Array = tunables.holster_keys if _holstering and tunables.holster_keys.size() >= 2 \
 		else tunables.draw_keys
-	var drawn := sample_keys(deploy_keys, _deploy) if holstered > 0.0 else [Vector3.ZERO, Vector3.ZERO]
-	var reloaded := sample_keys(tunables.reload_keys, _reload) if _reload > 0.0 else [Vector3.ZERO, Vector3.ZERO]
-	var swung := sample_keys(_action_keys, _action) if _action < 1.0 else [Vector3.ZERO, Vector3.ZERO]
-	var looked := sample_keys(tunables.inspect_keys, _inspect) if _inspect < 1.0 else [Vector3.ZERO, Vector3.ZERO]
+	# Summed field by field, so a frame with nothing authored playing allocates no [position, rotation] pairs.
+	var keyed_pos := Vector3.ZERO
+	var keyed_rot := Vector3.ZERO
+	if holstered > 0.0:
+		keyed_pos += sample_field(deploy_keys, _deploy, 1)
+		keyed_rot += sample_field(deploy_keys, _deploy, 2)
+	if _reload > 0.0:
+		keyed_pos += sample_field(tunables.reload_keys, _reload, 1)
+		keyed_rot += sample_field(tunables.reload_keys, _reload, 2)
+	if _action < 1.0:
+		keyed_pos += sample_field(_action_keys, _action, 1)
+		keyed_rot += sample_field(_action_keys, _action, 2)
 	var shown := clampf(_inspect_weight, 0.0, 1.0)
 	shown = shown * shown * (3.0 - 2.0 * shown)
-	var wound := _windup_sample()
+	if _inspect < 1.0:
+		keyed_pos += sample_field(tunables.inspect_keys, _inspect, 1) * shown
+		keyed_rot += sample_field(tunables.inspect_keys, _inspect, 2) * shown
+	var wound_shown := _windup_shown()
+	if wound_shown > 0.0:
+		var wound_t := lerpf(tunables.windup_start, 1.0, clampf(_windup_f, 0.0, 1.0))
+		keyed_pos += sample_field(tunables.windup_keys, wound_t, 1) * wound_shown
+		keyed_rot += sample_field(tunables.windup_keys, wound_t, 2) * wound_shown
 	# Idle breath: the weapon drifts slowly at the hip (a see-through lens shows the world moving behind it); aiming hands it to the view.
-	var breathed := Breath.hip(breath() * (1.0 - _aim) * clampf(rules.sway, 0.0, 2.0) * maxf(0.0, feel))
-	var acted: Vector3 = (drawn[1] as Vector3) + (reloaded[1] as Vector3) + (swung[1] as Vector3) \
-		+ (looked[1] as Vector3) * shown + tunables.sprint_rotation * _sprint + (wound[1] as Vector3) + (breathed[1] as Vector3)
+	var drift: Vector2 = breath() * (1.0 - _aim) * clampf(rules.sway, 0.0, 2.0) * maxf(0.0, feel)
+	var acted: Vector3 = keyed_rot + tunables.sprint_rotation * _sprint + Vector3(drift.y, drift.x, 0.0) * Breath.HIP_DEGREES
 	# A strafe right drags the muzzle left (positive yaw, about the grip).
 	acted.y += _strafe * tunables.strafe_yaw * carried * _strafe_rule(&"tilt", rules.strafe_tilt) * _strafe_rule(&"yaw", rules.strafe_yaw) * strafe_hold
 	acted.z += sin(_bob_distance * tunables.bob_per_metre * PI) * tunables.sprint_bob_roll * _sprint * _bob_amount
-	position += (drawn[0] as Vector3) + (reloaded[0] as Vector3) + (swung[0] as Vector3) \
-		+ (looked[0] as Vector3) * shown + tunables.sprint_offset * _sprint + (wound[0] as Vector3) + (breathed[0] as Vector3)
+	position += keyed_pos + tunables.sprint_offset * _sprint + Vector3(drift.x, drift.y, 0.0) * Breath.HIP_REACH
 	var stride := TAU * run_phase()
 	# Forward and up together, back and down: the running arm's arc.
 	position += Vector3(0.0, sin(stride), -sin(stride)) * tunables.sprint_pump * run_amount()

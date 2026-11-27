@@ -102,9 +102,24 @@ func _support_hand() -> Vector3:
 	if not _has_well or f <= 0.0 or f >= 1.0:
 		return _fore_at.lerp(_fore_aimed_at, clampf(_aim_fraction, 0.0, 1.0)) if is_finite(_aim_fraction) else _fore_at
 	if _feeds:
-		return AwWeaponPose.sample_keys(_feed_keys, f)[0]
+		return AwWeaponPose.sample_field(_feed_keys, f, 1)
+	# Built again only when the fore-end or the well moved (it was a fresh literal every reload frame).
+	if _well_keys.is_empty() or _well_keys_fore != _fore_at or _well_keys_well != _well:
+		_well_keys = _build_well_keys()
+		_well_keys_fore = _fore_at
+		_well_keys_well = _well
+	return AwWeaponPose.sample_field(_well_keys, f, 1)
+
+
+var _well_keys: Array[Array] = []
+var _well_keys_fore := Vector3.INF
+var _well_keys_well := Vector3.INF
+
+
+## The support hand's reload keys for a magazine gun: fore-end, to the well, down and away, back, home.
+func _build_well_keys() -> Array[Array]:
 	var below := _well + Vector3(0.0, -0.24, 0.08)
-	var keys := [
+	return [
 		[0.0, _fore_at, Vector3.ZERO],
 		[0.08, _fore_at, Vector3.ZERO],
 		[0.16, _well + Vector3(0.0, -0.03, 0.0), Vector3.ZERO],
@@ -116,7 +131,6 @@ func _support_hand() -> Vector3:
 		[0.78, _fore_at, Vector3.ZERO],
 		[1.0, _fore_at, Vector3.ZERO],
 	]
-	return AwWeaponPose.sample_keys(keys, f)[0]
 
 ## The support hand through a bolt's or pump's cycle: from the fore-end to the handle, riding it back and home, and away again. A pump's
 ## handle is the fore-end itself ([member AwWeaponVisual.cycle_at] empty), so the hand stays and travels with it.

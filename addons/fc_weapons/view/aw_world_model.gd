@@ -83,6 +83,20 @@ var _built: bool = false
 ## The person this hangs from (duck-typed, see [method _person]), the sprint carry blended in (read from
 ## it), and the support hand's place in the holder's space, [constant Vector3.INF] for one hand.
 var _owner_cache: Object = null
+## What the person answers, looked up once per person rather than every frame: [member _owner_ok] goes false on
+## entering or leaving the tree (the only way the ancestors change), and the carry's checks are kept for the
+## object last read. [member person_cache] off resolves all of it every frame (the old path, for parity checks).
+static var person_cache := true
+var _owner_ok := false
+var _person_grips := false
+var _carry_seen: Object = null
+var _carry_seen_ok := false
+## The reload and switch flags last written to [member _carry]; -1 unknown.
+var _told_reloading := -1
+var _told_switching := -1
+## [method _sprint_carry]'s offset and turn for this frame.
+var _sprint_offset := Vector3.ZERO
+var _sprint_turn := Basis.IDENTITY
 var _sprint: float = 0.0
 var _support_sent: bool = false
 var _sprint_was_on: bool = false
@@ -111,6 +125,7 @@ var _reload_period: float = 1.5
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE or what == NOTIFICATION_EXIT_TREE:
 		_draws_own_epoch = -1
+		_owner_ok = false
 
 
 func _ready() -> void:
@@ -334,14 +349,20 @@ func throw() -> void:
 ## Asked for a throw only, and duck-typed for [method attach_to]'s reason: every game already plays the slash on a swing itself, and the figure has no throw clip,
 ## so empty-handed arms are what a thrown weapon is held with.
 func _person() -> Object:
+	if _owner_ok and person_cache and is_instance_valid(_owner_cache):
+		return _owner_cache
 	if _owner_cache != null and is_instance_valid(_owner_cache) and _owner_cache is Node and (_owner_cache as Node).is_ancestor_of(self):
+		_owner_ok = true
 		return _owner_cache
 	_owner_cache = null
+	_owner_ok = false
 	var node := get_parent()
 	var depth := 0
 	while node != null and depth < 10:
 		if node.has_method(&"swing") and node.has_method(&"set_hold"):
 			_owner_cache = node
+			_owner_ok = true
+			_person_grips = node.has_method(&"set_support_grip")  # perf-lint: allow dynamic_call once per owner, cached
 			return node
 		node = node.get_parent()
 		depth += 1
@@ -489,10 +510,10 @@ func advance(delta: float) -> void:
 
 	# About the grip, which is where the hand is: the rest transform's origin.
 	var rest := _rest()
-	var carry := _sprint_carry()
+	_sprint_carry()
 	var low := Basis.from_euler(Vector3(-deg_to_rad(_wall_amount * wall_tilt_per_m), 0.0, 0.0))
 	_holder.transform = Transform3D(
-		low * carry[1] * turn * rest.basis, rest.origin + moved + carry[0] + Vector3(0.0, 0.0, _kick + _wall_amount)
+		low * _sprint_turn * turn * rest.basis, rest.origin + moved + _sprint_offset + Vector3(0.0, 0.0, _kick + _wall_amount)
 	)
 	_move_magazine()
 	if _mag != null and _reload_blend <= 0.0 and not _reloading:
@@ -588,15 +609,23 @@ func _rest() -> Transform3D:
 	return Transform3D(rest.basis.scaled(Vector3.ONE * AwWeaponArtTable.pose_world_factor(_art.pose)), rest.origin)
 
 
-## The sprint carry at the current blend: [offset, rotation basis], in the hand's frame, about the grip.
-func _sprint_carry() -> Array:
+## The sprint carry at the current blend into [member _sprint_offset] and [member _sprint_turn], in the hand's frame, about the grip.
+func _sprint_carry() -> void:
 	if _art == null or _sprint <= 0.0:
-		return [Vector3.ZERO, Basis.IDENTITY]
-	var base := AwWeaponArtTable.sprint_world(_art.pose)
-	var offset: Vector3 = _art.sprint_world_offset if _art.sprint_world_offset.is_finite() else base[0]
-	var degrees: Vector3 = _art.sprint_world_rotation if _art.sprint_world_rotation.is_finite() else base[1]
+		_sprint_offset = Vector3.ZERO
+		_sprint_turn = Basis.IDENTITY
+		return
+	var own_offset := _art.sprint_world_offset.is_finite()
+	var own_turn := _art.sprint_world_rotation.is_finite()
+	var base: Array = AwWeaponArtTable.sprint_world(_art.pose) if not (own_offset and own_turn) else _NO_SPRINT
+	var offset: Vector3 = _art.sprint_world_offset if own_offset else base[0]
+	var degrees: Vector3 = _art.sprint_world_rotation if own_turn else base[1]
 	degrees *= _sprint
-	return [offset * _sprint, Basis.from_euler(Vector3(deg_to_rad(degrees.x), deg_to_rad(degrees.y), deg_to_rad(degrees.z)))]
+	_sprint_offset = offset * _sprint
+	_sprint_turn = Basis.from_euler(Vector3(deg_to_rad(degrees.x), deg_to_rad(degrees.y), deg_to_rad(degrees.z)))
+
+
+const _NO_SPRINT: Array = []
 
 
 ## Reads the person's sprint blend and tells it where the support hand goes: every frame, because the holder moves.
@@ -607,8 +636,9 @@ func _follow_person() -> void:
 		_carry = null
 		return
 	_tell_carry()
-	_sprint = clampf(float(person.get(&"sprint_blend")), 0.0, 1.0) if person.get(&"sprint_blend") != null else 0.0
-	if not person.has_method(&"set_support_grip"):
+	var blend: Variant = person.get(&"sprint_blend")
+	_sprint = clampf(float(blend), 0.0, 1.0) if blend != null else 0.0
+	if not (_person_grips if person_cache else person.has_method(&"set_support_grip")):
 		return
 	var two := _art != null and _weapon != null and visible and _weapon.visible and _support_local.is_finite() \
 		and (_art.hands == 2 or (_art.hands == 0 and AwWeaponArtTable.pose_two_handed(_art.pose)))
@@ -626,7 +656,7 @@ func _support_world() -> Vector3:
 		return fore
 	var well := _holder.global_transform * (_support_local * 0.45)
 	var belt := well + Vector3.DOWN * 0.28
-	var at: Vector3 = AwWeaponPose.sample_keys(RELOAD_SUPPORT_KEYS, reload_fraction())[0]
+	var at: Vector3 = AwWeaponPose.sample_field(RELOAD_SUPPORT_KEYS, reload_fraction(), 1)
 	var path := fore.lerp(well, clampf(at.x, 0.0, 1.0)).lerp(belt, clampf(at.y, 0.0, 1.0))
 	return fore.lerp(path, smoothstep(0.0, 1.0, _reload_blend))
 
@@ -638,9 +668,12 @@ func _person_carry(any: bool = false) -> Object:
 	if person == null or not (person_carry or any):
 		return null
 	var carry: Variant = person.get(&"carry")
-	if carry is Object and (carry as Object).has_method(&"fired") and (carry as Object).has_method(&"set_class"):
-		return carry
-	return null
+	if not (carry is Object):
+		return null
+	if not person_cache or not is_same(carry, _carry_seen):
+		_carry_seen = carry
+		_carry_seen_ok = (carry as Object).has_method(&"fired") and (carry as Object).has_method(&"set_class")
+	return carry if _carry_seen_ok else null
 
 
 ## Gives the person's carry the class of the gun in hand when either changes, and the reload and switch flags.
@@ -657,9 +690,18 @@ func _tell_carry() -> void:
 	if carry != _carry or _carry_for != _id:
 		_carry = carry
 		_carry_for = _id
+		_told_reloading = -1
+		_told_switching = -1
 		carry.call(&"set_class", carry_class(_art))
-	carry.set(&"reloading", _reloading)
-	carry.set(&"switching", _switching)
+	# Written when they change: nothing else writes them, and two property sets by name a frame per gun added up.
+	var reloading := int(_reloading)
+	if reloading != _told_reloading or not person_cache:
+		_told_reloading = reloading
+		carry.set(&"reloading", _reloading)
+	var switching := int(_switching)
+	if switching != _told_switching or not person_cache:
+		_told_switching = switching
+		carry.set(&"switching", _switching)
 
 
 ## The carry class (gs-player-char's `GSHumanoidCarry.CLASSES`) [param art] is held as; see [code]aw_carry_class.gd[/code].

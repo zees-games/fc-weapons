@@ -139,7 +139,7 @@ func has_scope() -> bool:
 func scope_style() -> Dictionary:
 	if _art == null:
 		return {}
-	var ocular: Array = _dressed.get("ocular", [])
+	var ocular: Array = _dressed.get("ocular", _NO_OCULAR)
 	if ocular.is_empty():
 		return _art.scope_style
 	if _style_art != _art or not is_same(ocular, _style_ocular):
@@ -152,17 +152,39 @@ func scope_style() -> Dictionary:
 ## Whether the scope is drawn as its body this frame: [member scope_body] on, the lens view, and an `ocular` in the weapon's scope style.
 ## A fitted optic that replaced the built-in scope has its own ocular, or else the flat lens is used.
 func scope_body_active() -> bool:
-	var own: bool = not (_dressed.get("ocular", []) as Array).is_empty()
-	return scope_body and scope_is_lens() and (own or not bool(_dressed.get("replaced", false))) and not Describe.scope_ocular(scope_style()).is_empty()
+	var own: bool = not (_dressed.get("ocular", _NO_OCULAR) as Array).is_empty()
+	return scope_body and scope_is_lens() and (own or not bool(_dressed.get("replaced", false))) and not _scope_ocular().is_empty()
+
+
+const _NO_OCULAR: Array = []  # perf-lint: allow untyped_array matches Describe.scope_ocular's rows
+const _NO_POINTS: Dictionary[String, Vector3] = {}
+var _ocular_style: Dictionary = {}  # perf-lint: allow untyped_array scope_style's own row
+var _ocular_memo: Array = []  # perf-lint: allow untyped_array Describe.scope_ocular's rows
+var _ocular_set := false
+var _ocular_points: Dictionary[String, Vector3] = {"centre": Vector3.ZERO, "edge": Vector3.ZERO}
+
+
+## [method AwViewDescribe.scope_ocular] of [method scope_style], read again only when the style is another dictionary
+## (the view asked three times a frame, each a new array).
+func _scope_ocular() -> Array:  # perf-lint: allow untyped_array Describe.scope_ocular's rows
+	var style := scope_style()
+	if not _ocular_set or not is_same(style, _ocular_style):
+		_ocular_style = style
+		_ocular_memo = Describe.scope_ocular(style)
+		_ocular_set = true
+	return _ocular_memo
 
 
 ## The ocular's centre and a point on its edge, in global space, for [AwScopeOverlay]; empty unless [method scope_body_active] and drawn.
 func scope_ocular_points() -> Dictionary:
 	if not scope_body_active() or _holder == null or not _holder.is_inside_tree() or not _animated.visible:
-		return {}
-	var ocular := Describe.scope_ocular(scope_style())
+		return _NO_POINTS
+	var ocular := _scope_ocular()
 	var held := _holder.global_transform
-	return {"centre": held * (ocular[0] as Vector3), "edge": held * ((ocular[0] as Vector3) + Vector3(float(ocular[1]), 0.0, 0.0))}
+	# One dictionary refilled: the overlay reads it at once each frame and keeps nothing.
+	_ocular_points["centre"] = held * (ocular[0] as Vector3)
+	_ocular_points["edge"] = held * ((ocular[0] as Vector3) + Vector3(float(ocular[1]), 0.0, 0.0))
+	return _ocular_points
 
 
 ## How many times larger than its view scale the gun is drawn at full aim in the scope body view, so an ocular of

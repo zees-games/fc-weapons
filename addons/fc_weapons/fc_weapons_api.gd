@@ -92,7 +92,10 @@ extends RefCounted
 #     cooling_batch(command, tick, entries, k): a server takes a trigger held inside its cadence from the posture row in one
 #     native call (or joined to the idle batch) instead of a context and the full tick (needs gs-weapon API 59; would_cool is
 #     false on older ones). Same bits. Additive.
-const LEVEL := 48
+# 49: AwWeaponPose.sample_field(keys, t, field) samples one field of a key list without building an Array;
+#     AwAdsRules.revision, touch() and static cache_values (values resolved once per revision and weapon);
+#     AwWorldModel.person_cache (static; off resolves the person and carry every frame, for parity). Additive.
+const LEVEL := 49
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

@@ -8,42 +8,43 @@ extends RefCounted
 ## [b]Catmull-Rom with the tangents scaled to each span[/b] (keys are not evenly spaced) and zero at the two ends, so a motion starts and
 ## finishes at rest and runs through the keys instead of stopping at each, which made eased-per-segment curves read as a robot.
 static func sample_keys(keys: Array, t: float) -> Array:
-	var rest := [Vector3.ZERO, Vector3.ZERO]
+	return [sample_field(keys, t, 1), sample_field(keys, t, 2)]
+
+
+## One field of [method sample_keys] (1 position, 2 rotation) with nothing allocated, for a caller sampling every frame.
+static func sample_field(keys: Array, t: float, field: int) -> Vector3:  # perf-lint: allow untyped_array key rows mix a float and Vectors
 	if keys.size() < 2 or not is_finite(t):
-		return rest
+		return Vector3.ZERO
 
 	var f := clampf(t, 0.0, 1.0)
 	var i := 0
 	while i < keys.size() - 2 and f > float(keys[i + 1][0]):
 		i += 1
 
-	var k0: Array = keys[maxi(i - 1, 0)]
-	var k1: Array = keys[i]
-	var k2: Array = keys[i + 1]
-	var k3: Array = keys[mini(i + 2, keys.size() - 1)]
+	var k0: Array = keys[maxi(i - 1, 0)]  # perf-lint: allow untyped_array a key row mixes a float and Vectors
+	var k1: Array = keys[i]  # perf-lint: allow untyped_array a key row mixes a float and Vectors
+	var k2: Array = keys[i + 1]  # perf-lint: allow untyped_array a key row mixes a float and Vectors
+	var k3: Array = keys[mini(i + 2, keys.size() - 1)]  # perf-lint: allow untyped_array a key row mixes a float and Vectors
 	var t1 := float(k1[0])
 	var t2 := float(k2[0])
 	var span := t2 - t1
 	if span <= 0.0001:
-		return [k2[1], k2[2]]
+		return k2[field]
 	var u := clampf((f - t1) / span, 0.0, 1.0)
 
-	var out := []
-	for field in [1, 2]:
-		var p1: Vector3 = k1[field]
-		var p2: Vector3 = k2[field]
-		var m1 := Vector3.ZERO
-		var m2 := Vector3.ZERO
-		if i > 0:
-			m1 = (p2 - (k0[field] as Vector3)) / maxf(t2 - float(k0[0]), 0.0001) * span
-		if i + 2 < keys.size():
-			m2 = ((k3[field] as Vector3) - p1) / maxf(float(k3[0]) - t1, 0.0001) * span
-		var u2 := u * u
-		var u3 := u2 * u
-		var v := p1 * (2.0 * u3 - 3.0 * u2 + 1.0) + m1 * (u3 - 2.0 * u2 + u) \
-			+ p2 * (-2.0 * u3 + 3.0 * u2) + m2 * (u3 - u2)
-		out.append(v if v.is_finite() else Vector3.ZERO)
-	return out
+	var p1: Vector3 = k1[field]
+	var p2: Vector3 = k2[field]
+	var m1 := Vector3.ZERO
+	var m2 := Vector3.ZERO
+	if i > 0:
+		m1 = (p2 - (k0[field] as Vector3)) / maxf(t2 - float(k0[0]), 0.0001) * span
+	if i + 2 < keys.size():
+		m2 = ((k3[field] as Vector3) - p1) / maxf(float(k3[0]) - t1, 0.0001) * span
+	var u2 := u * u
+	var u3 := u2 * u
+	var v := p1 * (2.0 * u3 - 3.0 * u2 + 1.0) + m1 * (u3 - 2.0 * u2 + u) \
+		+ p2 * (-2.0 * u3 + 3.0 * u2) + m2 * (u3 - u2)
+	return v if v.is_finite() else Vector3.ZERO
 
 ## Out of the holster: up from below, rolled away, settling just past the mark.
 const DRAW_KEYS := [
