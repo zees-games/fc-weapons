@@ -109,6 +109,9 @@ static func anchors_for(grip: Vector3, fore: Vector3, muzzle: Vector3, well: Var
 	out[&"below"] = (out[&"well"] as Vector3) + Vector3(0.0, -0.22, 0.08)
 	out[&"pouch"] = fore + Vector3(-0.12, -0.34, 0.14)
 	out[&"near"] = (out[&"well"] as Vector3) + Vector3(-0.07, -0.13, 0.07)
+	# Where a bolt gun's stripper clip stands while it is pressed in (its bottom round): over the port unless the row moves it
+	# clear of a scope.
+	out[&"clip"] = (out[&"port"] as Vector3) + Vector3(-0.01, 0.025, 0.0)
 	for key: Variant in overrides:
 		var v: Variant = overrides[key]
 		if v is Array and (v as Array).size() == 3:
@@ -313,16 +316,17 @@ func _bolt(clips: int) -> void:
 		# The hand comes up the support side of the receiver before it turns in over the port, so the round travels round
 		# the gun (and under a scope) instead of jumping from below the stock to above the sight in one key.
 		_add(StringName("side_%d" % c), 0.10 / clips, &"port", &"port", Vector3(-0.08, -0.02, 0.02), &"bolt", Vector3(0.0, 0.03, 0.09))
-		_add(StringName("clip_%d" % c), 0.10 / clips, &"port", &"port", Vector3(-0.02, 0.035, 0.0), &"bolt", Vector3(0.0, 0.03, 0.09))
-		_add(StringName("press_%d" % c), 0.10 / clips, &"port", &"port", Vector3(0.0, 0.01, 0.0), &"bolt", Vector3(0.0, 0.03, 0.09))
+		# The hand sets the clip in its guides, holds it there a beat, then the thumb strips the rounds down into the magazine.
+		_add(StringName("clip_%d" % c), 0.10 / clips, &"port", &"clip", -CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
+		_add(StringName("seat_%d" % c), 0.05 / clips, &"port", &"clip", -CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
+		_add(StringName("press_%d" % c), 0.10 / clips, &"port", &"clip", Vector3(0.0, -0.025, 0.0) - CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
 	_add(&"bolt_fwd", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.0))
 	_add(&"bolt_down", 0.05, &"port", &"fore", Vector3.ZERO, &"bolt")
 	_add(&"return", 0.06, &"settle", &"fore")
 	_add(&"rest", 0.05, &"rest", &"fore")
 	_eject_cases(&"casing", ejected, &"bolt_back", &"port")
 	for c in clips:
-		props.append({"part": &"clip", "segments": [[_mid(StringName("fetch_%d" % c)), _t1(StringName("clip_%d" % c)), "hand", Vector3.ZERO, 0],
-			[_t1(StringName("clip_%d" % c)), _t1(StringName("press_%d" % c)), "at", (_anchors[&"port"] as Vector3) + Vector3(-0.01, 0.025, 0.0), 0]]})
+		props.append({"part": &"clip", "segments": [[_mid(StringName("fetch_%d" % c)), _t1(StringName("press_%d" % c)), "hand", Vector3.ZERO, 0]]})
 
 
 func _belt(stub: bool) -> void:
@@ -517,6 +521,37 @@ func bolt_back(f: float) -> float:
 			if f < release:
 				return 1.0 - smoothstep(t1, maxf(release, t1 + 0.0001), f)
 	return 0.0
+
+
+## A bolt-action's handle at [param f] as (lift, back), each 0 to 1: turned up through `bolt_up`, drawn back through
+## `bolt_back`, held open while the rounds go in, run home through `bolt_fwd` and turned down through `bolt_down`.
+## (-1, [method bolt_back]) for any other style, so the caller's own lift rule applies.
+func bolt_stroke(f: float) -> Vector2:
+	if style != &"bolt":
+		return Vector2(-1.0, bolt_back(f))
+	var up := _span(&"bolt_up")
+	var back := _span(&"bolt_back")
+	var fwd := _span(&"bolt_fwd")
+	var down := _span(&"bolt_down")
+	if up.x < 0.0 or back.x < 0.0 or fwd.x < 0.0 or down.x < 0.0 or f < up.x or f >= down.y:
+		return Vector2.ZERO
+	if f < up.y:
+		return Vector2(smoothstep(up.x, up.y, f), 0.0)
+	if f < back.y:
+		return Vector2(1.0, smoothstep(back.x, back.y, f))
+	if f < fwd.x:
+		return Vector2.ONE
+	if f < fwd.y:
+		return Vector2(1.0, 1.0 - smoothstep(fwd.x, fwd.y, f))
+	return Vector2(1.0 - smoothstep(down.x, down.y, f), 0.0)
+
+
+## The (t0, t1) of the phase named [param phase_name], (-1, -1) when the sequence has none.
+func _span(phase_name: StringName) -> Vector2:
+	for p: Dictionary in phases:
+		if p.name == phase_name:
+			return Vector2(float(p.get("t0", 0.0)), float(p.get("t1", 0.0)))
+	return Vector2(-1.0, -1.0)
 
 
 func describe() -> Dictionary:

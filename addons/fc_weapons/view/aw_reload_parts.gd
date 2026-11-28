@@ -185,14 +185,42 @@ static func _speedloader() -> Node3D:
 	return root
 
 
-## A stripper clip of five rifle rounds in a row.
+## A stripper clip of five full-power rifle rounds (71 mm, 12 mm across the head) stacked one above the other as the clip stands
+## in its guides: bullets forward (-Z), the steel strip gripping the rims at the back. Origin at the middle of the bottom round.
 static func _clip() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Clip"
-	_box(root, Vector3(0.010, 0.004, 0.062), Vector3(0.0, 0.002, 0.0), _material(Color(0.30, 0.32, 0.36), 0.6, 0.4))
+	var lie := Basis(Vector3.RIGHT, -PI / 2.0)
+	var copper := _material(Color(0.72, 0.42, 0.26), 0.7, 0.3)
+	var steel := _material(Color(0.18, 0.19, 0.21), 0.7, 0.45)
+	const STEP := 0.0122
 	for i in 5:
-		_cylinder(root, 0.0055, 0.055, Vector3(0.0, 0.03, -0.024 + 0.012 * i), _brass())
+		var y := STEP * i
+		_taper(root, 0.0058, 0.0060, 0.040, Vector3(0.0, y, 0.0155), _brass(), lie)
+		_taper(root, 0.0044, 0.0058, 0.004, Vector3(0.0, y, -0.0065), _brass(), lie)
+		_taper(root, 0.0044, 0.0044, 0.007, Vector3(0.0, y, -0.012), _brass(), lie)
+		_taper(root, 0.0010, 0.0040, 0.020, Vector3(0.0, y, -0.0255), copper, lie)
+	var tall := STEP * 5.0 + 0.004
+	var mid := STEP * 2.0
+	_box(root, Vector3(0.0135, tall, 0.0012), Vector3(0.0, mid, 0.0362), steel)
+	for side: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.0012, tall, 0.006), Vector3(0.0066 * side, mid, 0.033), steel)
 	return root
+
+
+## A cylinder narrowing from [param bottom] radius to [param top] along its own +Y.
+static func _taper(root: Node3D, top: float, bottom: float, height: float, at: Vector3, material: Material, basis: Basis) -> void:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = top
+	mesh.bottom_radius = bottom
+	mesh.height = height
+	mesh.radial_segments = 12
+	mesh.rings = 1
+	mesh.material = material
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.transform = Transform3D(basis, at)
+	root.add_child(node)
 
 
 ## A short length of linked belt, eight rounds across the feed tray.

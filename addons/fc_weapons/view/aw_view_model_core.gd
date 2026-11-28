@@ -358,7 +358,8 @@ func _animate_sequence(f: float) -> void:
 	if _props != null:
 		var scale := maxf(_holder.transform.basis.get_scale().x, 0.0001)
 		_props.show_at(_seq, f if f > 0.0 and f < 1.0 else -1.0, _holder.transform.affine_inverse(), float(_seq.prop_scale) / scale)
-	_set_bolt(_seq.bolt_back(f) if f > 0.0 and f < 1.0 else 0.0)
+	var stroke: Vector2 = _seq.bolt_stroke(f) if f > 0.0 and f < 1.0 else Vector2.ZERO
+	_set_bolt(stroke.y, stroke.x)
 
 
 ## The cycle a bolt or pump gun works after a shot ([member AwWeaponVisual.cycle_style]): seconds since the shot, -1 when none
@@ -729,6 +730,7 @@ func _unstow(key: String) -> bool:
 			_scope_glass = node
 	_rear_rings.clear()
 	_rear_rings.append_array(slot.rear_rings)
+	_ring_fade = -1.0
 	_sight_line = slot.sight_line
 	_sight_aim = slot.sight_aim
 	_muzzle = slot.muzzle

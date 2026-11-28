@@ -19,6 +19,8 @@ var _attachments: Array[Node3D] = []
 var _sight: Node3D = null
 ## Rear aperture ring nodes of the weapon in hand (see aw_view_model.gd).
 var _rear_rings: Array[Node3D] = []
+## The fade last drawn on [member _rear_rings] (-1 none yet), so the walk over their meshes runs only when it changes.
+var _ring_fade := -1.0
 
 ## Weapons put away, built and ready ([code]aw_equip_cache.gd[/code]); [member cache_equips] says whether switching keeps them.
 const EquipCache := preload("aw_equip_cache.gd")

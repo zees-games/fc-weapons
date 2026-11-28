@@ -56,6 +56,9 @@ func _scope_body() -> void:
 	var points := view.scope_ocular_points()
 	var eye_space: Vector3 = camera.global_transform.affine_inverse() * (points.get("centre", Vector3.ZERO) as Vector3)
 	_check("body: the ocular is centred at the eye relief", Vector2(eye_space.x, eye_space.y).length() < 0.01 and absf(eye_space.z + view.scope_body_relief) < 0.01)
+	view._pull = 0.6
+	view._process(0.02)
+	_check("body: the world pull never shrinks the grown scope (a pinhole lens)", is_equal_approx(view.world_pull_share(), 1.0))
 	var overlay := AwScopeOverlay.new()
 	add_child(overlay)
 	overlay.bind_camera(camera)

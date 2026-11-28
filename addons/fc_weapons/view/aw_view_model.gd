@@ -31,6 +31,9 @@ var _charge_fx: Node3D = null
 ## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
 ## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
 const REAR_RING_SHOW_AIM := 0.35
+## The aim at which the rings start to fade in: from here to [constant REAR_RING_SHOW_AIM] they go from clear to solid,
+## so the ring grows into the picture as the gun rises instead of popping in on one frame (and out on the way down).
+const REAR_RING_FADE_FROM := 0.1
 
 
 ## Hides the whole rig. What a "view model" video setting toggles.
@@ -477,9 +480,7 @@ func _apply_aim(f: float) -> void:
 	var hip := _art.view_transform()
 	if _sight != null:
 		SightFit.fade(_sight, f)
-	for ring in _rear_rings:
-		if is_instance_valid(ring):
-			ring.visible = f >= REAR_RING_SHOW_AIM
+	_fade_rear_rings(f)
 	if f <= 0.0:
 		_aim_node.transform = Transform3D.IDENTITY
 		_pose.pivot = hip.origin
@@ -517,6 +518,26 @@ func _scope_body_target(ocular: Vector3, eye: Vector3, grow: float) -> Transform
 	return Transform3D(basis, eye + Vector3(0.0, 0.0, -scope_body_relief / grow) - basis * ocular)
 
 
+## Shows the rear rings [param f] of the way into the aim: hidden below [constant REAR_RING_FADE_FROM], see-through
+## up to [constant REAR_RING_SHOW_AIM], solid past it.
+func _fade_rear_rings(f: float) -> void:
+	var clear := 1.0 - smoothstep(REAR_RING_FADE_FROM, REAR_RING_SHOW_AIM, f)
+	if is_equal_approx(clear, _ring_fade):
+		return
+	_ring_fade = clear
+	for ring in _rear_rings:
+		if is_instance_valid(ring):
+			ring.visible = clear < 1.0
+			_set_clear(ring, clear)
+
+
+static func _set_clear(node: Node, clear: float) -> void:
+	if node is GeometryInstance3D:
+		(node as GeometryInstance3D).transparency = clear
+	for child in node.get_children():
+		_set_clear(child, clear)
+
+
 ## The holder's transform at full aim: down the measured sight line, or the art's written
 ## aim hold when there is none.
 func _aim_target() -> Transform3D:
@@ -536,6 +557,8 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 	for ring in _rear_rings:
 		if is_instance_valid(ring):
 			ring.visible = true
+			_set_clear(ring, 0.0)
+	_ring_fade = -1.0
 	_rear_rings = Describe.find_rear_rings(_weapon)
 	var camera := get_parent() as Camera3D
 	var near := (camera.near if camera != null else 0.05) + NEAR_MARGIN
@@ -791,4 +814,3 @@ func describe() -> Dictionary:
 
 func describe_lines() -> PackedStringArray:
 	return Describe.describe_lines(self)
-

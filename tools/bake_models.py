@@ -19,7 +19,6 @@ M = {'pistol': ('pew.glb', 1.35, 1, None), 'smg': ('mac10.glb', 1.15, 1, None), 
      'drum_shotgun': ('bullpup_box_shotgun_low.glb', 0.85, -1, (-0.05, -0.1, 0)), 'marksman': ('bolt_action_sniper_rifle_low.glb', 1.1, 1, (-0.3, -0.05, 0)),
      'minigun': ('handheld_minigun_low.glb', 0.95, 0, (0, -0.05, 0.3)), 'lmg': ('belt_fed_light_machine_gun_low.glb', 1.05, 1, (-0.25, -0.08, 0)),
      'plasma_rifle': ('plasma_rifle_low.glb', 0.85, 0, (0, -0.08, 0.2)),
-     'rail_rifle': ('railgun_sniper_low.glb', 1.15, 1, (-0.22, -0.08, 0)),
      # Blade along +Y (a melee model's forward is up), origin in the handle already.
      'knife': ('Knife.obj', 0.85, 0, None)}
 
