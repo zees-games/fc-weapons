@@ -287,6 +287,16 @@ func _rockets() -> void:
 	var small := AwMissileArt.build(&"quad_launcher")
 	var small_box: AABB = AwMissileArt._bounds(small, Transform3D.IDENTITY) if small != null else AABB()
 	_check("the quad's rocket is the same round at 0.7 (%.3f m)" % small_box.size.z, is_equal_approx(small_box.size.z, box.size.z * 0.7))
+	var round_model := AwMissileArt.ReloadParts.build(&"rocket")
+	var textured := round_model != null and round_model.get_child_count() == 1 and round_model.get_child(0).find_children("*", "MeshInstance3D", true, false).size() > 0
+	if textured:
+		for mi: Node in round_model.get_child(0).find_children("*", "MeshInstance3D", true, false):
+			var mesh := (mi as MeshInstance3D).mesh
+			var mat := mesh.surface_get_material(0) as BaseMaterial3D if mesh != null and mesh.get_surface_count() > 0 else null
+			textured = textured and mat != null and mat.albedo_texture != null
+	_check("the reload rocket is the baked, textured model, not primitives", textured)
+	if round_model != null:
+		round_model.free()
 	var gren := AwMissileArt.build(&"grenade_launcher")
 	_check("the quad's is smaller, the grenade launcher flies its round, a rifle has none", small != null and gren != null and AwMissileArt.build(&"rifle") == null)
 	for n: Node in [missile, small, gren]:

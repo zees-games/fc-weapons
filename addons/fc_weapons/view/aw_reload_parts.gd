@@ -20,6 +20,8 @@ const AMMO_BOX := &"ammo_box"
 const BOX_MAGAZINE := &"box_magazine"
 const DRUM_MAGAZINE := &"drum_magazine"
 ## The reload sequence's loose pieces (aw_reload_sequence.gd): cases thrown out, rounds carried in.
+## The rocket's baked model; [method _rocket] falls back to primitives without it.
+const ROCKET_MODEL := "res://addons/fc_weapons/assets/models/rocket_round.glb"
 const LOOSE := [&"casing", &"round", &"shell", &"grenade", &"grenade_case", &"rocket", &"speedloader", &"clip", &"belt"]
 
 
@@ -132,10 +134,22 @@ static func _grenade(live: bool) -> Node3D:
 	return root
 
 
-## A rocket, 45 cm along its own +Y, the launcher's warhead and not a stand-in cylinder: a dark booster tube with a
-## ring of four swept fins at its foot, a banded olive warhead that bulges out of it and tapers to a fuse probe,
-## the shape that reads as a rocket grenade at a hand's length. Fourteen primitives sharing three materials.
+## The launcher's round, 43 cm along its own +Y with the nozzle at the origin: the pack's baked, textured model
+## (tools/build_launchers.py `rocket_round`), else [method _rocket_primitives] for a game whose assets lack it.
 static func _rocket() -> Node3D:
+	if ResourceLoader.exists(ROCKET_MODEL):
+		var model := AwModelCache.instantiate_merged(ROCKET_MODEL)
+		if model != null:
+			var root := Node3D.new()
+			root.name = "Rocket"
+			root.add_child(model)
+			return root
+	return _rocket_primitives()
+
+
+## The same rocket from primitives: a dark booster tube with a ring of four swept fins at its foot, a banded olive
+## warhead that bulges out of it and tapers to a fuse probe. Fourteen primitives sharing three materials.
+static func _rocket_primitives() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Rocket"
 	var olive := _material(Color(0.33, 0.38, 0.22), 0.15, 0.6)

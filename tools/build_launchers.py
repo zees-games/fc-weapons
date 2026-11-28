@@ -22,7 +22,10 @@ rocket_launcher: one tube on the replaced model's bore line (y -0.0154), muzzle 
   tube         olive shell with a steel muzzle collar over a dark liner 0.42 m deep (no loaded warhead in sight, so a shot leaves
                none behind), seam ring, flared venturi with breech ring, motor face and nozzle, three clamp bands with screws
   frame        top spine, hooded rear aperture tower, front post with ears, shoulder rest with a rubber pad, sling loops
-  controls     trigger housing, raked pistol grip, guard and trigger, cocking lever, folding foregrip"""
+  controls     trigger housing, raked pistol grip, guard and trigger, cocking lever, folding foregrip
+rocket_round: the round a reload slides into a tube (view/aw_reload_parts.gd), 0.43 m along +Y, nose up, nozzle at y 0:
+  warhead      steel fuse probe, olive ogive and body with a dark band, tapering to the motor
+  motor        steel collar, dark booster tube, four steel fins, a flared steel nozzle with a dark throat"""
 import bpy, sys, os, math
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -405,7 +408,28 @@ def rocket_launcher():
     return ([('tube', m) for m in rocket_tube()] + [('frame', m) for m in rocket_frame()] + [('controls', m) for m in rocket_controls()])
 
 
-MODELS = {'grenade_launcher': grenade_launcher, 'quad_rocket_launcher': quad_rocket_launcher, 'rocket_launcher': rocket_launcher}
+def y_solid(profile, mat, segs=40):
+    """A capped solid of revolution about +Y: [(r, y)...] from the top down, closed to the axis at both ends."""
+    return lathe([(0, profile[0][1])] + profile + [(0, profile[-1][1])], mat, segs, 'y')
+
+
+def rocket_round():
+    ms = [('warhead', y_solid([(0.005, 0.432), (0.006, 0.426), (0.006, 0.402), (0.010, 0.400), (0.010, 0.395)], 'steel', 24))]
+    ms.append(('warhead', y_solid([(0.010, 0.405), (0.018, 0.391), (0.027, 0.373), (0.035, 0.351), (0.040, 0.329),
+                                   (0.042, 0.310), (0.042, 0.300)], 'od')))                                           # ogive
+    ms.append(('warhead', y_solid([(0.0415, 0.301), (0.0415, 0.240), (0.038, 0.232), (0.024, 0.212), (0.021, 0.205)], 'od')))
+    ms.append(('warhead', y_solid([(0.0430, 0.263), (0.0432, 0.262), (0.0432, 0.250), (0.0430, 0.249)], 'park')))     # band
+    ms.append(('motor', y_solid([(0.021, 0.207), (0.0215, 0.205), (0.0215, 0.188), (0.021, 0.186)], 'steel', 32)))   # collar
+    ms.append(('motor', y_solid([(0.016, 0.188), (0.016, 0.030)], 'park', 32)))                                       # booster
+    ms.append(('motor', y_solid([(0.017, 0.032), (0.019, 0.018), (0.021, 0.003), (0.020, 0.0)], 'steel', 32)))        # nozzle
+    ms.append(('motor', y_solid([(0.0145, 0.0005), (0.0145, -0.001)], 'core', 24)))                                    # throat
+    for k in range(4):
+        ms.append(('motor', box(0.026, 0.070, 0.0024, 'steel').xf(None, (0.029, 0.068, 0)).xf([('y', 45 + 90 * k)])))
+    return ms
+
+
+MODELS = {'grenade_launcher': grenade_launcher, 'quad_rocket_launcher': quad_rocket_launcher, 'rocket_launcher': rocket_launcher,
+          'rocket_round': rocket_round}
 
 
 def main():

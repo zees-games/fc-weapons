@@ -2,19 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://3bs48p3ulgbj"
-path="res://.godot/imported/combat_knife_2.jpg-b4a5a5c45f7151f40e1251cfa522d5f3.ctex"
+uid="uid://4ohjvfgg1ynv"
+path="res://.godot/imported/rocket_round_1.jpg-551ece882289230483686c93d84a0ff8.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "fee0fa5fd3b36fe56e8b7f7d1ef38528"
+"md5": "be4c071ee19745fffac6eab3d39441c1"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/combat_knife_2.jpg"
-dest_files=["res://.godot/imported/combat_knife_2.jpg-b4a5a5c45f7151f40e1251cfa522d5f3.ctex"]
+source_file="res://addons/fc_weapons/assets/models/rocket_round_1.jpg"
+dest_files=["res://.godot/imported/rocket_round_1.jpg-551ece882289230483686c93d84a0ff8.ctex"]
 
 [params]
 
