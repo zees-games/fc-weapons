@@ -190,10 +190,11 @@ static func _mark_mat() -> StandardMaterial3D:
 
 ## A width that stays about the same on screen at any distance.
 ## Fixed widths vanish: a tracer is seen end-on, and [param per_metre] 0.004 keeps it a few pixels wide.
+## Capped at 8 cm: 25 cm from a kill-cam far from the shot was a pink pillar (video 2026-11).
 func _screen_width(at: Vector3, per_metre: float) -> float:
 	var camera := get_viewport().get_camera_3d() if get_viewport() != null else null
 	var distance := camera.global_position.distance_to(at) if camera != null else 4.0
-	return clampf(distance * per_metre, 0.004, 0.25)
+	return clampf(distance * per_metre, 0.004, 0.08)
 
 
 ## How much larger an impact is drawn for being far away: 1 within six metres, rising to

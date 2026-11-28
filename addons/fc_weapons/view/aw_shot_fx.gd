@@ -334,7 +334,7 @@ func play_eject(port: Transform3D, id: StringName, speed_scale: float = 1.0, siz
 	_schedule_casing(port.origin, float(profile.get("delay", 0.0)))
 
 	var hull: bool = profile.get("hull", false)
-	var drawn := clampf(size_scale, 0.25, 4.0)
+	var drawn := clampf(size_scale, 0.25, 2.0)  # 4 drew flat dinner-plate casings (video 2026-11)
 	var length: float = float(profile["case"]) * shell_scale * drawn
 	var width: float = length * (0.42 if hull else 0.3)
 

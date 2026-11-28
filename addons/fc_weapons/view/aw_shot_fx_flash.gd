@@ -102,6 +102,10 @@ func _flash(muzzle: Transform3D, size: float, weapon_class: StringName = AwWeapo
 	# Twice the first seven was a pale square over the gun; seven, and later twelve, were
 	# still "almost no muzzle flash" in play tests and renders.
 	var across := 0.15 * size * randf_range(0.85, 1.15)
+	# Aimed down sights the muzzle is half a metre from the eye and the flash ignores depth: past ~10 cm it
+	# was an opaque orange sheet over the whole sight picture (video 2026-11).
+	if first_person:
+		across = minf(across, 0.1)
 	node.scale = Vector3.ONE * across
 
 	# Crossed petals along the barrel's line, so the flash has a direction and a shape and
@@ -113,6 +117,8 @@ func _flash(muzzle: Transform3D, size: float, weapon_class: StringName = AwWeapo
 		var turn := PI * float(i) / float(count)
 		var petal := _mesh(_quad_mesh(), _petal_mat())
 		var length := 0.16 * size * float(profile["length"]) * randf_range(0.85, 1.2)
+		if first_person:
+			length = minf(length, 0.2)
 		var width := 0.05 * size
 		var x := forward.cross(Vector3.UP if absf(forward.dot(Vector3.UP)) < 0.98 else Vector3.RIGHT).normalized()
 		x = x.rotated(forward, turn)
