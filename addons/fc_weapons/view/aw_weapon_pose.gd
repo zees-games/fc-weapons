@@ -112,6 +112,9 @@ var _landing: float = 0.0
 var _action_keys: Array = []
 var _action: float = 1.0
 var _action_seconds: float = 0.36
+## While a throw plays: the fractions of it between which the thrown weapon is out of the hand (x to y). Zero when
+## no throw is playing.
+var _throw_out: Vector2 = Vector2.ZERO
 
 ## How far into aiming down the weapon, 0 at the hip to 1 at full aim. See [method set_aim].
 var _aim: float = 0.0
@@ -255,8 +258,10 @@ func throw() -> void:
 		var keys: Array = [[0.0, cocked[0], cocked[1]]]
 		keys.append_array(tunables.throw_release_keys)
 		_start_action(keys, tunables.throw_release_seconds)
+		_throw_out = THROW_RELEASE_OUT
 		return
 	_start_action(tunables.throw_keys, tunables.throw_seconds)
+	_throw_out = THROW_OUT
 
 
 ## Plays a catch ([member Tunables.catch_keys]): the hand snaps forward to meet a returning weapon and gives with it.
@@ -294,6 +299,11 @@ func run_amount() -> float:
 ## How far through the swing or throw playing, 0 to 1; 1 when none is.
 func action_fraction() -> float:
 	return _action
+
+
+## Whether a throw playing has the thrown weapon out of the hand: released and not yet the next one up.
+func thrown_out() -> bool:
+	return _action < 1.0 and _action >= _throw_out.x and _action < _throw_out.y
 
 
 ## Starts looking the weapon over ([member Tunables.inspect_keys]). Refused (false) while it is not
@@ -349,6 +359,7 @@ func _start_action(keys: Array, seconds: float) -> void:
 	if keys.size() < 2:
 		return
 	_action_keys = keys
+	_throw_out = Vector2.ZERO
 	_action_seconds = seconds if is_finite(seconds) and seconds > 0.0 else 0.36
 	_action = 0.0
 

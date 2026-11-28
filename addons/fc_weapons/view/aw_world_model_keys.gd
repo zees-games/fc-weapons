@@ -52,6 +52,26 @@ const THROW_SECONDS := 0.55
 const THROW_RELEASE := 0.36
 const THROW_BACK := 0.9
 
+## A grenade's throw (a thrown-pose weapon, [constant AwWeaponArtTable.POSE_THROWN]): the grenade
+## leaves on the button's release, the projectile with it, so the arm is the person's knife-throw
+## release ([method throw] asks for `throw_release()`, a whip forward from the shoulder) and the
+## grenade is gone from [constant LOB_RELEASE], a few frames in, while the hand is still ahead of the
+## head. It comes back at [constant LOB_BACK] once the arm has dropped, grown in from
+## [constant LOB_BACK_SCALE] and risen from below the hand over the last keys: the next grenade out of
+## the pouch, not the same one snapping back into a hand at the hip (a judged pop).
+const LOB_KEYS := [
+	[0.0, Vector3.ZERO, Vector3.ZERO],
+	[0.12, Vector3(0.0, 0.01, -0.03), Vector3(-25.0, 0.0, 0.0)],
+	[0.40, Vector3(0.0, 0.0, -0.02), Vector3(-12.0, 0.0, 0.0)],
+	[0.72, Vector3(0.0, -0.07, 0.03), Vector3(10.0, 0.0, 0.0)],
+	[1.0, Vector3.ZERO, Vector3.ZERO],
+]
+
+const LOB_SECONDS := 0.95
+const LOB_RELEASE := 0.1
+const LOB_BACK := 0.72
+const LOB_BACK_SCALE := 0.35
+
 ## Looking the gun over, as a watcher sees it, timed to the first-person inspect's fraction (AwWeaponPose's INSPECT_KEYS):
 ## lifted toward the face and rolled further than those, since at twenty metres a 30 degree wrist reads as the gun at rest.
 ## Turned about the grip, so the hand stays on it and the support hand follows the fore-end round.

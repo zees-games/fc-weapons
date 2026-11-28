@@ -117,6 +117,12 @@ const THROW_RELEASE_KEYS := [
 	[1.0, Vector3.ZERO, Vector3.ZERO],
 ]
 
+## The fractions of [constant THROW_KEYS] and of [constant THROW_RELEASE_KEYS] (after the cocked key) between which a
+## thrown weapon is out of the hand: from the forward key, where it leaves, to the lowest one, where the next is
+## taken up from below the screen's edge. A grenade still drawn after the projectile left is two grenades.
+const THROW_OUT := Vector2(0.45, 0.62)
+const THROW_RELEASE_OUT := Vector2(0.18, 0.45)
+
 ## A catch: the hand reaches forward and opens to meet a returning blade, gives back with its weight, then settles.
 const CATCH_KEYS := [
 	[0.0, Vector3(-0.02, 0.05, -0.14), Vector3(18.0, 6.0, -8.0)],

@@ -278,6 +278,11 @@ func scope_breath_angles() -> Vector2:
 
 ## A charged weapon's draw, 0 to 1.
 func on_charge(fraction: float) -> void:
+	# A grenade's charge is its cook: the hand draws back by it like a knife's windup, and no charge ball glows on it.
+	if _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
+		_cook_windup = fraction if is_finite(fraction) and fraction > 0.0 else -1.0
+		_pose.set_windup(maxf(_cook_windup, _game_windup))
+		return
 	_pose.set_charge(fraction)
 	if fraction > 0.0 and _charge_fx == null and _built:
 		_charge_fx = ChargeFx.new()
@@ -291,7 +296,14 @@ func on_charge(fraction: float) -> void:
 ## A throw's meter (gs-weapon's `charge_of`): 0 to 1 while it winds up, below 0 when not. The hand draws back past
 ## the ear, further the fuller it is; the throw outcome then releases from there.
 func on_windup(fraction: float) -> void:
-	_pose.set_windup(fraction)
+	_game_windup = fraction if is_finite(fraction) and fraction >= 0.0 else -1.0
+	_pose.set_windup(maxf(_cook_windup, _game_windup))
+
+
+## The two meters a throw's hand draws back by: the game's (a knife's windup, [method on_windup]) and a grenade's
+## cook ([method on_charge]). Below 0 is none; both are sent every frame, so neither may clear the other.
+var _game_windup := -1.0
+var _cook_windup := -1.0
 
 
 ## The sprint stride for arms that pump the free hand: how much shows (0 to 1) and where in it, 0 to 1 a stride.
@@ -388,6 +400,9 @@ func advance(delta: float) -> void:
 	# The gun goes when the scope's picture is half up, in both scope views: the view model draws over the HUD,
 	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
 	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
+	# A thrown weapon is gone from the hand from its release until the next is taken up from below.
+	if _weapon != null and _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN and _weapon.visible == _pose.thrown_out():
+		_weapon.visible = not _weapon.visible
 	if _scope_glass != null:
 		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and is_visible_in_tree() and not scope_body_active(), _aim_fraction)
 	if _arms != null:

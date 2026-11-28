@@ -45,6 +45,36 @@ func run() -> void:
 	_frames(pose, 0.6, 0.0)
 	suite._check("and comes back to rest (%.3f m)" % pose.offset().origin.distance_to(rest), pose.offset().origin.distance_to(rest) < 0.01 and pose.windup_fraction() == 0.0)
 
+	var lobber := AwWeaponPose.make()
+	_frames(lobber, 0.3, 0.0)
+	var held_at_start := not lobber.thrown_out()
+	lobber.throw()
+	var out_frames := 0
+	var first_out := -1
+	var spans := 0
+	var was_out := false
+	for total in int(1.0 / STEP):
+		var out := lobber.thrown_out()
+		if out:
+			out_frames += 1
+			if first_out < 0:
+				first_out = total
+		if out and not was_out:
+			spans += 1
+		was_out = out
+		lobber.advance(STEP, Vector2.ZERO, 0.0, true)
+	suite._check("a thrown grenade leaves the hand once, early, and the next is back (%d frames out from frame %d, %d times)" % [out_frames, first_out, spans],
+		held_at_start and spans == 1 and out_frames > 3 and first_out >= 0 and first_out < 30 and not lobber.thrown_out())
+	lobber.set_windup(1.0)
+	_frames(lobber, 0.3, 0.0)
+	var cooked := not lobber.thrown_out() and lobber.windup_fraction() > 0.5
+	lobber.throw()
+	var out_after_cook := false
+	for i in int(0.4 / STEP):
+		lobber.advance(STEP, Vector2.ZERO, 0.0, true)
+		out_after_cook = out_after_cook or lobber.thrown_out()
+	suite._check("a cooked grenade is held through the windup and gone on the release", cooked and out_after_cook)
+
 	var melee := AwWeaponArtTable.sprint_pump(AwWeaponArtTable.POSE_MELEE)
 	suite._check("a blade pumps on a sprint and a gun does not", melee.length() > 0.0 and AwWeaponArtTable.sprint_pump(AwWeaponArtTable.POSE_THROWN).length() > 0.0
 		and AwWeaponArtTable.sprint_pump(&"rifle") == Vector3.ZERO)

@@ -77,6 +77,10 @@ var _action_keys: Array = []
 var _action_seconds: float = SWING_SECONDS
 var _action: float = 1.0
 var _action_hides: bool = false
+## The fractions of the playing throw between which the weapon is out of the hand, and the size it grows back from.
+var _action_release: float = THROW_RELEASE
+var _action_back: float = THROW_BACK
+var _action_back_scale: float = 1.0
 
 var _built: bool = false
 
@@ -326,8 +330,19 @@ func swing() -> void:
 ## Plays [constant THROW_KEYS]: what [method on_fired] does with a throw. Also starts the slash
 ## overlay on the person this hangs from, if it hangs from one.
 func throw() -> void:
-	_start_action(THROW_KEYS, THROW_SECONDS, true)
 	var person := _person()
+	if _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
+		_start_action(LOB_KEYS, LOB_SECONDS, true)
+		_action_release = LOB_RELEASE
+		_action_back = LOB_BACK
+		_action_back_scale = LOB_BACK_SCALE
+		if person != null:
+			if person.has_method(&"throw_release"):
+				person.call(&"throw_release")
+			else:
+				person.call(&"swing", &"slash")
+		return
+	_start_action(THROW_KEYS, THROW_SECONDS, true)
 	if person != null:
 		person.call(&"swing", &"slash")
 
@@ -359,6 +374,9 @@ func _start_action(keys: Array, seconds: float, hides: bool) -> void:
 	_action_keys = keys
 	_action_seconds = seconds
 	_action_hides = hides
+	_action_release = THROW_RELEASE
+	_action_back = THROW_BACK
+	_action_back_scale = 1.0
 	_action = 0.0
 	# The kick a swing used to be is not added to the cut: a knife pushed back along its own
 	# blade as it strikes reads as the hand flinching.
@@ -488,7 +506,10 @@ func advance(delta: float) -> void:
 		turn = Basis.from_euler(Vector3(
 			deg_to_rad(looked_degrees.x), deg_to_rad(looked_degrees.y), deg_to_rad(looked_degrees.z)
 		))
-	_show_in_hand(not (_action_hides and _action >= THROW_RELEASE and _action < THROW_BACK))
+	_show_in_hand(not (_action_hides and _action >= _action_release and _action < _action_back))
+	if _action_hides and _action_back_scale < 1.0 and _action >= _action_back and _action < 1.0:
+		turn = turn.scaled(Vector3.ONE * lerpf(_action_back_scale, 1.0,
+				smoothstep(_action_back, 1.0, _action)))
 	if _reload_blend > 0.0 and _carry == null:
 		var share := smoothstep(0.0, 1.0, _reload_blend)
 		moved += RELOAD_DIP * share
