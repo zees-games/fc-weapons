@@ -48,6 +48,8 @@ func _limit_checks(view: AwViewModel, a: AwWeaponVisual, b: AwWeaponVisual) -> v
 	await suite.get_tree().process_frame
 	var after := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
 	suite._check("30 more switches among three weapons add no nodes (%d -> %d -> %d)" % [base, settled, after], after == settled and view.equip_cache_size() == 2)
+	var EquipCache := preload("../addons/fc_weapons/view/aw_equip_cache.gd")
+	EquipCache.spill_evicted = false
 	var limited := _rig(true, 1)
 	limited.equip(a)
 	var gone := limited.weapon_node()
@@ -55,6 +57,21 @@ func _limit_checks(view: AwViewModel, a: AwWeaponVisual, b: AwWeaponVisual) -> v
 	limited.equip(_art(&"pistol"))
 	suite._check("past the limit the oldest kept weapon is freed (1 kept)", not is_instance_valid(gone) and limited.equip_cache_size() == 1)
 	limited.queue_free()
+	# Spilling (the default): the oldest goes to the shared store instead, and another view draws that very build.
+	EquipCache.spill_evicted = true
+	AwViewModel.prewarmed.clear()
+	var spilling := _rig(true, 1)
+	spilling.equip(a)
+	var spilled := spilling.weapon_node()
+	spilling.equip(b)
+	spilling.equip(_art(&"pistol"))
+	var other := _rig(true, 1)
+	other.equip(a)
+	suite._check("past the limit the oldest goes to the shared store and another view draws it (%d shared)" % AwViewModel.prewarmed.size(),
+		is_instance_valid(spilled) and other.weapon_node() == spilled and spilled.is_inside_tree())
+	spilling.queue_free()
+	other.queue_free()
+	AwViewModel.prewarmed.clear()
 
 
 func run() -> void:
@@ -116,8 +133,12 @@ func run() -> void:
 	for key: String in view._equip_cache._slots:
 		kept.append(view._equip_cache._slots[key].weapon)
 		count += 1
+	AwViewModel.prewarmed.clear()
 	view.free()
-	suite._check("freeing the view model frees every weapon it kept (%d)" % count, count > 0 and kept.all(func(n) -> bool: return not is_instance_valid(n)))
+	suite._check("freeing the view model hands every weapon it kept to the shared store (%d)" % count,
+		count > 0 and AwViewModel.prewarmed.size() == count and kept.all(func(n) -> bool: return is_instance_valid(n) and not n.is_inside_tree()))
+	AwViewModel.prewarmed.clear()
+	suite._check("and clearing the shared store frees them", kept.all(func(n) -> bool: return not is_instance_valid(n)))
 	await _late_checks()
 	_fitting_and_prewarm_checks()
 	suite._end()

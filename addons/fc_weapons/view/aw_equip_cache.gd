@@ -7,6 +7,13 @@ extends RefCounted
 ## The most weapons kept; the oldest stowed goes first. 0 keeps every one.
 var limit: int = 6
 
+## Where a slot pushed out by [member limit], or left when the view goes, is handed instead of being freed: the process's shared
+## [code]prewarmed[/code] store, so another view (a kill-view rig, the player's next life) takes the build rather than making it again.
+## Null frees them. Only used while [member spill_evicted] is on.
+var spill: RefCounted = null
+## False frees every slot pushed out, as before.
+static var spill_evicted := true
+
 ## Key -> slot Dictionary, oldest first (insertion order).
 var _slots: Dictionary = {}
 
@@ -37,8 +44,23 @@ func put(key: String, slot: Dictionary) -> void:
 	_slots[key] = slot
 	while limit > 0 and _slots.size() > limit:
 		var oldest: String = _slots.keys()[0]
-		free_slot(_slots[oldest])
+		var gone: Dictionary = _slots[oldest]
 		_slots.erase(oldest)
+		_drop(oldest, gone)
+
+
+## Hands everything kept to [member spill] (frees it without one): for a view that is going away.
+func spill_all() -> void:
+	for key: String in _slots.keys():
+		_drop(key, _slots[key])
+	_slots.clear()
+
+
+func _drop(key: String, slot: Dictionary) -> void:
+	if spill_evicted and spill != null and spill != self and not key.is_empty():
+		spill.call(&"put", key, slot)
+	else:
+		free_slot(slot)
 
 
 ## Frees everything kept.
