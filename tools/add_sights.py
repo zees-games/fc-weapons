@@ -69,6 +69,8 @@ SPECS = {
         ('front_ear1', box(0.0070, 0.0105, 0.3390, 0.3660, -0.652, -0.644))]),
     # Own hooded rear aperture (centre 0.185 at z 0.364) and own front post between guard ears (tip 0.185 at z -0.400): marks only.
     'quad_rocket_launcher': (0.1850, 0.364, -0.400, []),
+    # Own hooded rear aperture (centre 0.110 at z -0.030) and own front post between ears (tip 0.110 at z -0.460): marks only.
+    'rocket_launcher': (0.1100, -0.030, -0.460, []),
 }
 
 

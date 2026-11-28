@@ -122,8 +122,10 @@
   "_imported/energy_rifle_*.jpg-*"
  ],
  "weapon-frag": [
-  "addons/fc_weapons/assets/models/stick_grenade.*",
-  "_imported/stick_grenade.glb-*"
+  "addons/fc_weapons/assets/models/frag_grenade.*",
+  "addons/fc_weapons/assets/models/frag_grenade_?.*",
+  "_imported/frag_grenade.glb-*",
+  "_imported/frag_grenade_?.jpg-*"
  ],
  "weapon-sticky": [
   "addons/fc_weapons/assets/models/frag_grenade_alt.*",
