@@ -65,6 +65,21 @@ func run() -> void:
 	var scope := _aim_through_cycle()
 	suite._check("a scoped gun leaves the scope while it cycles and looks through it again after (aim %.2f in, %.2f cycling, %.2f after)" % [scope[0], scope[1], scope[2]],
 		scope[0] > 0.99 and scope[1] < 0.5 and scope[2] > 0.99)
+	var strung := _string_of_shots(&"sniper", AwSpawnProvider.weapon_defs())
+	suite._check("the sniper works its bolt after each of three shots at its own fire interval, and is ready again before the next (interval %.2f s, bolt travel per shot %s, idle at each next shot %s)" % [strung.interval, strung.travel, strung.idle],
+		strung.interval >= 0.6 and strung.travel.size() == 3 and strung.travel.all(func(t: float) -> bool: return t > 0.06) and strung.idle.all(func(i: bool) -> bool: return i))
+	var belt: Node3D = load("res://addons/fc_weapons/view/aw_belt_feed.gd").new()
+	suite.add_child(belt)
+	belt.build(Vector3.ZERO, Vector3(0.0, 0.0, -0.3))
+	var flattest := INF
+	for i in 120:
+		belt.step()
+		belt.advance(1.0 / 60.0)
+		for r in belt.get_children():
+			flattest = minf(flattest, absf((r as Node3D).transform.basis.determinant()))
+	belt.queue_free()
+	suite._check("a belt round shrinks out of sight without ever getting a flat transform (smallest determinant %s)" % flattest,
+		flattest > 1e-12)
 	suite._end()
 
 
@@ -93,3 +108,36 @@ func _aim_through_cycle() -> Array:
 	var out := [before, low, view._aim_fraction]
 	view.queue_free()
 	return out
+
+
+## Three shots in a row at the weapon's own fire interval (the rig's gate): per shot how far the bolt travelled, and whether the
+## cycle had ended by the time the next shot is due.
+func _string_of_shots(id: StringName, defs: Array) -> Dictionary:
+	var def: GSWeaponDef = null
+	for d: GSWeaponDef in defs:
+		if String(d.id) == "aw_" + String(id):
+			def = d
+	var interval := float(def.use_interval_ticks) / float(AwWeaponPack.TICK_RATE) if def != null else 0.0
+	var view := AwViewModel.new()
+	view.show_arms = false
+	view.fire_interval = interval
+	suite.add_child(view)
+	var art := AwWeaponVisual.make(id)
+	AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[id])
+	view.equip(art)
+	var part := view.weapon_node().find_child(String(art.bolt_node), true, false) as Node3D
+	var home := part.position
+	var travel: Array[float] = []
+	var idle: Array[bool] = []
+	var shot := GSWeaponOutcome.of(GSWeaponOutcome.KIND_SHOT)
+	shot.used = true
+	for n in 3:
+		view.on_used(shot)
+		var far := 0.0
+		for i in int(ceil(interval * 60.0)):
+			view.advance(1.0 / 60.0)
+			far = maxf(far, part.position.distance_to(home))
+		travel.append(far)
+		idle.append(view._cycle_t < 0.0 and part.position.distance_to(home) < 0.000001)
+	view.queue_free()
+	return {"interval": interval, "travel": travel, "idle": idle}

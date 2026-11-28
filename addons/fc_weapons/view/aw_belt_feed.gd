@@ -2,6 +2,8 @@ extends Node3D
 ## The belt of a belt-fed gun: rounds from the ammo box to the feed tray, one step per shot.
 ## Six instances of one mesh and material, a child of the weapon; nothing draws unless firing.
 
+## Smallest scale a belt round shrinks to: nothing flat, so the sight cut can invert its transform.
+const MIN_GROW := 0.001
 const COUNT := 6
 ## Rounds per second the belt can be pulled at: a gun firing faster than this shows a belt at its limit, not a blur.
 const MAX_RATE := 14.0
@@ -58,7 +60,10 @@ func _place() -> void:
 		var node := _rounds[i]
 		node.position = at
 		# The round that has just wrapped is hidden: it is in the receiver, and a new one is at the box.
-		node.scale = Vector3.ONE * clampf(minf(t, 1.0 - t) * 12.0, 0.0, 1.0)
+		# Hidden by shrinking, never to exactly nothing: a flat basis has no inverse, and the sight cut walks these meshes.
+		var grow := clampf(minf(t, 1.0 - t) * 12.0, 0.0, 1.0)
+		node.scale = Vector3.ONE * maxf(grow, MIN_GROW)
+		node.visible = grow > 0.0
 
 
 ## One cartridge on its link, along +Y with the base at the origin side: a brass case (rim, body, shoulder, neck), a
