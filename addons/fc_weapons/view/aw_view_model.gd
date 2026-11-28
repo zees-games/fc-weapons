@@ -30,10 +30,11 @@ const SCOPE_LOWER_TIME := 0.3
 var _charge_fx: Node3D = null
 ## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
 ## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
-const REAR_RING_SHOW_AIM := 0.35
+const REAR_RING_SHOW_AIM := 0.7
 ## The aim at which the rings start to fade in: from here to [constant REAR_RING_SHOW_AIM] they go from clear to solid,
 ## so the ring grows into the picture as the gun rises instead of popping in on one frame (and out on the way down).
-const REAR_RING_FADE_FROM := 0.1
+## The window is wide because a raise takes ~0.16 s: a narrow one fits inside a single frame and reads as a pop.
+const REAR_RING_FADE_FROM := 0.05
 
 
 ## Hides the whole rig. What a "view model" video setting toggles.
