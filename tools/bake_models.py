@@ -1,7 +1,7 @@
 """Bakes the source models into this pack: generic names, muzzle toward -Z, scaled to hand size, origin at the grip.
 Run: blender -b -P tools/bake_models.py -- <source dir>... <addons/fc_weapons/assets/models>
 Each source file is looked up by name in every source dir (Styloo's zEmission GLB folder, the Polyy packs' models, the knife's folder); a missing one is skipped.
-The sticky, flash, smoke and incendiary grenades and the knife are own work now: tools/build_thrown_melee.py."""
+The sticky, flash, smoke and incendiary grenades and the knife are own work now (tools/build_thrown_melee.py), the grenade launcher too (tools/build_launchers.py)."""
 import bpy, sys, os, math, mathutils
 args = sys.argv[sys.argv.index('--') + 1:]
 srcs, dst = args[:-1], args[-1]
@@ -18,7 +18,7 @@ M = {'pistol': ('pew.glb', 1.35, 1, None), 'smg': ('mac10.glb', 1.15, 1, None), 
      'battle_rifle': ('semi_auto_service_rifle_low.glb', 1.0, 1, (-0.2, -0.03, 0)), 'burst_rifle': ('modern_tactical_carbine_low.glb', 0.8, 1, (-0.12, -0.08, 0)),
      'drum_shotgun': ('bullpup_box_shotgun_low.glb', 0.85, -1, (-0.05, -0.1, 0)), 'marksman': ('bolt_action_sniper_rifle_low.glb', 1.1, 1, (-0.3, -0.05, 0)),
      'minigun': ('handheld_minigun_low.glb', 0.95, 0, (0, -0.05, 0.3)), 'lmg': ('belt_fed_light_machine_gun_low.glb', 1.05, 1, (-0.25, -0.08, 0)),
-     'grenade_launcher': ('revolving_grenade_launcher_low.glb', 0.8, 1, (-0.15, -0.12, 0)), 'plasma_rifle': ('plasma_rifle_low.glb', 0.85, 0, (0, -0.08, 0.2)),
+     'plasma_rifle': ('plasma_rifle_low.glb', 0.85, 0, (0, -0.08, 0.2)),
      'rail_rifle': ('railgun_sniper_low.glb', 1.15, 1, (-0.22, -0.08, 0)),
      # Blade along +Y (a melee model's forward is up), origin in the handle already.
      'knife': ('Knife.obj', 0.85, 0, None)}

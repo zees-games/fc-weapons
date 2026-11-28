@@ -63,6 +63,13 @@
         "title": "Own-work knife and sticky, flash, smoke and incendiary grenades (tools/build_thrown_melee.py; textured by gs-weapon texbake)"
     },
     {
+        "paths": ["addons/fc_weapons/assets/models/grenade_launcher.glb", "addons/fc_weapons/assets/models/grenade_launcher_0.jpg", "addons/fc_weapons/assets/models/grenade_launcher_1.jpg", "addons/fc_weapons/assets/models/grenade_launcher_2.jpg", "tools/build_launchers.py"],
+        "licence": "CC0-1.0",
+        "author": "TMC",
+        "url": "https://github.com/zees-games/fc-weapons",
+        "title": "Own-work revolving grenade launcher (tools/build_launchers.py; textured by gs-weapon texbake)"
+    },
+    {
         "paths": ["addons/fc_weapons/assets/sounds/"],
         "licence": "CC0-1.0",
         "author": "Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney (freefirearmsfx.com)",

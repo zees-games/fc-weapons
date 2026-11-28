@@ -188,6 +188,19 @@ def build(name, parts, out_dir):
         tris += sum(max(1, len(p.vertices) - 2) for p in me.polygons)
         # sharp edges where the surface turns more than 40 degrees: keeps boxes crisp, tubes smooth
         me.set_sharp_from_angle(angle=math.radians(40))
+    # one object per part name: the bake runs per object and the game draws per surface, so hundreds of small pieces cost both
+    groups = {}
+    for ob in bpy.context.scene.collection.objects:
+        groups.setdefault(ob.data.name.split('.')[0], []).append(ob)
+    for pname, obs in groups.items():
+        if len(obs) < 2:
+            continue
+        bpy.ops.object.select_all(action='DESELECT')
+        for ob in obs:
+            ob.select_set(True)
+        bpy.context.view_layer.objects.active = obs[0]
+        bpy.ops.object.join()
+        obs[0].name = obs[0].data.name = pname
     bpy.ops.object.select_all(action='DESELECT')
     path = os.path.join(out_dir, name + '.glb')
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', export_yup=True, export_apply=False, export_materials='EXPORT', export_image_format='AUTO')
