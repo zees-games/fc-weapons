@@ -92,7 +92,11 @@ extends RefCounted
 #     cooling_batch(command, tick, entries, k): a server takes a trigger held inside its cadence from the posture row in one
 #     native call (or joined to the idle batch) instead of a context and the full tick (needs gs-weapon API 59; would_cool is
 #     false on older ones). Same bits. Additive.
-const LEVEL := 48
+# 49: AwShotFx.trace_ray(eye, dir, reach), the presentation ray, and AwShotFx.body_trace: a game's
+#     func(eye, dir, reach) -> {position, normal, collider} that decides where a shot meets its characters (the ray
+#     then ignores CharacterBody3Ds), so a flesh spark lands on the zones the game hurts, not the wider movement capsule
+#     or nothing when a client holds no capsule. Additive.
+const LEVEL := 49
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

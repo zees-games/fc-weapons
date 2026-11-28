@@ -614,17 +614,13 @@ func _trace(
 	var collider: Object = null
 	var shape := -1
 
-	var space := get_world_3d().direct_space_state if get_world_3d() != null else null
-	if space != null:
-		var query := PhysicsRayQueryParameters3D.create(eye, eye + dir * reach, collision_mask, exclude)
-		query.collide_with_areas = false
-		var found := space.intersect_ray(query)
-		if not found.is_empty():
-			end = found["position"]
-			normal = found["normal"]
-			hit = true
-			collider = found.get("collider")
-			shape = int(found.get("shape", -1))
+	var found := trace_ray(eye, dir, reach)
+	if not found.is_empty():
+		end = found["position"]
+		normal = found["normal"]
+		hit = true
+		collider = found.get("collider")
+		shape = int(found.get("shape", -1))
 
 	if rail:
 		_rail_beam(muzzle, end)
@@ -635,6 +631,49 @@ func _trace(
 
 	if hit:
 		play_impact(end, normal, collider, weapon_class, shape)
+
+
+## Character bodies the presentation ray passes through, looking for the world behind them, before it gives up.
+const TRACE_PASSES := 8
+
+## Where the game says a shot meets its characters, or unset: [code]func(eye, dir, reach) -> Dictionary[/code] with
+## position, normal and collider (the character, so it draws as flesh) for the nearest body the shot really hits
+## within reach, or empty for none. A character's movement capsule is wider than the zones its game hurts, and a
+## client's world may hold no capsule for a remote player at all, so with this set the ray ignores
+## [CharacterBody3D]s and the game's answer decides every body; unset, the capsule is the body.
+var body_trace: Callable
+
+## Where the presentation ray from [param eye] along [param dir] lands within [param reach]: a dictionary with
+## position, normal, collider and shape, or empty for a miss. See [member body_trace] for the bodies.
+func trace_ray(eye: Vector3, dir: Vector3, reach: float) -> Dictionary:
+	var space := get_world_3d().direct_space_state if get_world_3d() != null else null
+	var judged := body_trace.is_valid()
+	var found := {}
+	if space != null:
+		var skip: Array[RID] = exclude
+		for _pass in TRACE_PASSES:
+			var query := PhysicsRayQueryParameters3D.create(eye, eye + dir * reach, collision_mask, skip)
+			query.collide_with_areas = false
+			found = space.intersect_ray(query)
+			var body := found.get("collider") as CharacterBody3D
+			if found.is_empty() or not judged or body == null:
+				break
+			if skip == exclude:
+				skip = exclude.duplicate()
+			skip.append(body.get_rid())
+			found = {}
+	if not judged:
+		return found
+	var world_reach := eye.distance_to(found["position"]) if found.has("position") else reach
+	var on_body: Dictionary = body_trace.call(eye, dir, world_reach)
+	if not on_body.has("position"):
+		return found
+	return {
+		"position": on_body["position"],
+		"normal": on_body.get("normal", -dir),
+		"collider": on_body.get("collider"),
+		"shape": -1,
+	}
 
 
 ## [param follow] (first person): the muzzle's current transform; the tracer's tail stays on the barrel while the shot's kick moves it, instead of
