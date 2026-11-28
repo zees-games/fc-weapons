@@ -214,6 +214,16 @@ static func cycle_back(f: float) -> float:
 	return 1.0 - smoothstep(CYCLE_SPLIT[1], CYCLE_SPLIT[2], f)
 
 
+## A bolt with a lift ([member AwWeaponVisual.bolt_lift]): its handle turns up over the first [constant LIFT_SPLIT][0], slides back
+## and home between, and turns down over the last stretch. [code]x[/code] is the lift (0 to 1), [code]y[/code] how far back it is.
+const LIFT_SPLIT: Array[float] = [0.15, 0.85]
+static func lifted_stroke(f: float) -> Vector2:
+	if f <= 0.0 or f >= 1.0:
+		return Vector2.ZERO
+	var lift := smoothstep(0.0, LIFT_SPLIT[0], f) * (1.0 - smoothstep(LIFT_SPLIT[1], 1.0, f))
+	return Vector2(lift, cycle_back((f - LIFT_SPLIT[0]) / (LIFT_SPLIT[1] - LIFT_SPLIT[0])))
+
+
 ## How much of the support hand is on the cycled part [param f] (the cycle's own 0 to 1, below 0 before it starts): it reaches
 ## over the wait and the first twentieth, stays through the stroke, lets go over the last fifth.
 static func cycle_reach(f: float, lead: float) -> float:

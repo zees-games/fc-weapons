@@ -56,11 +56,18 @@
         "title": "Stick Grenade (Poly Haven, CC0; baked to 1K by tools/bake_polyhaven_small.py)"
     },
     {
-        "paths": ["addons/fc_weapons/assets/models/knife_ph.glb", "addons/fc_weapons/assets/models/knife_ph_0.jpg", "addons/fc_weapons/assets/models/knife_ph_1.jpg", "addons/fc_weapons/assets/models/knife_ph_2.jpg"],
+        "paths": ["addons/fc_weapons/assets/models/combat_knife.glb", "addons/fc_weapons/assets/models/combat_knife_0.jpg", "addons/fc_weapons/assets/models/combat_knife_1.jpg", "addons/fc_weapons/assets/models/combat_knife_2.jpg", "addons/fc_weapons/assets/models/flash_grenade.glb", "addons/fc_weapons/assets/models/smoke_grenade.glb", "addons/fc_weapons/assets/models/incendiary_grenade.glb", "addons/fc_weapons/assets/models/frag_grenade_alt.glb", "tools/build_thrown_melee.py", "tools/blender_mesh_kit.py"],
         "licence": "CC0-1.0",
-        "author": "Mateusz Sadek",
-        "url": "https://polyhaven.com/a/fish_knife",
-        "title": "Fish Knife (Poly Haven, CC0; 2K PBR maps, mesh from tools/bake_polyhaven_small.py)"
+        "author": "TMC",
+        "url": "https://github.com/zees-games/fc-weapons",
+        "title": "Own-work knife and sticky, flash, smoke and incendiary grenades (tools/build_thrown_melee.py; textured by gs-weapon texbake)"
+    },
+    {
+        "paths": ["addons/fc_weapons/assets/models/grenade_launcher.glb", "addons/fc_weapons/assets/models/grenade_launcher_0.jpg", "addons/fc_weapons/assets/models/grenade_launcher_1.jpg", "addons/fc_weapons/assets/models/grenade_launcher_2.jpg", "addons/fc_weapons/assets/models/quad_rocket_launcher.glb", "addons/fc_weapons/assets/models/quad_rocket_launcher_0.jpg", "addons/fc_weapons/assets/models/quad_rocket_launcher_1.jpg", "addons/fc_weapons/assets/models/quad_rocket_launcher_2.jpg", "tools/build_launchers.py"],
+        "licence": "CC0-1.0",
+        "author": "TMC",
+        "url": "https://github.com/zees-games/fc-weapons",
+        "title": "Own-work revolving grenade launcher and quad rocket launcher (tools/build_launchers.py; textured by gs-weapon texbake)"
     },
     {
         "paths": ["addons/fc_weapons/assets/sounds/"],

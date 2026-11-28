@@ -25,6 +25,8 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 	art.cycle_style = StringName(str(row.get("cycle_style", "")))
 	art.cycle_time = float(row.get("cycle_time", 0.0))
 	art.bolt_axis = row.get("bolt_axis", Vector3(0.0, 0.0, 1.0))
+	art.bolt_lift = float(row.get("bolt_lift", 0.0))
+	art.bolt_pivot = row.get("bolt_pivot", Vector3.ZERO)
 	art.cycle_at = row.get("cycle_at", Vector3.ZERO)
 	art.attachments = []
 	art.reload = (row.get("reload", {}) as Dictionary).duplicate(true)

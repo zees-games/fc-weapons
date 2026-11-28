@@ -92,7 +92,9 @@ extends RefCounted
 #     cooling_batch(command, tick, entries, k): a server takes a trigger held inside its cadence from the posture row in one
 #     native call (or joined to the idle batch) instead of a context and the full tick (needs gs-weapon API 59; would_cool is
 #     false on older ones). Same bits. Additive.
-const LEVEL := 48
+# 49: AwWeaponVisual.bolt_lift / bolt_pivot (row keys `bolt_lift`, `bolt_pivot`), AwViewModel.lifted_stroke(f): a bolt-action's
+#     handle turns up, slides back and home, and turns down. Additive.
+const LEVEL := 49
 const OLDEST := 1
 
 ## The oldest addons this pack runs on. gs-weapon is checked by AwWeaponRig.setup(); gs-sim is optional (without it,

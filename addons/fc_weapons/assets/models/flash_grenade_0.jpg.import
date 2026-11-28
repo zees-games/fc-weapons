@@ -2,10 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c876p2308tktv"
+uid="uid://qjwu18s7yfkj"
 path="res://.godot/imported/flash_grenade_0.jpg-8ef5e4d5c4a59e80948d4dfaf52e7402.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "cb176876adbf20435ffd18a219083385"
 }
 
 [deps]
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -382,7 +382,11 @@ func _advance_cycle(delta: float) -> void:
 		return
 	_cycle_t += delta
 	var f := (_cycle_t - _cycle_wait) / _cycle_len
-	_set_bolt(cycle_back(f))
+	if _art.bolt_lift != 0.0:
+		var stroke := lifted_stroke(f)
+		_set_bolt(stroke.y, stroke.x)
+	else:
+		_set_bolt(cycle_back(f))
 	var cues: Array = CYCLE_CUES.get(_art.cycle_style, NO_CUES)
 	if cues.size() == 2:
 		if _cycle_heard == 0 and f >= 0.0:
@@ -402,28 +406,35 @@ func _end_cycle() -> void:
 
 
 ## Draws the art's [member AwWeaponVisual.bolt_node] [param back] (0 rest, 1 fully charged) of [member AwWeaponVisual.bolt_travel]
-## along [member AwWeaponVisual.bolt_axis] toward the stock. The rest position is kept on the node the first time it moves, so a
-## sequence cut short puts it back where it was. The way it moved, in the holder's space, is left in [member _cycle_shift].
-func _set_bolt(back: float) -> void:
+## along [member AwWeaponVisual.bolt_axis] toward the stock, turned [param lift] (0 to 1, below 0: up whenever it is back) of
+## [member AwWeaponVisual.bolt_lift] about [member AwWeaponVisual.bolt_pivot]. The rest transform is kept on the node the first time
+## it moves, so a sequence cut short puts it back. How the handle moved, in the holder's space, is left in [member _cycle_shift].
+func _set_bolt(back: float, lift: float = -1.0) -> void:
 	if _art == null or _art.bolt_node == &"" or _art.bolt_travel <= 0.0 or not is_instance_valid(_weapon):
 		return
 	var bolt := _weapon.find_child(String(_art.bolt_node), true, false) as Node3D
 	if bolt == null:
 		return
 	if not bolt.has_meta(&"aw_bolt_rest"):
-		bolt.set_meta(&"aw_bolt_rest", bolt.position)
-	var rest: Vector3 = bolt.get_meta(&"aw_bolt_rest")
+		bolt.set_meta(&"aw_bolt_rest", bolt.transform)
+	var rest: Transform3D = bolt.get_meta(&"aw_bolt_rest")
 	back = clampf(back, 0.0, 1.0)
-	bolt.position = rest + _art.bolt_axis * (_art.bolt_travel * back)
+	lift = clampf(back * 4.0 if lift < 0.0 else lift, 0.0, 1.0)
+	var moved := rest.translated(_art.bolt_axis * (_art.bolt_travel * back))
+	if _art.bolt_lift != 0.0 and lift > 0.0:
+		var turn := Transform3D(Basis(_art.bolt_axis.normalized(), deg_to_rad(_art.bolt_lift * lift)), Vector3.ZERO)
+		var pivot := Transform3D(Basis.IDENTITY, _art.bolt_pivot)
+		moved = pivot * turn * pivot.affine_inverse() * moved
+	bolt.transform = moved
 	_cycle_back = back
-	_cycle_shift = _shift_of(bolt, rest)
+	_cycle_shift = _shift_of(bolt, moved * rest.affine_inverse() * _art.cycle_at - _art.cycle_at)
 
 
-## [method _set_bolt]'s shift for a part deeper in the model: the node's own move, taken through the parents up to the holder.
-func _shift_of(bolt: Node3D, rest: Vector3) -> Vector3:
+## [method _set_bolt]'s [param moved] (the handle's move in the bolt's parent's space) taken through the parents up to the holder.
+func _shift_of(bolt: Node3D, moved: Vector3) -> Vector3:
 	var parent := bolt.get_parent() as Node3D
-	var moved := parent.global_transform * bolt.position - parent.global_transform * rest
-	return _holder.transform.basis * (_holder.global_transform.basis.inverse() * moved)
+	var world := parent.global_transform.basis * moved
+	return _holder.transform.basis * (_holder.global_transform.basis.inverse() * world)
 
 
 ## The scale that draws the hands at [member hands_fov]. See there.

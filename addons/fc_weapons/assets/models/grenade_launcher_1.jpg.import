@@ -2,13 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cn63lcxcpr2nw"
+uid="uid://mcc57vjyxaj7"
 path="res://.godot/imported/grenade_launcher_1.jpg-b7f2ff2c2bcbe730eb92253e1e3ecba0.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "343b3b44490a012d8d77ddae6a558634"
+"md5": "1b7234fb94a7a63fade1b5d86b31d9b4"
 }
 
 [deps]
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/grenade_launcher_1.jpg-b7f2ff2c2bcbe730eb9225
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

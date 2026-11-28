@@ -2,23 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qw7uo5vr7vab"
-path="res://.godot/imported/knife_ph_0.jpg-c50878f1ad87efa6fdb4f9d4c6c271aa.ctex"
+uid="uid://d1ttb3b3hphf2"
+path="res://.godot/imported/grenade_launcher_2.jpg-0ac5a4d8b93199a1004aeae2412944eb.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "d74ef300bf3c35efe097c713030aa73f"
+"md5": "46980b9f3c945a7d8b2c2b658c0fe02b"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/knife_ph_0.jpg"
-dest_files=["res://.godot/imported/knife_ph_0.jpg-c50878f1ad87efa6fdb4f9d4c6c271aa.ctex"]
+source_file="res://addons/fc_weapons/assets/models/grenade_launcher_2.jpg"
+dest_files=["res://.godot/imported/grenade_launcher_2.jpg-0ac5a4d8b93199a1004aeae2412944eb.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

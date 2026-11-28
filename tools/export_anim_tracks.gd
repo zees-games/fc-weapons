@@ -5,7 +5,7 @@ extends "res://addons/gs_weapon/tools/gs_weapon_anim_export.gd"
 ## godot --headless --path . --script tools/export_anim_tracks.gd -- out_dir sniper
 const Bake := preload("aw_anim_bake.gd")
 ## Models no weapon row uses, shown in Nightly as alternates of one the game does play: they get that weapon's clips baked on the alias's own model (its own grips and reach), marked alias_of.
-const ALIASES := {"sniper_ph": ["sniper_rifle"], "pistol_ph": ["pistol"], "knife_ph": ["knife"], "frag_grenade_alt": ["frag_grenade"]}
+const ALIASES := {"sniper_ph": ["sniper_rifle"], "pistol_ph": ["pistol"], "combat_knife": ["knife"], "frag_grenade_alt": ["frag_grenade"]}
 
 
 func _bake_all(host: Node3D, wanted: PackedStringArray) -> void:

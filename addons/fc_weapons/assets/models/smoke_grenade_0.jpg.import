@@ -2,10 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b8fr3gmi7t25t"
+uid="uid://c8xfe1iu133y4"
 path="res://.godot/imported/smoke_grenade_0.jpg-bd4fbc513171ba1d7cdb9f4cdaf02dcb.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "92620796ca0b20c60af97e69a38fa79b"
 }
 
 [deps]
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

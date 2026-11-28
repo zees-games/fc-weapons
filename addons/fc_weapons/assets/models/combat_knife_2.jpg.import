@@ -2,23 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://coufpufk7nrw0"
-path="res://.godot/imported/knife_ph_1.jpg-db89c0091325bda81e9f551e0689c153.ctex"
+uid="uid://3bs48p3ulgbj"
+path="res://.godot/imported/combat_knife_2.jpg-b4a5a5c45f7151f40e1251cfa522d5f3.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "fb2d0009bcee8902c6e68e6110232b6d"
+"md5": "0ff33ed010c439e6dab64ccd05319518"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/knife_ph_1.jpg"
-dest_files=["res://.godot/imported/knife_ph_1.jpg-db89c0091325bda81e9f551e0689c153.ctex"]
+source_file="res://addons/fc_weapons/assets/models/combat_knife_2.jpg"
+dest_files=["res://.godot/imported/combat_knife_2.jpg-b4a5a5c45f7151f40e1251cfa522d5f3.ctex"]
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

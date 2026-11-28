@@ -2,10 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cmvj7h4l53asv"
+uid="uid://c444gv6fuyx0b"
 path="res://.godot/imported/incendiary_grenade_1.jpg-2ba6437e62ead86643cdd377b5a7f6a9.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "ab90863c8db0ef8aa4c13c173393bd63"
 }
 
 [deps]
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -14,8 +14,8 @@ before rerunning on them."""
 import json, math, os, struct, sys
 
 STRIP = ('rear_', 'front_', 'sight_', 'muzzle_bore', 'feed_cover', 'bipod_')
-# A model whose far end is not its bore (the quad launcher's hanging guard juts past its tubes) gets a `muzzle_bore` empty here: AwModelCache.muzzle_bore reads it.
-BORE = {'quad_rocket_launcher': (0.0, 0.04, -0.413)}
+# A model whose far end is not its bore gets a `muzzle_bore` empty here: AwModelCache.muzzle_bore reads it. The quad's tube cluster centre is its bore.
+BORE = {'quad_rocket_launcher': (0.0, 0.04, -0.448)}
 
 
 def box(x0, x1, y0, y1, z0, z1):
@@ -67,10 +67,8 @@ SPECS = {
         ('front_post', taper((-0.0018, 0.0018, -0.651, -0.645, 0.3390), (-0.0012, 0.0012, -0.650, -0.645, 0.3630))),
         ('front_ear-1', box(-0.0105, -0.0070, 0.3390, 0.3660, -0.652, -0.644)),
         ('front_ear1', box(0.0070, 0.0105, 0.3390, 0.3660, -0.652, -0.644))]),
-    # Muzzles toward -Z since the bake turn was fixed (it fired out of the capped back): the round cap at z +0.03 (0.1854) takes the
-    # notch, and the cylinder between the low front ears at z -0.299 (0.1734, ears 0.178) takes a post.
-    'quad_rocket_launcher': (0.1910, 0.030, -0.299, notch(0.030, 0.1835, 0.1910, 0.0030, 0.0120, 0.008) + [
-        ('front_post', taper((-0.0018, 0.0018, -0.303, -0.295, 0.1700), (-0.0012, 0.0012, -0.301, -0.295, 0.1910)))]),
+    # Own hooded rear aperture (centre 0.185 at z 0.364) and own front post between guard ears (tip 0.185 at z -0.400): marks only.
+    'quad_rocket_launcher': (0.1850, 0.364, -0.400, []),
 }
 
 
@@ -162,9 +160,8 @@ def strip(j, bin_):
             im['bufferView'] = vmap[im['bufferView']]
     mats = sorted({p['material'] for m in j['meshes'] for p in m['primitives'] if 'material' in p})
     if len(mats) < len(j.get('materials', [])):
-        # Only the sight material can have gone unused; drop it so the rebuilt parts recreate exactly one.
-        names = [j['materials'][i].get('name') for i in range(len(j['materials'])) if i not in mats]
-        assert all(n == 'sight_metal' for n in names), names
+        # Drop every unused material: the stripped sight material (the rebuilt parts recreate exactly one) and the source
+        # materials a texture bake leaves in the list after it merged their faces into one atlas.
         xmap = {o: k for k, o in enumerate(mats)}
         j['materials'] = [j['materials'][i] for i in mats]
         for m in j['meshes']:

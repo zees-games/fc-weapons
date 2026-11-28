@@ -1,16 +1,15 @@
-"""Bakes the small Poly Haven props (stick grenade, fish knife, machete; CC0) into this pack's frame at the shipped 1K size.
+"""Bakes the small Poly Haven props (stick grenade, machete; CC0; the fish knife was replaced by tools/build_thrown_melee.py) into this pack's frame at the shipped 1K size.
 Blender 4.x, headless (numpy needed by the glTF importer):
   blender -b -P tools/bake_polyhaven_small.py -- <dir holding <asset>/<asset>_2k.gltf> <out dir> [name ...]
 Frame: origin at the grip, metres. Melee blades and the grenade stand upright along +Y (the pack's melee models do: the view turns +Y onto the line of sight);
 the grenade head is up. `forward` would lay a blade along -Z instead. Maps go to 1K JPEG (embedded), meshes are decimated to 50 %, node names are the asset's own parts.
-Sources: https://polyhaven.com/a/stick_grenade (singaii), /fish_knife (Mateusz Sadek), /machete (Ulan Cabanilla); all CC0."""
+Sources: https://polyhaven.com/a/stick_grenade (singaii), /machete (Ulan Cabanilla); all CC0."""
 import bpy, sys, math, os
 from mathutils import Matrix, Vector
 
 # out name -> (asset, tip-forward, scale, grip height in the source Y-up frame before the scale, roll about the long axis in degrees)
 M = {
     "stick_grenade": ("stick_grenade", False, 1.0, -0.075, 0.0),
-    "knife_ph": ("fish_knife", False, 1.5, -0.045, 0.0),
     "machete_ph": ("machete", False, 0.55, -0.11, 0.0),
 }
 argv = sys.argv[sys.argv.index("--") + 1:]

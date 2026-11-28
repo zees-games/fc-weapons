@@ -20,7 +20,7 @@ const SOCKETS := {
 	&"marksman": {"muzzle": Vector3(0.0, 0.090, -0.882), "underbarrel": Vector3(0.0, 0.040, -0.595), "side": Vector3(0.121, 0.090, -0.551)},
 	&"lmg": {"muzzle": Vector3(0.0, 0.161, -0.795), "optic": Vector3(0.0, 0.310, -0.181), "optic_scale": 2.0, "underbarrel": Vector3(0.0, 0.120, -0.520), "side": Vector3(0.172, 0.161, -0.477)},
 	&"sniper_ph": {"optic": Vector3(0.0, 0.084, -0.074), "replaces": ["scope", "scope_lens", "scope_reticle", "scope_eyecup", "scope_eyecup_lip"], "muzzle": Vector3(0.0, 0.078, -0.804), "underbarrel": Vector3(0.0, 0.060, -0.532), "side": Vector3(0.013, 0.078, -0.490)},
-	&"grenade_launcher": {"side": Vector3(0.132, 0.101, -0.281)},
+	&"grenade_launcher": {"side": Vector3(0.052, 0.100, -0.410)},
 	&"plasma_rifle": {"underbarrel": Vector3(0.0, -0.052, -0.375), "side": Vector3(0.081, 0.074, -0.341)},
 	&"rail_rifle": {"underbarrel": Vector3(0.0, 0.0, -0.601), "side": Vector3(0.034, 0.096, -0.566)},
 	&"rocket_launcher": {"warhead": Vector3(0.0, -0.015, -0.756)},

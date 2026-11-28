@@ -160,6 +160,7 @@ func drop_charge() -> void:
 	suite._check("cl_vm_reload_drop and cl_vm_reload_charge default to 1 and set to 0 (%s %s)" % [defaults, set_ok],
 		defaults and set_ok and feel.reload_drop == 0.0 and feel.reload_charge == 0.0)
 	_reload_bolt(rows)
+	_sniper_feed(rows)
 	_shot_bolt(rows)
 	suite._end()
 
@@ -187,6 +188,27 @@ func _reload_bolt(rows: Dictionary) -> void:
 		model.free()
 	suite._check("the rifle's bolt node (%s, %s) is drawn back with the charge and home at both ends (peak %.2f, start %.2f, end %.2f, uncharged %.2f)" % [rifle.bolt_node, has_bolt, peak, start_back, end_back, still_peak],
 		has_bolt and rifle.bolt_travel > 0.0 and peak > 0.95 and start_back == 0.0 and end_back == 0.0 and still_peak == 0.0)
+
+
+## The sniper's empty reload feeds round by round: the support hand travels up the receiver's side to the port, never above the
+## sight line and never far in one sample, so no frame shows the hand jump from below the stock to over the scope.
+func _sniper_feed(rows: Dictionary) -> void:
+	var sniper := AwWeaponVisual.make(&"sniper")
+	AwArtDress.apply(sniper, rows[&"sniper"])
+	var seq := ReloadSequence.new()
+	var anchors := ReloadSequence.anchors_for(Vector3.ZERO, Vector3(0, 0, -0.3), Vector3(0, 0, -0.6), null, sniper.reload.get("anchors", {}), Transform3D.IDENTITY)
+	seq.compose(sniper, anchors, 5, 0, 0.0)
+	var port: Vector3 = anchors[&"port"]
+	var top := -INF
+	var step := 0.0
+	var last := seq.left_hand(0.0)
+	for k in range(1, 601):
+		var at := seq.left_hand(float(k) / 600.0)
+		step = maxf(step, at.distance_to(last))
+		top = maxf(top, at.y - port.y)
+		last = at
+	suite._check("the sniper's support hand feeds each round up the receiver's side, no higher than 0.05 m over the port and under 0.02 m per 1/600 of the reload (top %.3f m, largest step %.4f m)" % [top, step],
+		top <= 0.05 and step < 0.02)
 
 
 ## The sniper cycles its bolt and the shotgun its pump after each shot: home at both ends, fully back between, the hand on the part
