@@ -56,7 +56,8 @@ func run() -> void:
 	_ok(whole, "every track holds exactly one value set per frame and each clip's length is its frames over 60")
 	_ok(_range(by.fire, "bolt") > 0.05 and _range(by.fire, "view_punch") > 0.5 and _range(by.fire, "weapon") > 0.01,
 			"a shot slides the bolt, kicks the view and moves the weapon")
-	_ok(_range(by.reload, "magazine") > 0.1 and _range(by.reload, "hand.left") > 0.1, "a reload carries the magazine and the support hand")
+	# The sniper reloads round by round (style bolt): no magazine, the round (prop.0) travels and the support hand feeds it.
+	_ok(maxf(_range(by.reload, "magazine"), _range(by.reload, "prop.0")) > 0.1 and _range(by.reload, "hand.left") > 0.1, "a reload carries the magazine (or the round) and the support hand")
 	_ok(_range(by.idle, "weapon") < 0.02 and _range(by.idle, "weapon") > 0.0, "the idle sway is small but not still")
 	_ok(sc.lens.reference_fov == GSViewLens.REFERENCE_FOV and sc.lens.max_pull_in == GSViewLens.MAX_PULL_IN, "the sidecar carries the game's lens constants")
 	var tp: Dictionary = sc.third_person
