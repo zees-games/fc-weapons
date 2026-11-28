@@ -123,6 +123,17 @@ const THROW_RELEASE_KEYS := [
 const THROW_OUT := Vector2(0.45, 0.62)
 const THROW_RELEASE_OUT := Vector2(0.18, 0.45)
 
+## While a throw plays: the fractions of it between which the thrown weapon is out of the hand (x to y). Zero when
+## no throw is playing.
+var _throw_out: Vector2 = Vector2.ZERO
+
+## Lens radii a full strafe shifts a scope by, the walk bob's full swing shakes it by, and a degree of climb lifts it by (see [method scope_offset]).
+const SCOPE_STRAFE_REACH := 0.06
+const SCOPE_BOB_REACH := 0.05
+const SCOPE_KICK_PER_DEGREE := 0.025
+## How far a full-rate turn drags the lens behind it, in lens radii: the glass drifts against the aim as the tube lags the hands.
+const SCOPE_LOOK_REACH := 0.08
+
 ## A catch: the hand reaches forward and opens to meet a returning blade, gives back with its weight, then settles.
 const CATCH_KEYS := [
 	[0.0, Vector3(-0.02, 0.05, -0.14), Vector3(18.0, 6.0, -8.0)],

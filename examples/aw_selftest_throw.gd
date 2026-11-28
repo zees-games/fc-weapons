@@ -45,35 +45,7 @@ func run() -> void:
 	_frames(pose, 0.6, 0.0)
 	suite._check("and comes back to rest (%.3f m)" % pose.offset().origin.distance_to(rest), pose.offset().origin.distance_to(rest) < 0.01 and pose.windup_fraction() == 0.0)
 
-	var lobber := AwWeaponPose.make()
-	_frames(lobber, 0.3, 0.0)
-	var held_at_start := not lobber.thrown_out()
-	lobber.throw()
-	var out_frames := 0
-	var first_out := -1
-	var spans := 0
-	var was_out := false
-	for total in int(1.0 / STEP):
-		var out := lobber.thrown_out()
-		if out:
-			out_frames += 1
-			if first_out < 0:
-				first_out = total
-		if out and not was_out:
-			spans += 1
-		was_out = out
-		lobber.advance(STEP, Vector2.ZERO, 0.0, true)
-	suite._check("a thrown grenade leaves the hand once, early, and the next is back (%d frames out from frame %d, %d times)" % [out_frames, first_out, spans],
-		held_at_start and spans == 1 and out_frames > 3 and first_out >= 0 and first_out < 30 and not lobber.thrown_out())
-	lobber.set_windup(1.0)
-	_frames(lobber, 0.3, 0.0)
-	var cooked := not lobber.thrown_out() and lobber.windup_fraction() > 0.5
-	lobber.throw()
-	var out_after_cook := false
-	for i in int(0.4 / STEP):
-		lobber.advance(STEP, Vector2.ZERO, 0.0, true)
-		out_after_cook = out_after_cook or lobber.thrown_out()
-	suite._check("a cooked grenade is held through the windup and gone on the release", cooked and out_after_cook)
+	_lobbed()
 
 	var melee := AwWeaponArtTable.sprint_pump(AwWeaponArtTable.POSE_MELEE)
 	suite._check("a blade pumps on a sprint and a gun does not", melee.length() > 0.0 and AwWeaponArtTable.sprint_pump(AwWeaponArtTable.POSE_THROWN).length() > 0.0
@@ -114,6 +86,39 @@ func run() -> void:
 	suite._end()
 
 
+## A grenade lobbed: out of the hand once and early, the next back; and held through a cook, gone on the release.
+func _lobbed() -> void:
+	var lobber := AwWeaponPose.make()
+	_frames(lobber, 0.3, 0.0)
+	var held_at_start := not lobber.thrown_out()
+	lobber.throw()
+	var out_frames := 0
+	var first_out := -1
+	var spans := 0
+	var was_out := false
+	for total in int(1.0 / STEP):
+		var out := lobber.thrown_out()
+		if out:
+			out_frames += 1
+			if first_out < 0:
+				first_out = total
+		if out and not was_out:
+			spans += 1
+		was_out = out
+		lobber.advance(STEP, Vector2.ZERO, 0.0, true)
+	suite._check("a thrown grenade leaves the hand once, early, and the next is back (%d frames out from frame %d, %d times)" % [out_frames, first_out, spans],
+		held_at_start and spans == 1 and out_frames > 3 and first_out >= 0 and first_out < 30 and not lobber.thrown_out())
+	lobber.set_windup(1.0)
+	_frames(lobber, 0.3, 0.0)
+	var cooked := not lobber.thrown_out() and lobber.windup_fraction() > 0.5
+	lobber.throw()
+	var out_after_cook := false
+	for i in int(0.4 / STEP):
+		lobber.advance(STEP, Vector2.ZERO, 0.0, true)
+		out_after_cook = out_after_cook or lobber.thrown_out()
+	suite._check("a cooked grenade is held through the windup and gone on the release", cooked and out_after_cook)
+
+
 ## A flashbang's pin comes out on the cook and is gone from the hand; the next grenade up has it back in.
 func _pin_pull() -> void:
 	var view := AwViewModel.new()
@@ -126,7 +131,7 @@ func _pin_pull() -> void:
 	var ring := view.weapon_node().find_child("pull_ring", true, false) as Node3D if view.weapon_node() != null else null
 	var home := ring.position if ring != null else Vector3.ZERO
 	view.advance(STEP)
-	var seated: bool = ring != null and ring.visible and not view.grenade_pin().pulled()
+	var seated: bool = ring != null and ring.visible and not view._pin.pulled()
 	view.on_charge(0.3)
 	var moved := 0.0
 	for i in int(0.1 / STEP):
@@ -139,7 +144,7 @@ func _pin_pull() -> void:
 	view._pose.throw()
 	for i in int(1.2 / STEP):
 		view.advance(STEP)
-	var back: bool = ring != null and ring.visible and ring.position.distance_to(home) < 0.0001 and not view.grenade_pin().pulled()
+	var back: bool = ring != null and ring.visible and ring.position.distance_to(home) < 0.0001 and not view._pin.pulled()
 	suite._check("a grenade's pin comes out on the cook (%.3f m), is gone, and the next grenade has it in" % moved, seated and moved > 0.01 and gone and back)
 	view.queue_free()
 

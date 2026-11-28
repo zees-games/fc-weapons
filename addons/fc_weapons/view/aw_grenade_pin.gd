@@ -55,6 +55,16 @@ func reset() -> void:
 			_parts[i].visible = true
 
 
+## Shows [param model] (the grenade in hand) while [param in_hand], with a fresh pin each time it comes back, and
+## moves the pin on by [param delta] seconds.
+func follow(model: Node3D, in_hand: bool, delta: float) -> void:
+	if model.visible != in_hand:
+		model.visible = in_hand
+		if in_hand:
+			reset()
+	advance(delta)
+
+
 ## Moves the pulled pin on by [param delta] seconds. Does nothing at rest or once it is gone.
 func advance(delta: float) -> void:
 	if _t < 0.0 or _t > SECONDS:

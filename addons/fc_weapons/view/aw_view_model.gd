@@ -312,12 +312,6 @@ var _cook_windup := -1.0
 ## The grenade in hand's pin ([code]aw_grenade_pin.gd[/code]): pulled on the cook, back in on the next grenade.
 var _pin := GrenadePin.new()
 
-
-## The pin of the grenade in hand, for a suite.
-func grenade_pin() -> RefCounted:
-	return _pin
-
-
 ## The sprint stride for arms that pump the free hand: how much shows (0 to 1) and where in it, 0 to 1 a stride.
 func run_amount() -> float:
 	return _pose.run_amount()
@@ -412,14 +406,9 @@ func advance(delta: float) -> void:
 	# The gun goes when the scope's picture is half up, in both scope views: the view model draws over the HUD,
 	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
 	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
-	# A thrown weapon is gone from the hand from its release until the next is taken up from below.
-	# The next grenade up has its pin back in.
+	# A thrown weapon is gone from the hand from its release until the next, pin back in, is taken up from below.
 	if _weapon != null and _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
-		if _weapon.visible == _pose.thrown_out():
-			_weapon.visible = not _weapon.visible
-			if _weapon.visible:
-				_pin.reset()
-		_pin.advance(delta)
+		_pin.follow(_weapon, not _pose.thrown_out(), delta)
 	if _scope_glass != null:
 		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and is_visible_in_tree() and not scope_body_active(), _aim_fraction)
 	if _arms != null:

@@ -77,10 +77,6 @@ var _action_keys: Array = []
 var _action_seconds: float = SWING_SECONDS
 var _action: float = 1.0
 var _action_hides: bool = false
-## The fractions of the playing throw between which the weapon is out of the hand, and the size it grows back from.
-var _action_release: float = THROW_RELEASE
-var _action_back: float = THROW_BACK
-var _action_back_scale: float = 1.0
 
 var _built: bool = false
 
@@ -336,11 +332,7 @@ func throw() -> void:
 		_action_release = LOB_RELEASE
 		_action_back = LOB_BACK
 		_action_back_scale = LOB_BACK_SCALE
-		if person != null:
-			if person.has_method(&"throw_release"):
-				person.call(&"throw_release")
-			else:
-				person.call(&"swing", &"slash")
+		_ask_release(person)
 		return
 	_start_action(THROW_KEYS, THROW_SECONDS, true)
 	if person != null:
@@ -507,9 +499,9 @@ func advance(delta: float) -> void:
 			deg_to_rad(looked_degrees.x), deg_to_rad(looked_degrees.y), deg_to_rad(looked_degrees.z)
 		))
 	_show_in_hand(not (_action_hides and _action >= _action_release and _action < _action_back))
-	if _action_hides and _action_back_scale < 1.0 and _action >= _action_back and _action < 1.0:
-		turn = turn.scaled(Vector3.ONE * lerpf(_action_back_scale, 1.0,
-				smoothstep(_action_back, 1.0, _action)))
+	var grown := _regrown(_action_hides, _action)
+	if grown < 1.0:
+		turn = turn.scaled(Vector3.ONE * grown)
 	if _reload_blend > 0.0 and _carry == null:
 		var share := smoothstep(0.0, 1.0, _reload_blend)
 		moved += RELOAD_DIP * share

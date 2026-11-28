@@ -112,9 +112,6 @@ var _landing: float = 0.0
 var _action_keys: Array = []
 var _action: float = 1.0
 var _action_seconds: float = 0.36
-## While a throw plays: the fractions of it between which the thrown weapon is out of the hand (x to y). Zero when
-## no throw is playing.
-var _throw_out: Vector2 = Vector2.ZERO
 
 ## How far into aiming down the weapon, 0 at the hip to 1 at full aim. See [method set_aim].
 var _aim: float = 0.0
@@ -133,13 +130,6 @@ var _windup_out: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]  # [method _windu
 ## Where full aim moves the weapon to, relative to where it rests. Set by the view model
 ## from the art, because the resting place is the art's and so is the sight line.
 var aim_shift := Vector3.ZERO
-
-## Lens radii a full strafe shifts a scope by, the walk bob's full swing shakes it by, and a degree of climb lifts it by (see [method scope_offset]).
-const SCOPE_STRAFE_REACH := 0.06
-const SCOPE_BOB_REACH := 0.05
-const SCOPE_KICK_PER_DEGREE := 0.025
-## How far a full-rate turn drags the lens behind it, in lens radii: the glass drifts against the aim as the tube lags the hands.
-const SCOPE_LOOK_REACH := 0.08
 
 ## What is left of the sway and bob at full aim, on top of the feel rules' steadiness (1 leaves them).
 var aim_sway_scale: float = 1.0
@@ -257,11 +247,9 @@ func throw() -> void:
 	if shown > 0.05 and tunables.throw_release_keys.size() >= 1:
 		var keys: Array = [[0.0, cocked[0], cocked[1]]]
 		keys.append_array(tunables.throw_release_keys)
-		_start_action(keys, tunables.throw_release_seconds)
-		_throw_out = THROW_RELEASE_OUT
+		_start_action(keys, tunables.throw_release_seconds, THROW_RELEASE_OUT)
 		return
-	_start_action(tunables.throw_keys, tunables.throw_seconds)
-	_throw_out = THROW_OUT
+	_start_action(tunables.throw_keys, tunables.throw_seconds, THROW_OUT)
 
 
 ## Plays a catch ([member Tunables.catch_keys]): the hand snaps forward to meet a returning weapon and gives with it.
@@ -355,11 +343,11 @@ func _advance_inspect(step: float) -> void:
 		_inspect_weight = 0.0
 
 
-func _start_action(keys: Array, seconds: float) -> void:
+func _start_action(keys: Array, seconds: float, out: Vector2 = Vector2.ZERO) -> void:
 	if keys.size() < 2:
 		return
 	_action_keys = keys
-	_throw_out = Vector2.ZERO
+	_throw_out = out  # a throw's out-of-hand window; none for anything else
 	_action_seconds = seconds if is_finite(seconds) and seconds > 0.0 else 0.36
 	_action = 0.0
 
