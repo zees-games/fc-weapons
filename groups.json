@@ -116,10 +116,10 @@
   "_imported/plasma_rifle_?.jpg-*"
  ],
  "weapon-charge_rifle": [
-  "addons/fc_weapons/assets/models/rail_rifle.*",
-  "addons/fc_weapons/assets/models/rail_rifle_?.*",
-  "_imported/rail_rifle.glb-*",
-  "_imported/rail_rifle_?.jpg-*"
+  "addons/fc_weapons/assets/models/energy_rifle.*",
+  "addons/fc_weapons/assets/models/energy_rifle_*.*",
+  "_imported/energy_rifle.glb-*",
+  "_imported/energy_rifle_*.jpg-*"
  ],
  "weapon-frag": [
   "addons/fc_weapons/assets/models/stick_grenade.*",

@@ -24,12 +24,10 @@ signal model_ready(id: StringName, weapon: Node3D)
 @export_group("Behaviour")
 
 const ChargeFx := preload("aw_charge_fx.gd")
+const GrenadePin := preload("aw_grenade_pin.gd")
 ## The shortest time (seconds) a scope takes to lower from full aim.
 const SCOPE_LOWER_TIME := 0.3
 var _charge_fx: Node3D = null
-## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
-## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
-const REAR_RING_SHOW_AIM := 0.35
 
 
 ## Hides the whole rig. What a "view model" video setting toggles.
@@ -124,6 +122,7 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 
 	_reused = reuse and cache_equips and _unstow(_equip_key(art))
 	if _reused:
+		_pin.bind(_weapon if art.pose == AwWeaponArtTable.POSE_THROWN else null)  # perf-lint: allow dynamic_call AwGrenadePin.bind, a typed method (not Callable.bind), once per equip
 		return GSResult.success(_weapon)
 
 	_weapon = AwModelCache.instantiate(art.model_path)
@@ -135,6 +134,7 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 
 	_weapon.name = "Weapon"
 	_drop_parts(art)
+	_pin.bind(_weapon if art.pose == AwWeaponArtTable.POSE_THROWN else null)  # perf-lint: allow dynamic_call AwGrenadePin.bind, a typed method (not Callable.bind), once per equip
 	_holder.add_child(_weapon)
 	_set_on_top(_weapon)
 	return GSResult.success(_weapon)
@@ -278,6 +278,13 @@ func scope_breath_angles() -> Vector2:
 
 ## A charged weapon's draw, 0 to 1.
 func on_charge(fraction: float) -> void:
+	# A grenade's charge is its cook: the hand draws back by it like a knife's windup, and no charge ball glows on it.
+	if _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
+		_cook_windup = fraction if is_finite(fraction) and fraction > 0.0 else -1.0
+		if _cook_windup > 0.0:
+			_pin.pull()  # the pin comes out as the cook starts, once per grenade
+		_pose.set_windup(maxf(_cook_windup, _game_windup))
+		return
 	_pose.set_charge(fraction)
 	if fraction > 0.0 and _charge_fx == null and _built:
 		_charge_fx = ChargeFx.new()
@@ -291,8 +298,16 @@ func on_charge(fraction: float) -> void:
 ## A throw's meter (gs-weapon's `charge_of`): 0 to 1 while it winds up, below 0 when not. The hand draws back past
 ## the ear, further the fuller it is; the throw outcome then releases from there.
 func on_windup(fraction: float) -> void:
-	_pose.set_windup(fraction)
+	_game_windup = fraction if is_finite(fraction) and fraction >= 0.0 else -1.0
+	_pose.set_windup(maxf(_cook_windup, _game_windup))
 
+
+## The two meters a throw's hand draws back by: the game's (a knife's windup, [method on_windup]) and a grenade's
+## cook ([method on_charge]). Below 0 is none; both are sent every frame, so neither may clear the other.
+var _game_windup := -1.0
+var _cook_windup := -1.0
+## The grenade in hand's pin ([code]aw_grenade_pin.gd[/code]): pulled on the cook, back in on the next grenade.
+var _pin := GrenadePin.new()
 
 ## The sprint stride for arms that pump the free hand: how much shows (0 to 1) and where in it, 0 to 1 a stride.
 func run_amount() -> float:
@@ -388,6 +403,9 @@ func advance(delta: float) -> void:
 	# The gun goes when the scope's picture is half up, in both scope views: the view model draws over the HUD,
 	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
 	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
+	# A thrown weapon is gone from the hand from its release until the next, pin back in, is taken up from below.
+	if _weapon != null and _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
+		_pin.follow(_weapon, not _pose.thrown_out(), delta)
 	if _scope_glass != null:
 		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and is_visible_in_tree() and not scope_body_active(), _aim_fraction)
 	if _arms != null:
@@ -456,9 +474,7 @@ func _apply_aim(f: float) -> void:
 	var hip := _art.view_transform()
 	if _sight != null:
 		SightFit.fade(_sight, f)
-	for ring in _rear_rings:
-		if is_instance_valid(ring):
-			ring.visible = f >= REAR_RING_SHOW_AIM
+	_fade_rear_rings(f)
 	if f <= 0.0:
 		_aim_node.transform = Transform3D.IDENTITY
 		_pose.pivot = hip.origin
@@ -515,6 +531,8 @@ func _fit_sight_line(art: AwWeaponVisual) -> void:
 	for ring in _rear_rings:
 		if is_instance_valid(ring):
 			ring.visible = true
+			_set_clear(ring, 0.0)
+	_ring_fade = -1.0
 	_rear_rings = Describe.find_rear_rings(_weapon)
 	var camera := get_parent() as Camera3D
 	var near := (camera.near if camera != null else 0.05) + NEAR_MARGIN
@@ -770,4 +788,3 @@ func describe() -> Dictionary:
 
 func describe_lines() -> PackedStringArray:
 	return Describe.describe_lines(self)
-

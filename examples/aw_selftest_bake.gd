@@ -56,13 +56,13 @@ func run() -> void:
 	_ok(whole, "every track holds exactly one value set per frame and each clip's length is its frames over 60")
 	_ok(_range(by.fire, "bolt") > 0.05 and _range(by.fire, "view_punch") > 0.5 and _range(by.fire, "weapon") > 0.01,
 			"a shot slides the bolt, kicks the view and moves the weapon")
-	# The sniper loads one round through the bolt (no magazine of its own since its per-round reload): the hand carries the round in.
-	var round_range := -1.0
+	# The sniper loads a five-round stripper clip through the bolt (no magazine of its own): the hand carries the clip in.
+	var clip_range := -1.0
 	var reload_props: Dictionary = by.reload.props
 	for k in reload_props:
-		if str((reload_props[k] as Dictionary).get("part", "")) == "round":
-			round_range = maxf(round_range, _range(by.reload, "prop.%s" % str(k)))
-	_ok(round_range > 0.1 and _range(by.reload, "hand.left") > 0.1, "a bolt reload carries its round and the support hand (round %.3f)" % round_range)
+		if str((reload_props[k] as Dictionary).get("part", "")) == "clip":
+			clip_range = maxf(clip_range, _range(by.reload, "prop.%s" % str(k)))
+	_ok(clip_range > 0.1 and _range(by.reload, "hand.left") > 0.1, "a bolt reload carries its stripper clip and the support hand (clip %.3f)" % clip_range)
 	# A magazine reload, on a gun that has one: the magazine and the support hand both travel.
 	var mag_gun := Bake.new().bake(suite, &"battle_rifle", defs[&"battle_rifle"])
 	var mag_reload: Dictionary = {}

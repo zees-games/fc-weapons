@@ -21,6 +21,13 @@
         "title": "High-poly AK-47 (OpenGameArt, CC0; rebuilt by tools/build_own_ak.py, textured by addons/gs_weapon/tools/texbake/tex_pipeline.sh)"
     },
     {
+        "paths": ["addons/fc_weapons/assets/models/energy_rifle.glb"],
+        "licence": "CC-BY-4.0",
+        "author": "Fainclaw",
+        "url": "https://sketchfab.com/3d-models/gameready-sci-fi-energy-rifle-b50bbacccf794e7fa0bc9c61c80d0315",
+        "title": "Sci-fi energy rifle (Sketchfab, CC BY 4.0; rescaled with its origin at the grip by tools/build_sf_rifles.py)"
+    },
+    {
         "paths": ["addons/fc_weapons/assets/models/burst_rifle.glb"],
         "licence": "CC-BY-4.0",
         "author": "8sianDude",

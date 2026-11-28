@@ -24,6 +24,9 @@ RECIPES = {
 		'drop': ('Scope001', 'Silencer001', 'Plane006', 'MainBody003', 'Grip002'),
 		'loose': ('MainBody001',),
 		'boxes': {'magazine': ((-4.5, -5.6, -15.3), (-1.0, 4.0, 3.9)), 'drop': ((5.0, -100.0, -100.0), (100.0, 100.0, 100.0))}},
+	# Sci-fi energy rifle by Fainclaw (CC-BY-4.0), the charge_rifle. Source: Z up, muzzle -Y, 0.84 units long; 0.9 m here. No
+	# magazine (the cell reload brings its own), so every mesh, the optic glass too, is the body.
+	'energy_rifle': {'length': 0.9, 'muzzle': '-Y', 'grip': (0.0, 0.1066, -0.045), 'drop': ()},
 }
 
 args = sys.argv[sys.argv.index('--') + 1:]

@@ -2,16 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dd552mgx3jkvn"
-path="res://.godot/imported/rail_rifle_2.jpg-52b64fc8b8f00cfe4d22f043fd621729.ctex"
+uid="uid://2x3vvii7atgg"
+path="res://.godot/imported/energy_rifle_Rifle_baseColor.jpg-f421ca88b4103c2daea8becd27dd4331.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "ca71af2c746db84bd8e07aa1c97c4839"
 }
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/rail_rifle_2.jpg"
-dest_files=["res://.godot/imported/rail_rifle_2.jpg-52b64fc8b8f00cfe4d22f043fd621729.ctex"]
+source_file="res://addons/fc_weapons/assets/models/energy_rifle_Rifle_baseColor.jpg"
+dest_files=["res://.godot/imported/energy_rifle_Rifle_baseColor.jpg-f421ca88b4103c2daea8becd27dd4331.ctex"]
 
 [params]
 
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

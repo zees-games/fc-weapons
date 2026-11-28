@@ -326,8 +326,15 @@ func swing() -> void:
 ## Plays [constant THROW_KEYS]: what [method on_fired] does with a throw. Also starts the slash
 ## overlay on the person this hangs from, if it hangs from one.
 func throw() -> void:
-	_start_action(THROW_KEYS, THROW_SECONDS, true)
 	var person := _person()
+	if _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
+		_start_action(LOB_KEYS, LOB_SECONDS, true)
+		_action_release = LOB_RELEASE
+		_action_back = LOB_BACK
+		_action_back_scale = LOB_BACK_SCALE
+		_ask_release(person)
+		return
+	_start_action(THROW_KEYS, THROW_SECONDS, true)
 	if person != null:
 		person.call(&"swing", &"slash")
 
@@ -359,6 +366,9 @@ func _start_action(keys: Array, seconds: float, hides: bool) -> void:
 	_action_keys = keys
 	_action_seconds = seconds
 	_action_hides = hides
+	_action_release = THROW_RELEASE
+	_action_back = THROW_BACK
+	_action_back_scale = 1.0
 	_action = 0.0
 	# The kick a swing used to be is not added to the cut: a knife pushed back along its own
 	# blade as it strikes reads as the hand flinching.
@@ -488,7 +498,10 @@ func advance(delta: float) -> void:
 		turn = Basis.from_euler(Vector3(
 			deg_to_rad(looked_degrees.x), deg_to_rad(looked_degrees.y), deg_to_rad(looked_degrees.z)
 		))
-	_show_in_hand(not (_action_hides and _action >= THROW_RELEASE and _action < THROW_BACK))
+	_show_in_hand(not (_action_hides and _action >= _action_release and _action < _action_back))
+	var grown := _regrown(_action_hides, _action)
+	if grown < 1.0:
+		turn = turn.scaled(Vector3.ONE * grown)
 	if _reload_blend > 0.0 and _carry == null:
 		var share := smoothstep(0.0, 1.0, _reload_blend)
 		moved += RELOAD_DIP * share

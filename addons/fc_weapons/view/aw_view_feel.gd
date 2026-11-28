@@ -96,8 +96,8 @@ var reload_detail: float = 1.0
 ## A magazine reload drops the old magazine, 1; 0 drops only an empty one and stows a part-used one in the pouch.
 var reload_drop: float = 1.0
 
-## A magazine reload works the charging handle or slide every time (throwing the chambered round), 1; 0 only after the last round.
-var reload_charge: float = 1.0
+## A magazine reload works the charging handle or slide only after the last round, 0 (a tactical reload keeps its chambered round); 1 every time.
+var reload_charge: float = 0.0
 
 
 func cvar_specs() -> Array[Dictionary]:
@@ -139,7 +139,7 @@ func cvar_specs() -> Array[Dictionary]:
 		{"name": CVAR_RELOAD_DROP, "value": str(reload_drop), "min": 0.0, "max": 1.0,
 			"description": "Magazine reloads drop the old magazine: 1 always (default), 0 only when empty (else it goes to the pouch)"},
 		{"name": CVAR_RELOAD_CHARGE, "value": str(reload_charge), "min": 0.0, "max": 1.0,
-			"description": "Magazine reloads work the charging handle or slide: 1 always (default, a chambered round flies out), 0 only when empty"},
+			"description": "Magazine reloads work the charging handle or slide: 0 only when empty (default), 1 always (a chambered round flies out)"},
 	]
 
 

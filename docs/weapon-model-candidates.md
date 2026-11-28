@@ -53,3 +53,7 @@ Pistol: `hold (0.12, -0.06, -0.36)`, view `scale 1.4`, `support_grip` as the old
 ## sniper_ph at 2K (fc-weapons-modeldetail)
 
 `sniper_ph` ships at 2048 px maps and the full 18.3k-triangle mesh (was 1K and 50 % decimated, 9.1k): `bake_polyhaven.py`, then `shrink_glb.py --tex 2048 --ratio 1.0` (Blender with numpy on its path). Source: Poly Haven `bolt_action_rifle_7_62` by Mateusz Sadek, CC0 (https://polyhaven.com/a/bolt_action_rifle_7_62), already in `CREDITS.md`. The glb is 11.9 MB; its maps are extracted beside it. Before/after: `screenshots/modeldetail/`.
+
+## charge_rifle: energy_rifle (fc-groupb-inrepo-1)
+
+The charge rifle's model is Fainclaw's sci-fi energy rifle, CC BY 4.0 (https://sketchfab.com/3d-models/gameready-sci-fi-energy-rifle-b50bbacccf794e7fa0bc9c61c80d0315), built by `tools/build_sf_rifles.py energy_rifle` with its own PBR maps at 2K. It replaces Polyy's untextured `rail_rifle` (the model and its `tools/trim_rail_rifle.py` are removed). The cell reload brings its own part, so the model has no `mag_node`.

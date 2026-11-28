@@ -52,6 +52,49 @@ const THROW_SECONDS := 0.55
 const THROW_RELEASE := 0.36
 const THROW_BACK := 0.9
 
+## A grenade's throw (a thrown-pose weapon, [constant AwWeaponArtTable.POSE_THROWN]): the grenade
+## leaves on the button's release, the projectile with it, so the arm is the person's knife-throw
+## release ([method throw] asks for `throw_release()`, a whip forward from the shoulder) and the
+## grenade is gone from [constant LOB_RELEASE], a few frames in, while the hand is still ahead of the
+## head. It comes back at [constant LOB_BACK] once the arm has dropped, grown in from
+## [constant LOB_BACK_SCALE] and risen from below the hand over the last keys: the next grenade out of
+## the pouch, not the same one snapping back into a hand at the hip (a judged pop).
+const LOB_KEYS := [
+	[0.0, Vector3.ZERO, Vector3.ZERO],
+	[0.12, Vector3(0.0, 0.01, -0.03), Vector3(-25.0, 0.0, 0.0)],
+	[0.40, Vector3(0.0, 0.0, -0.02), Vector3(-12.0, 0.0, 0.0)],
+	[0.72, Vector3(0.0, -0.07, 0.03), Vector3(10.0, 0.0, 0.0)],
+	[1.0, Vector3.ZERO, Vector3.ZERO],
+]
+
+const LOB_SECONDS := 0.95
+const LOB_RELEASE := 0.1
+const LOB_BACK := 0.72
+const LOB_BACK_SCALE := 0.35
+
+## The fractions of the playing throw between which the weapon is out of the hand, and the size it grows back from.
+var _action_release: float = THROW_RELEASE
+var _action_back: float = THROW_BACK
+var _action_back_scale: float = 1.0
+
+
+## Asks [param person] (none is fine) for its throw's arm: the knife-throw release where it has one, else the slash.
+static func _ask_release(person: Node) -> void:
+	if person == null:
+		return
+	if person.has_method(&"throw_release"):  # perf-lint: allow dynamic_call duck-typed person, once per throw
+		person.call(&"throw_release")  # perf-lint: allow dynamic_call duck-typed person, once per throw
+	else:
+		person.call(&"swing", &"slash")  # perf-lint: allow dynamic_call duck-typed person, once per throw
+
+
+## The size the next thrown weapon up is drawn at, [param at] through a throw that [param hides] it: grown in
+## from [member _action_back_scale] after [member _action_back], else full size.
+func _regrown(hides: bool, at: float) -> float:
+	if not hides or _action_back_scale >= 1.0 or at < _action_back or at >= 1.0:
+		return 1.0
+	return lerpf(_action_back_scale, 1.0, smoothstep(_action_back, 1.0, at))
+
 ## Looking the gun over, as a watcher sees it, timed to the first-person inspect's fraction (AwWeaponPose's INSPECT_KEYS):
 ## lifted toward the face and rolled further than those, since at twenty metres a 30 degree wrist reads as the gun at rest.
 ## Turned about the grip, so the hand stays on it and the support hand follows the fore-end round.

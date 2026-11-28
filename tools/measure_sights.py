@@ -4,7 +4,7 @@ import numpy as np
 import trimesh
 
 GUNS = ["pistol", "revolver", "machine_pistol", "derringer", "smg", "rifle", "carbine", "bullpup", "battle_rifle", "burst_rifle", "sniper_rifle", "marksman", "pump_shotgun",
-        "drum_shotgun", "lmg", "minigun", "rocket_launcher", "rocket_launcher_alt", "quad_rocket_launcher", "grenade_launcher", "plasma_rifle", "rail_rifle"]
+        "drum_shotgun", "lmg", "minigun", "rocket_launcher", "rocket_launcher_alt", "quad_rocket_launcher", "grenade_launcher", "plasma_rifle", "energy_rifle"]
 for name in GUNS:
     if not os.path.exists(os.path.join(sys.argv[1], name + ".glb")):
         print(f"{name}: not baked")

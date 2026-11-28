@@ -71,6 +71,9 @@ const PULL_CLEAR_RAMP := 0.2
 ## The drawn gun's distance from the eye now, as a share of where the pose puts it (1 = not pulled).
 var _pull: float = 1.0
 
+## The pull as drawn: [member _pull], faded out over the aim of a grown scope body.
+var _pull_drawn: float = 1.0
+
 ## False until the first pull after the gun was drawn: that one takes the target at once, so a gun drawn beside a wall starts
 ## already pulled instead of closing on it over the first frames (a 0.03 m jump at the start of the launcher's walk clip).
 var _pull_primed: bool = false
@@ -78,7 +81,7 @@ var _pull_primed: bool = false
 
 ## The drawn gun's pull toward the eye now (1 = not pulled).
 func world_pull_share() -> float:
-	return _pull
+	return _pull_drawn
 
 
 ## Probes the drawn gun as posed and pulls it toward the eye out of the world it reaches into. True while it is still in the world after the pull.
@@ -98,13 +101,19 @@ func _pull_out_of_world(delta: float) -> bool:
 		_pull = target
 	else:
 		_pull = move_toward(_pull, target, world_pull_release * delta)
-	if _pull < 1.0 and _animated != null:
-		var about_eye := Transform3D(Basis.from_scale(Vector3.ONE * _pull), Vector3.ZERO)
+	# A scope body is grown about the eye on purpose (the stock past the near plane, the ocular filling the lens circle): pulled, it
+	# was scaled back down and the near-plane clear shoved it a metre out, a pinhole lens. The pull fades out over the aim instead
+	# (a snap to none jumped the gun 0.37 m on the first aim frame) and the wall-free pass draws what reaches through the plane.
+	var scoped := _aim_fraction > 0.0 and scope_body_active()
+	_pull_drawn = lerpf(_pull, 1.0, clampf(_aim_fraction, 0.0, 1.0)) if scoped else _pull
+	if _pull_drawn < 1.0 and _animated != null:
+		var about_eye := Transform3D(Basis.from_scale(Vector3.ONE * _pull_drawn), Vector3.ZERO)
 		_animated.transform = transform.affine_inverse() * about_eye * transform * _animated.transform
 		# The pull scales the gun about the eye after the wall pass cleared the near plane, so a long gun pulled to life size
 		# against a wall (the launcher running into one) comes back through the plane: clear what the pull brought through.
-		_clear_pulled_gun_of_near_plane(_pull)
-	return share < 1.0 and _pull > share * 0.995
+		if not scoped:
+			_clear_pulled_gun_of_near_plane(_pull_drawn)
+	return share < 1.0 and _pull_drawn > share * 0.995
 
 
 ## The drawn gun's life size as a share of its drawn size: the nearest the pull may bring it, so it never comes in front of the hands. 1 when unknown.

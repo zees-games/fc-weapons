@@ -2,7 +2,7 @@ class_name AwArtDress
 extends RefCounted
 
 ## Gives a stand-in [AwWeaponVisual] another pack's model and hold from that pack's art row
-## (`{model, muzzle, motion, world_scale (third-person size), view: {hold, rot, scale, aim, zoom, scoped, iron, sight}}`, `sight: "red_dot"` for an optic); aimed, the model's own sight is used. The hip hold is a layer of its own
+## (`{model, muzzle, motion, world_scale (third-person size), world_offset, world_rotation (a gun's third-person hold off the grip), view: {hold, rot, scale, aim, zoom, scoped, iron, sight}}`, `sight: "red_dot"` for an optic); aimed, the model's own sight is used. The hip hold is a layer of its own
 ## (`view_offset`, `view_rotation`, `view_scale`) that a sprint or lowered pose blends over in [AwWeaponPose]; nothing here animates.
 
 const SIGHT_RELIEF := 0.32
@@ -58,8 +58,10 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 	art.iron_sight = bool(view.get("iron", not view.has("aim")))
 	art.sight_red_dot = str(view.get("sight", "")) == "red_dot"
 	art.aim_eye_relief = SIGHT_RELIEF
-	art.world_offset = Vector3.ZERO
-	art.world_rotation = Vector3.ZERO
+	# The third-person hold off the grip, for a gun whose length behind the grip runs into the body (`world_offset`,
+	# metres in the hand's frame) or that the carry holds nose-down (`world_rotation`, degrees); none is the bare grip.
+	art.world_offset = _vec(row.get("world_offset"), Vector3.ZERO)
+	art.world_rotation = _vec(row.get("world_rotation"), Vector3.ZERO)
 	art.aim_rotation = Vector3.ZERO
 	art.view_scale = float(view.get("scale", 1.0))
 	art.view_drop = PackedStringArray(view.get("drop", []))
@@ -88,6 +90,15 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 	# The gun's own scope look (`scope`: overlay exports such as lens_circle and reticle_colour), set on the overlay by its follow().
 	if view.get("scope") is Dictionary:
 		art.scope_style = (view["scope"] as Dictionary).duplicate()
+
+
+## [param v] as a vector (a Vector3 or a 3-number array), else [param fallback].
+static func _vec(v: Variant, fallback: Vector3) -> Vector3:
+	if v is Vector3:
+		return v
+	if v is Array and (v as Array).size() == 3:
+		return Vector3(float(v[0]), float(v[1]), float(v[2]))
+	return fallback
 
 
 ## A melee or thrown row's own hip hold (`hold`, `rot`, `scale`), over the stand-in's shared one; a row without them keeps the stand-in's.

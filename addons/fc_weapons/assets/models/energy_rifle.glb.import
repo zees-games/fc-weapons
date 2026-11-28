@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://duetxfscnlaqu"
-path="res://.godot/imported/rail_rifle.glb-74b7e89bca66d153cc763e52661a90dd.scn"
+uid="uid://cjbjfk58t5v2r"
+path="res://.godot/imported/energy_rifle.glb-2a772eea9b69cff69fb413bec22771ba.scn"
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/rail_rifle.glb"
-dest_files=["res://.godot/imported/rail_rifle.glb-74b7e89bca66d153cc763e52661a90dd.scn"]
+source_file="res://addons/fc_weapons/assets/models/energy_rifle.glb"
+dest_files=["res://.godot/imported/energy_rifle.glb-2a772eea9b69cff69fb413bec22771ba.scn"]
 
 [params]
 
