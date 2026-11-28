@@ -23,6 +23,8 @@ const GUN := {
 
 ## A prop's height above the hand that carries it, so it reads as held between the fingers.
 const CARRY := Vector3(0.0, 0.035, 0.0)
+## Where a bolt gun's single rounds are taken from after the first: loops on the support side, just below and behind the port.
+const LOOPS := Vector3(-0.10, -0.08, 0.06)
 ## Gun length per style the parts are sized for; a model drawn at another size scales them with it.
 const REAL_LENGTH := {&"pistol": 0.22, &"revolver": 0.28, &"magazine": 0.85, &"cell": 0.8, &"tube": 1.0, &"bolt": 1.1, &"belt": 1.1, &"launcher": 0.75}
 ## Which part each style reloads with.
@@ -301,9 +303,18 @@ func _bolt(clips: int) -> void:
 	_add(&"bolt_up", 0.06, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.0))
 	_add(&"bolt_back", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.09))
 	for c in clips:
-		_add(StringName("fetch_%d" % c), 0.24 / clips, &"port", &"pouch" if c == 0 else &"near", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.09))
-		_add(StringName("clip_%d" % c), 0.10 / clips, &"port", &"port", Vector3(0.0, 0.07, 0.0), &"bolt", Vector3(0.0, 0.03, 0.09))
-		_add(StringName("press_%d" % c), 0.12 / clips, &"port", &"port", Vector3(0.0, 0.02, 0.0), &"bolt", Vector3(0.0, 0.03, 0.09))
+		# The first round comes from the pouch and the hand rises to the loops beside the receiver; the next ones come
+		# from those loops, a short reach, so five single rounds never whip the hand a hand's length a frame.
+		if c == 0:
+			_add(&"fetch_0", 0.08 + 0.16 / clips, &"port", &"pouch", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.09))
+			_add(&"rise_0", 0.06, &"port", &"port", LOOPS, &"bolt", Vector3(0.0, 0.03, 0.09))
+		else:
+			_add(StringName("fetch_%d" % c), 0.16 / clips, &"port", &"port", LOOPS, &"bolt", Vector3(0.0, 0.03, 0.09))
+		# The hand comes up the support side of the receiver before it turns in over the port, so the round travels round
+		# the gun (and under a scope) instead of jumping from below the stock to above the sight in one key.
+		_add(StringName("side_%d" % c), 0.10 / clips, &"port", &"port", Vector3(-0.08, -0.02, 0.02), &"bolt", Vector3(0.0, 0.03, 0.09))
+		_add(StringName("clip_%d" % c), 0.10 / clips, &"port", &"port", Vector3(-0.02, 0.035, 0.0), &"bolt", Vector3(0.0, 0.03, 0.09))
+		_add(StringName("press_%d" % c), 0.10 / clips, &"port", &"port", Vector3(0.0, 0.01, 0.0), &"bolt", Vector3(0.0, 0.03, 0.09))
 	_add(&"bolt_fwd", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.0))
 	_add(&"bolt_down", 0.05, &"port", &"fore", Vector3.ZERO, &"bolt")
 	_add(&"return", 0.06, &"settle", &"fore")
@@ -311,7 +322,7 @@ func _bolt(clips: int) -> void:
 	_eject_cases(&"casing", ejected, &"bolt_back", &"port")
 	for c in clips:
 		props.append({"part": &"clip", "segments": [[_mid(StringName("fetch_%d" % c)), _t1(StringName("clip_%d" % c)), "hand", Vector3.ZERO, 0],
-			[_t1(StringName("clip_%d" % c)), _t1(StringName("press_%d" % c)), "at", (_anchors[&"port"] as Vector3) + Vector3(0.0, 0.05, 0.0), 0]]})
+			[_t1(StringName("clip_%d" % c)), _t1(StringName("press_%d" % c)), "at", (_anchors[&"port"] as Vector3) + Vector3(-0.01, 0.025, 0.0), 0]]})
 
 
 func _belt(stub: bool) -> void:
