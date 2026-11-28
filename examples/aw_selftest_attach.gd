@@ -57,8 +57,16 @@ func _attachments() -> void:
 	_check("a fitting survives the wire", cat.decode(rifle, cat.encode(rifle, full)).key() == full.key())
 	_check("art for an id the pack does not draw is empty", AwAttachmentArt.of(&"no_such").is_empty() and AwAttachmentArt.of(&"holo").get("zoom", 0.0) == 0.75)
 
+	var tube := AwWeaponVisual.new()
+	AwArtDress.apply(tube, AwWeaponArt.row_of(&"launcher"))
+	var held := tube.world_transform()
+	var nose := -held.basis.z.normalized()
+	_check("a launcher's row holds it forward of the grip and nose up, clear of the pack (%s, nose %s)" % [held.origin, nose],
+		held.origin.z < -0.05 and nose.y > 0.1 and is_equal_approx(tube.world_scale, 1.8))
+
 	var art := AwWeaponVisual.new()
 	AwArtDress.apply(art, AwWeaponArt.row_of(&"rifle"))
+	_check("a gun row without a world hold keeps the bare grip", art.world_offset == Vector3.ZERO and art.world_rotation == Vector3.ZERO)
 	var gun := AwModelCache.instantiate(art.model_path)
 	var dressed := Dress.apply(gun, full, art.model_forward, {})
 	_check("all five draw on the rifle's sockets", dressed.parts.size() == 5)
