@@ -301,8 +301,14 @@ func _tube_props(count: int) -> void:
 		props.append({"part": StringName(str(_spec.get("round", "shell"))), "segments": [[_mid(StringName("fetch_%d" % i)), _t1(StringName("push_%d" % i)), "hand", Vector3.ZERO, 0]]})
 
 
-## [param part] is what the hand carries in: the row's `part` (a sniper's single "round"), a stripper clip by default.
+## [param part] is what the hand carries in (the row's `part`): a stripper [code]clip[/code] stood in the guides over the port
+## and stripped down, or a single round ([code]cartridge[/code], [code]round[/code]) laid into the open port and thumbed down.
 func _bolt(clips: int, part: StringName = &"clip") -> void:
+	var single := part != &"clip"
+	var at: StringName = &"port" if single else &"clip"
+	var set_at := Vector3(0.0, 0.014, 0.0) if single else Vector3.ZERO
+	var seat_at := Vector3(0.0, 0.006, 0.0) if single else Vector3.ZERO
+	var press_at := Vector3(0.0, -0.010, 0.0) if single else Vector3(0.0, -0.025, 0.0)
 	_add(&"lift", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt")
 	_add(&"bolt_up", 0.06, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.0))
 	_add(&"bolt_back", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.09))
@@ -317,10 +323,11 @@ func _bolt(clips: int, part: StringName = &"clip") -> void:
 		# The hand comes up the support side of the receiver before it turns in over the port, so the round travels round
 		# the gun (and under a scope) instead of jumping from below the stock to above the sight in one key.
 		_add(StringName("side_%d" % c), 0.10 / clips, &"port", &"port", Vector3(-0.08, -0.02, 0.02), &"bolt", Vector3(0.0, 0.03, 0.09))
-		# The hand sets the clip in its guides, holds it there a beat, then the thumb strips the rounds down into the magazine.
-		_add(StringName("clip_%d" % c), 0.10 / clips, &"port", &"clip", -CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
-		_add(StringName("seat_%d" % c), 0.05 / clips, &"port", &"clip", -CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
-		_add(StringName("press_%d" % c), 0.10 / clips, &"port", &"clip", Vector3(0.0, -0.025, 0.0) - CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
+		# The hand sets the clip in its guides (or the round in the port), holds it there a beat, then the thumb presses
+		# the rounds down into the magazine.
+		_add(StringName("clip_%d" % c), 0.10 / clips, &"port", at, set_at - CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
+		_add(StringName("seat_%d" % c), 0.05 / clips, &"port", at, seat_at - CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
+		_add(StringName("press_%d" % c), 0.10 / clips, &"port", at, press_at - CARRY, &"bolt", Vector3(0.0, 0.03, 0.09))
 	_add(&"bolt_fwd", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.0))
 	_add(&"bolt_down", 0.05, &"port", &"fore", Vector3.ZERO, &"bolt")
 	_add(&"return", 0.06, &"settle", &"fore")

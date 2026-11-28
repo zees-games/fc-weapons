@@ -146,6 +146,10 @@ static var _dress_script: Script = null
 ## Seconds from hip to full aim (and back).
 @export_range(0.01, 1.0, 0.01) var aim_time: float = 0.16
 
+## Metres the gun moves forward halfway between hip and aim (a sine over the move, none at either end), so a long stock
+## swinging across the view on the way in or out stays clear of the near plane. 0 is the straight move.
+@export_range(0.0, 0.3, 0.005) var aim_arc: float = 0.0
+
 @export_group("Motion")
 
 ## The draw, as [AwWeaponPose] keys ([t, position, rotation degrees] from holstered at 0 to

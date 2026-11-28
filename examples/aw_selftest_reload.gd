@@ -82,6 +82,7 @@ func cues() -> void:
 	suite._check("every cue lies inside the phase that makes it (%s)" % str(off_phase.slice(0, 5)), off_phase.is_empty())
 	suite._check("cues run in order inside 0..1 (%s)" % str(unsorted), unsorted.is_empty())
 	suite._check("ticking a reload fires each cue once, at most one tick late (%s)" % str(late.slice(0, 5)), late.is_empty())
+	_sniper_rounds(rows)
 	var have := 0
 	for cue in ReloadCues.all_cues():
 		if GSWeaponSound.count(StringName("cue_%s" % cue)) > 0:
@@ -89,6 +90,21 @@ func cues() -> void:
 	suite._check("an empty magazine's reload drops it (%d of %d); stock has %d of %d cues (0 when gs-audio is not linked)" % [empty_drop, empty_mags, have, ReloadCues.all_cues().size()],
 		empty_drop == empty_mags and (have == 0 or have == ReloadCues.all_cues().size()))
 	suite._end()
+
+
+## The bolt's clip cues were keyed clip_c while its phases are clip_0 on, so they never played: the sniper's empty
+## reload plays one clip_in and one clip_press per round it loads.
+func _sniper_rounds(rows: Dictionary) -> void:
+	var sniper := AwWeaponVisual.make(&"sniper")
+	AwArtDress.apply(sniper, rows[&"sniper"])
+	var bolt := ReloadSequence.new()
+	bolt.compose(sniper, ReloadSequence.anchors_for(Vector3.ZERO, Vector3(0, 0, -0.3), Vector3(0, 0, -0.6), null, sniper.reload.get("anchors", {}), Transform3D.IDENTITY), 5, 0, 0.0)
+	var bolt_plan := ReloadCues.plan(bolt)
+	var ins := bolt_plan.filter(func(c: Dictionary) -> bool: return c.cue == &"clip_in").size()
+	var presses := bolt_plan.filter(func(c: Dictionary) -> bool: return c.cue == &"clip_press").size()
+	var rounds := bolt.props.filter(func(p: Dictionary) -> bool: return p.part == &"cartridge").size()
+	suite._check("the sniper's empty reload loads 5 single rounds, each with a clip_in and a clip_press cue (%d rounds, %d in, %d press)" % [rounds, ins, presses],
+		rounds == 5 and ins == 5 and presses == 5)
 
 
 ## A magazine reload drops the old magazine on every reload by default (`cl_vm_reload_drop` 1) and works the action

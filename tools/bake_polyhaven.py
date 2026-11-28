@@ -46,7 +46,11 @@ for name, (asset, keep, sc, grip, mag_shift) in M.items():
     for n in kept:
         t = n.pop("translation", [0, 0, 0])
         q = n.pop("rotation", [0, 0, 0, 1])
-        prim = g["meshes"][n["mesh"]]["primitives"][0]
+        # Only a mesh's first surface is kept: the scope's second is its glass, which tools/add_scope_lens.py replaces (left
+        # untransformed it floated beside the grip).
+        mesh = g["meshes"][n["mesh"]]
+        mesh["primitives"] = mesh["primitives"][:1]
+        prim = mesh["primitives"][0]
         for attr, acc_i in prim["attributes"].items():
             if attr not in ("POSITION", "NORMAL"):
                 continue

@@ -81,11 +81,19 @@ static func apply(art: AwWeaponVisual, row: Dictionary) -> void:
 		var sight := Vector3(-aim.x, -aim.y, -SIGHT_RELIEF - aim.z) * art.view_scale
 		art.aim_offset = Vector3(-sight.x, -sight.y, -SIGHT_RELIEF - sight.z)
 
+	_aim_view(art, view)
+
+
+## The row's zoom, scope look, arc on the way to the sight and own draw, from its `view`.
+static func _aim_view(art: AwWeaponVisual, view: Dictionary) -> void:
 	if view.has("zoom"):
 		art.aim_zoom = float(view["zoom"])
+	art.aim_arc = float(view.get("arc", 0.0))
+	# A gun's own draw (`draw`: [t, position, rotation degrees] keys, as AwWeaponPose.DRAW_KEYS), which it holsters along too.
+	if view.get("draw") is Array:
+		art.draw_keys = (view["draw"] as Array).duplicate(true)
 	if view.get("zoom_levels") is Array:
 		art.aim_zoom_levels = (view["zoom_levels"] as Array).duplicate()
-
 	art.aim_scoped = bool(view.get("scoped", false))
 	# The gun's own scope look (`scope`: overlay exports such as lens_circle and reticle_colour), set on the overlay by its follow().
 	if view.get("scope") is Dictionary:

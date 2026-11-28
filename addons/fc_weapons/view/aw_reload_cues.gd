@@ -49,8 +49,6 @@ const TABLE := {
 	&"bolt": {
 		&"bolt_up": [[0.3, &"bolt_lift", -2.0]],
 		&"bolt_back": [[0.3, &"bolt_back", 0.0]],
-		&"clip_c": [[0.4, &"clip_in", -2.0]],
-		&"press_c": [[0.8, &"clip_press", -2.0]],
 		&"bolt_fwd": [[0.3, &"bolt_fwd", 0.0]],
 		&"bolt_down": [[0.8, &"bolt_down", -2.0]],
 	},
@@ -66,8 +64,10 @@ const TABLE := {
 	},
 }
 
-## Extra cues for a revolver's single rounds and a launcher's shells, which have a numbered phase each.
+## Extra cues for a revolver's single rounds, a launcher's shells and a bolt gun's clips or rounds, which have a
+## numbered phase each (aw_reload_sequence.gd names them clip_0, press_0 and on).
 const NUMBERED := {
+	&"bolt": {&"clip_": [0.4, &"clip_in", -2.0], &"press_": [0.8, &"clip_press", -2.0]},
 	&"revolver": {&"load_": [0.9, &"round_tick", -4.0]},
 	&"launcher": {&"load_": [0.9, &"shell_load", -2.0]},
 }

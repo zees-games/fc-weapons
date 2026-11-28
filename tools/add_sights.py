@@ -9,8 +9,8 @@ add a small piece seated ON the surface below it (the model or an earlier part):
 the run fails (a floating part is a defect). A `rear_ring*` part is hidden at the hip by the view runtime.
 Stations are metres in the baked frame (origin at the grip, muzzle toward -Z, Y up). After a change, set each weapon's aim
 in `AwWeaponArt.WEAPONS` to `(0, -line, z)`; the selftest measures it against the rear mark.
-pump_shotgun and pistol still carry the parts an earlier Blender pass of this tool built; give them a spec here
-before rerunning on them."""
+A `front_bead*` part is brass, the rest dark sight metal. The pistol still carries the parts an earlier Blender pass of this
+tool built; give it a spec here before rerunning on it."""
 import json, math, os, struct, sys
 
 STRIP = ('rear_', 'front_', 'sight_', 'muzzle_bore', 'feed_cover', 'bipod_')
@@ -71,6 +71,18 @@ SPECS = {
     'quad_rocket_launcher': (0.1850, 0.364, -0.400, []),
     # Own hooded rear aperture (centre 0.110 at z -0.030) and own front post between ears (tip 0.110 at z -0.460): marks only.
     'rocket_launcher': (0.1100, -0.030, -0.460, []),
+    # Receiver top 0.094 at z 0.08 (0.088 at its edges, x 0.016), barrel 0.082-0.088 at z -0.42. The ghost ring hides at the hip, so
+    # the rear reads there by two ears on a flared base, their tops on the line, and the front by a brass bead topping the post.
+    'pump_shotgun': (0.1113, 0.080, -0.420, [
+        ('rear_base', taper((-0.0150, 0.0150, 0.072, 0.088, 0.0878), (-0.0235, 0.0235, 0.073, 0.087, 0.0953))),
+        ('rear_stem', box(-0.0060, 0.0060, 0.0893, 0.0973, 0.076, 0.084)),
+        ('rear_ring', ring(0.1113, 0.080, 0.016, 0.008, 0.008)),
+        ('rear_ear-1', box(-0.0225, -0.0175, 0.0953, 0.1113, 0.075, 0.085)),
+        ('rear_ear1', box(0.0175, 0.0225, 0.0953, 0.1113, 0.075, 0.085)),
+        ('front_post', box(-0.0021, 0.0021, 0.0822, 0.1088, -0.423, -0.417)),
+        ('front_ear-1', box(-0.0071, -0.0041, 0.0812, 0.1113, -0.423, -0.417)),
+        ('front_ear1', box(0.0041, 0.0071, 0.0812, 0.1113, -0.423, -0.417)),
+        ('front_bead', ring(0.1088, -0.420, 0.0025, 0.0003, 0.005))]),
 }
 
 
@@ -288,6 +300,9 @@ def footprint(shape):
 def add_parts(j, bin_, parts, T, name):
     mi = len(j['materials'])
     j['materials'].append({'name': 'sight_metal', 'pbrMetallicRoughness': {'baseColorFactor': [0.035, 0.035, 0.04, 1.0], 'metallicFactor': 0.3, 'roughnessFactor': 0.75}})
+    if any(p.startswith('front_bead') for p, _ in parts):
+        j['materials'].append({'name': 'sight_bead', 'emissiveFactor': [0.09, 0.065, 0.02],
+                               'pbrMetallicRoughness': {'baseColorFactor': [0.86, 0.64, 0.28, 1.0], 'metallicFactor': 1.0, 'roughnessFactor': 0.3}})
     for pname, shape in parts:
         y0, feet = footprint(shape)
         for x, z in feet:
@@ -308,7 +323,8 @@ def add_parts(j, bin_, parts, T, name):
         j['accessors'].append({'bufferView': pv, 'componentType': 5126, 'count': len(P), 'type': 'VEC3',
                                'min': [min(v[i] for v in P) for i in range(3)], 'max': [max(v[i] for v in P) for i in range(3)]})
         j['accessors'].append({'bufferView': pv + 1, 'componentType': 5126, 'count': len(N), 'type': 'VEC3'})
-        j['meshes'].append({'name': pname, 'primitives': [{'attributes': {'POSITION': pa, 'NORMAL': pa + 1}, 'material': mi}]})
+        mat = mi + 1 if pname.startswith('front_bead') else mi
+        j['meshes'].append({'name': pname, 'primitives': [{'attributes': {'POSITION': pa, 'NORMAL': pa + 1}, 'material': mat}]})
         j['nodes'].append({'name': pname, 'mesh': len(j['meshes']) - 1})
         j['scenes'][0]['nodes'].append(len(j['nodes']) - 1)
 

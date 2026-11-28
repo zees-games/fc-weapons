@@ -488,13 +488,14 @@ func _apply_aim(f: float) -> void:
 	var turn := hip.basis.get_rotation_quaternion().slerp(
 		sight.basis.get_rotation_quaternion(), f
 	)
-	var now := Transform3D(
-		Basis(turn).scaled(Vector3.ONE * _art.view_scale), hip.origin.lerp(sight.origin, f)
-	)
+	var now := Transform3D(Basis(turn).scaled(Vector3.ONE * _art.view_scale), hip.origin.lerp(sight.origin, f))
 	if not ocular.is_empty():
+		now.origin = scope_body_origin(now, hip, sight, ocular[0], eye, f)
 		# Grown about the eye the gun looks the same, only nearer: the ocular ends past the near plane, filling the lens circle.
 		var m := lerpf(1.0, grow, f)
 		now = Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * m), eye - eye * m) * now
+	elif _art.aim_arc > 0.0:
+		now.origin.z -= _art.aim_arc * sin(PI * f)
 	_aim_node.transform = now * hip.affine_inverse()
 	# Aimed, the kick turns about the rear sight (the ocular through a scope body), not the grip, or the sight picture jumps up the screen.
 	if not ocular.is_empty():

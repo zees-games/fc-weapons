@@ -180,6 +180,20 @@ func _scope_body_growth(radius: float) -> float:
 	return maxf(want / (radius * lens * maxf(_art.view_scale, 0.001)), 0.001)
 
 
+## The gun's origin at aim fraction [param f] in the scope body view, turned as [param now]: the [param ocular]'s depth before
+## the [param eye] shrinks from its [param hip] place to its [param sight] one by the same ratio each step and its place on
+## screen moves evenly, so the eyepiece grows by an even factor per frame. A straight move leaves it small until the last
+## frames, then triples it each frame as it closes on the eye.
+static func scope_body_origin(now: Transform3D, hip: Transform3D, sight: Transform3D, ocular: Vector3, eye: Vector3, f: float) -> Vector3:
+	var from := hip * ocular - eye
+	var to := sight * ocular - eye
+	if from.z >= 0.0 or to.z >= 0.0:
+		return now.origin
+	var depth := -from.z * pow(to.z / from.z, f)
+	var screen := (Vector2(from.x, from.y) / -from.z).lerp(Vector2(to.x, to.y) / -to.z, f)
+	return eye + Vector3(screen.x * depth, screen.y * depth, -depth) - now.basis * ocular
+
+
 ## How visible the scope's surround is, 0 to 1: it fades in over the last of the aim-in, not at the end.
 func scope_fraction() -> float:
 	if not has_scope():

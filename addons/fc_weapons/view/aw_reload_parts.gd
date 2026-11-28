@@ -22,7 +22,7 @@ const DRUM_MAGAZINE := &"drum_magazine"
 ## The reload sequence's loose pieces (aw_reload_sequence.gd): cases thrown out, rounds carried in.
 ## The rocket's baked model; [method _rocket] falls back to primitives without it.
 const ROCKET_MODEL := "res://addons/fc_weapons/assets/models/rocket_round.glb"
-const LOOSE := [&"casing", &"round", &"shell", &"grenade", &"grenade_case", &"rocket", &"speedloader", &"clip", &"belt"]
+const LOOSE := [&"casing", &"round", &"shell", &"grenade", &"grenade_case", &"rocket", &"speedloader", &"clip", &"cartridge", &"belt"]
 
 
 ## Every part built once, for [method AwViewModel.prewarm] to dress and free under a loading cover: the first
@@ -69,6 +69,8 @@ static func build(part: StringName) -> Node3D:
 			node = _speedloader()
 		&"clip":
 			node = _clip()
+		&"cartridge":
+			node = _cartridge_lying()
 		&"belt":
 			node = _belt()
 	if node != null:
@@ -204,22 +206,43 @@ static func _speedloader() -> Node3D:
 static func _clip() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Clip"
-	var lie := Basis(Vector3.RIGHT, -PI / 2.0)
-	var copper := _material(Color(0.72, 0.42, 0.26), 0.7, 0.3)
 	var steel := _material(Color(0.18, 0.19, 0.21), 0.7, 0.45)
 	const STEP := 0.0122
 	for i in 5:
-		var y := STEP * i
-		_taper(root, 0.0058, 0.0060, 0.040, Vector3(0.0, y, 0.0155), _brass(), lie)
-		_taper(root, 0.0044, 0.0058, 0.004, Vector3(0.0, y, -0.0065), _brass(), lie)
-		_taper(root, 0.0044, 0.0044, 0.007, Vector3(0.0, y, -0.012), _brass(), lie)
-		_taper(root, 0.0010, 0.0040, 0.020, Vector3(0.0, y, -0.0255), copper, lie)
+		_lying_round(root, Vector3(0.0, STEP * i, 0.0))
 	var tall := STEP * 5.0 + 0.004
 	var mid := STEP * 2.0
+	# The spine holds the rims; its two side walls fold over them as lips, and a spring leaf runs down its middle.
 	_box(root, Vector3(0.0135, tall, 0.0012), Vector3(0.0, mid, 0.0362), steel)
+	_box(root, Vector3(0.0040, tall - 0.006, 0.0010), Vector3(0.0, mid, 0.0350), _material(Color(0.30, 0.31, 0.33), 0.8, 0.35))
 	for side: float in [-1.0, 1.0]:
 		_box(root, Vector3(0.0012, tall, 0.006), Vector3(0.0066 * side, mid, 0.033), steel)
+		_box(root, Vector3(0.0030, tall, 0.0012), Vector3(0.0054 * side, mid, 0.0302), steel)
+		# A thumb notch near the top of each wall and a stop tab at the bottom.
+		_box(root, Vector3(0.0016, 0.004, 0.004), Vector3(0.0074 * side, -0.003, 0.034), steel)
 	return root
+
+
+## One rifle round lying along -Z (bullet forward), origin on its axis at the shoulder.
+static func _cartridge_lying() -> Node3D:
+	var root := Node3D.new()
+	root.name = "Cartridge"
+	_lying_round(root, Vector3.ZERO)
+	return root
+
+
+## A spitzer rifle round lying along -Z at [param at]: rimmed base and extractor groove, body, shoulder, neck, ogive.
+static func _lying_round(root: Node3D, at: Vector3) -> void:
+	var lie := Basis(Vector3.RIGHT, -PI / 2.0)
+	var copper := _material(Color(0.72, 0.42, 0.26), 0.7, 0.3)
+	var brass := _brass()
+	_taper(root, 0.0061, 0.0061, 0.0016, at + Vector3(0.0, 0.0, 0.0347), _material(Color(0.62, 0.44, 0.18), 0.7, 0.4), lie)
+	_taper(root, 0.0050, 0.0050, 0.0014, at + Vector3(0.0, 0.0, 0.0332), brass, lie)
+	_taper(root, 0.0058, 0.0060, 0.038, at + Vector3(0.0, 0.0, 0.0135), brass, lie)
+	_taper(root, 0.0044, 0.0058, 0.004, at + Vector3(0.0, 0.0, -0.0075), brass, lie)
+	_taper(root, 0.0044, 0.0044, 0.007, at + Vector3(0.0, 0.0, -0.013), brass, lie)
+	_taper(root, 0.0030, 0.0042, 0.010, at + Vector3(0.0, 0.0, -0.0215), copper, lie)
+	_taper(root, 0.0008, 0.0030, 0.011, at + Vector3(0.0, 0.0, -0.032), copper, lie)
 
 
 ## A cylinder narrowing from [param bottom] radius to [param top] along its own +Y.
