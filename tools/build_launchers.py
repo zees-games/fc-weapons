@@ -1,4 +1,4 @@
-"""Models this pack's own-work grenade launcher and quad rocket launcher (CC0, modelled here from scratch) as source GLBs for the shared texture bake.
+"""Models this pack's own-work grenade launcher, quad rocket launcher and rocket launcher (CC0, modelled here from scratch) as source GLBs for the shared texture bake.
 Run: blender -b -P tools/build_launchers.py -- <out dir> [<name>...]   (no names: all)
 grenade_launcher: a six-shot revolving 40 mm launcher. Origin at the grip, muzzle toward -Z, bore 0.10 m above the grip like the model
 it replaces (so the view hold, the muzzle and the reload anchors keep their numbers):
@@ -17,7 +17,12 @@ quad_rocket_launcher: four tubes in a 2x2 cluster on the replaced model's bore l
   controls     trigger housing, raked pistol grip, guard, trigger, arming lever, folding foregrip, shoulder rest, firing module with a
                selector dial and an indicator lamp on the right
 Colours are picked for the bake's classes (tex_gen.py classify reads the sRGB albedo): steel grey reads as metal, near-black as
-polymer, olive as coat. Output: <out>/<name>.glb. Textures: addons/gs_weapon/tools/texbake/tex_pipeline.sh."""
+polymer, olive as coat. Output: <out>/<name>.glb. Textures: addons/gs_weapon/tools/texbake/tex_pipeline.sh.
+rocket_launcher: one tube on the replaced model's bore line (y -0.0154), muzzle at z -0.756, rear at +0.427, sight line y 0.110:
+  tube         olive shell with a steel muzzle collar over a dark liner 0.42 m deep (no loaded warhead in sight, so a shot leaves
+               none behind), seam ring, flared venturi with breech ring, motor face and nozzle, three clamp bands with screws
+  frame        top spine, hooded rear aperture tower, front post with ears, shoulder rest with a rubber pad, sling loops
+  controls     trigger housing, raked pistol grip, guard and trigger, cocking lever, folding foregrip"""
 import bpy, sys, os, math
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -313,7 +318,94 @@ def quad_rocket_launcher():
     return [('tubes', m) for m in tubes] + [('frame', m) for m in quad_frame()] + [('controls', m) for m in quad_controls()] + [('lamp', lamp)]
 
 
-MODELS = {'grenade_launcher': grenade_launcher, 'quad_rocket_launcher': quad_rocket_launcher}
+# ------------------------------------------------------------------------------ single-tube rocket launcher
+R_Y, R_R = -0.0154, 0.052               # tube axis height (the replaced model's bore) and shell radius
+R_FRONT, R_REAR = -0.756, 0.427         # muzzle and venturi ends of the replaced model
+R_LINE = 0.110                          # sight line: the rear aperture's centre and the front post's tip
+R_SIGHT_REAR, R_SIGHT_FRONT = -0.030, -0.460
+
+
+def rocket_tube():
+    """The tube: an olive shell, a steel muzzle collar over a dark liner that runs deep (the round loads from the breech and sits
+    far back, out of sight, so nothing is left at the muzzle after the shot), a flared rear venturi with the breech ring."""
+    at = (0, R_Y)
+    ms = [ring_z(R_R, R_R - 0.004, R_REAR - 0.060, R_FRONT + 0.050, 'od', at, 48)]
+    ms.append(ring_z(R_R + 0.008, R_R - 0.006, R_FRONT + 0.075, R_FRONT + 0.004, 'park', at, 48))      # muzzle collar
+    ms.append(ring_z(R_R + 0.005, R_R - 0.007, R_FRONT + 0.006, R_FRONT, 'steel', at, 48))             # muzzle lip
+    ms.append(ring_z(R_R - 0.004, R_R - 0.008, R_FRONT + 0.420, R_FRONT + 0.002, 'core', at, 40))      # liner
+    ms.append(tube_z(R_R - 0.006, R_FRONT + 0.430, R_FRONT + 0.416, 'core', at, 40))                   # the dark end of the bore
+    ms.append(ring_z(R_R + 0.004, R_R - 0.004, R_FRONT + 0.160, R_FRONT + 0.140, 'park', at, 48))      # a seam ring
+    ven = lathe([(R_R - 0.002, 0.0), (R_R + 0.004, 0.022), (R_R + 0.014, 0.050), (R_R + 0.016, 0.060), (R_R + 0.010, 0.061),
+                 (R_R - 0.004, 0.030), (R_R - 0.006, 0.0)], 'park', 48, closed=True)
+    ms.append(ven.xf(None, (0, R_Y, R_REAR - 0.061)))
+    ms.append(ring_z(R_R + 0.006, R_R - 0.004, R_REAR - 0.058, R_REAR - 0.074, 'steel', at, 48))       # breech ring
+    ms.append(tube_z(R_R - 0.006, R_REAR - 0.040, R_REAR - 0.052, 'core', at, 40))                     # the motor face, deep in
+    ms.append(ring_z(0.018, 0.010, R_REAR - 0.036, R_REAR - 0.042, 'steel', at, 24))                   # its nozzle
+    for z0, z1 in ((R_REAR - 0.120, R_REAR - 0.150), (0.060, 0.030), (R_FRONT + 0.300, R_FRONT + 0.270)):  # clamp bands
+        ms.append(ring_z(R_R + 0.006, R_R - 0.002, z0, z1, 'park', at, 48))
+        ms.append(screw((R_R + 0.006, R_Y, (z0 + z1) / 2), (1, 0, 0), 0.0035))
+    return ms
+
+
+def rocket_frame():
+    """Sights on a top spine, a shoulder rest and pad under the rear, sling loops."""
+    ms = []
+    top = R_Y + R_R
+    ms.append(bx((-0.010, top - 0.006, R_SIGHT_REAR + 0.050), (0.010, top + 0.008, R_SIGHT_FRONT - 0.030), 'park', 0.002))
+    # rear sight: a hooded aperture on a two-leg tower
+    rz = R_SIGHT_REAR
+    for sx in (-1, 1):
+        ms.append(bx((sx * 0.012 - 0.003, top + 0.008, rz + 0.010), (sx * 0.012 + 0.003, R_LINE - 0.012, rz - 0.010), 'park', 0.001))
+    ms.append(bx((-0.018, R_LINE - 0.020, rz + 0.008), (0.018, R_LINE - 0.012, rz - 0.008), 'park', 0.0015))
+    ms.append(ring_z(0.016, 0.0045, rz + 0.006, rz - 0.006, 'park', (0, R_LINE), 24))
+    for sx in (-1, 1):
+        ms.append(bx((sx * 0.016 - 0.003, R_LINE - 0.020, rz + 0.009), (sx * 0.016 + 0.003, R_LINE + 0.016, rz - 0.009), 'park', 0.001))
+    # front sight: a post between two guard ears on a tower
+    fz = R_SIGHT_FRONT
+    ms.append(bx((-0.012, top + 0.008, fz + 0.012), (0.012, R_LINE - 0.024, fz - 0.012), 'park', 0.002))
+    ms.append(bx((-0.0022, R_LINE - 0.026, fz + 0.003), (0.0022, R_LINE, fz - 0.003), 'steel', 0.0006))
+    for sx in (-1, 1):
+        ms.append(bx((sx * 0.011 - 0.0025, R_LINE - 0.026, fz + 0.008), (sx * 0.011 + 0.0025, R_LINE + 0.004, fz - 0.008), 'park', 0.0008))
+    # shoulder rest under the rear half: an olive block on two saddles, a rubber pad on its face
+    yb = R_Y - R_R
+    ms.append(bx((-0.026, yb - 0.040, R_REAR - 0.160), (0.026, yb + 0.004, 0.120), 'od', 0.006))
+    ms.append(bx((-0.028, yb - 0.050, R_REAR - 0.165), (0.028, yb - 0.038, 0.115), 'rubber', 0.004))
+    loop = chamfered_ring(0.011, 0.005, 0.007, 'steel', None, 16)
+    for z in (R_REAR - 0.135, R_FRONT + 0.285):
+        ms.append(Mesh('steel').add(list(loop.v), list(loop.f)).xf([('y', 90)], (-R_R - 0.012, R_Y + 0.012, z)))
+    return ms
+
+
+def rocket_controls():
+    """Trigger housing under the grip origin, a raked pistol grip, guard and trigger, a cocking lever, a folding foregrip."""
+    ms = []
+    yb = R_Y - R_R
+    ms.append(bx((-0.022, yb - 0.028, 0.040), (0.022, yb + 0.004, -0.075), 'park', 0.003))
+    prof = [(0, 0.0), (0.019, 0.0), (0.021, -0.010), (0.019, -0.026), (0.022, -0.040), (0.019, -0.056), (0.022, -0.072),
+            (0.021, -0.090), (0.023, -0.100), (0.020, -0.106), (0, -0.108)]
+    g = lathe(prof, 'grip', 24, axis='y', teeth=16, depth=0.03)
+    g.v = [(x * 0.82, y, z * 1.25 if z > 0 else z) for x, y, z in g.v]
+    ms.append(g.xf([('x', -15)], (0, yb - 0.022, 0.018)))
+    ms.append(bx((-0.006, yb - 0.074, 0.012), (0.006, yb - 0.068, -0.070), 'park', 0.0015))
+    ms.append(bx((-0.006, yb - 0.074, -0.070), (0.006, yb - 0.026, -0.064), 'park', 0.0015))
+    tr = lathe([(0, 0.0), (0.004, 0.0), (0.004, -0.028), (0, -0.030)], 'steel', 8, axis='y')
+    tr.v = [(x, y, z * 0.5) for x, y, z in tr.v]
+    ms.append(tr.xf([('x', -20)], (0, yb - 0.024, -0.034)))
+    ms.append(bx((0.022, yb - 0.020, -0.010), (0.028, yb - 0.006, -0.050), 'steel', 0.001))   # cocking lever
+    fz = -0.300
+    ms.append(bx((-0.014, yb - 0.014, fz - 0.020), (0.014, yb + 0.004, fz + 0.020), 'park', 0.002))
+    ms.append(tube_z(0.006, 0.017, -0.017, 'steel', (0, 0), 12).xf([('y', 90)], (0, yb - 0.008, fz)))
+    fg = lathe([(0, 0.0), (0.0175, 0.0), (0.0185, -0.012), (0.0165, -0.040), (0.018, -0.070), (0.0195, -0.090), (0.019, -0.098), (0, -0.100)],
+               'grip', 24, axis='y', teeth=10, depth=0.05)
+    ms.append(fg.xf([('x', 10)], (0, yb - 0.010, fz)))
+    return ms
+
+
+def rocket_launcher():
+    return ([('tube', m) for m in rocket_tube()] + [('frame', m) for m in rocket_frame()] + [('controls', m) for m in rocket_controls()])
+
+
+MODELS = {'grenade_launcher': grenade_launcher, 'quad_rocket_launcher': quad_rocket_launcher, 'rocket_launcher': rocket_launcher}
 
 
 def main():

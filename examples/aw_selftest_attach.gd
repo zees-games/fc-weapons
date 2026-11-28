@@ -17,7 +17,7 @@ func _world_holds() -> void:
 	var held := tube.world_transform()
 	var nose := -held.basis.z.normalized()
 	_check("a launcher's row holds it forward of the grip and nose up, clear of the pack (%s, nose %s)" % [held.origin, nose],
-		held.origin.z < -0.05 and nose.y > 0.1 and is_equal_approx(tube.world_scale, 2.4))
+		held.origin.z < -0.05 and nose.y > 0.1 and is_equal_approx(tube.world_scale, 1.1))
 	var rifle := AwWeaponVisual.new()
 	AwArtDress.apply(rifle, AwWeaponArt.row_of(&"rifle"))
 	_check("a gun row without a world hold keeps the bare grip", rifle.world_offset == Vector3.ZERO and rifle.world_rotation == Vector3.ZERO)

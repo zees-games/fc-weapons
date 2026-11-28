@@ -20,7 +20,7 @@ kit.MATS.update({  # linear colours; sRGB of the polymer stays under the bake's 
     'steel': ((0.33, 0.33, 0.34), 0.7, 0.4), 'fuze': ((0.26, 0.27, 0.25), 0.6, 0.45), 'spoon': ((0.42, 0.42, 0.40), 0.8, 0.35),
     'pin': ((0.62, 0.62, 0.64), 0.9, 0.3), 'core': ((0.012, 0.012, 0.013), 0.0, 0.9), 'grip': ((0.018, 0.018, 0.02), 0.0, 0.75),
     'od': ((0.13, 0.16, 0.07), 0.1, 0.6), 'yellow': ((0.72, 0.52, 0.04), 0.0, 0.55), 'red': ((0.42, 0.04, 0.025), 0.0, 0.55),
-    'band_blue': ((0.04, 0.17, 0.48), 0.0, 0.5), 'tack': ((0.55, 0.17, 0.02), 0.0, 0.85), 'blade': ((0.55, 0.55, 0.56), 0.9, 0.28),
+    'band_blue': ((0.04, 0.17, 0.48), 0.0, 0.5), 'tack': ((0.55, 0.17, 0.02), 0.0, 0.85), 'blade': ((0.62, 0.63, 0.65), 0.95, 0.22),
 })
 SEG = 32
 
@@ -191,18 +191,36 @@ def flash_grenade():
     return ms
 
 
-def frag_grenade_alt():
-    """The sticky: a round steel body, the lower half under a knobbed adhesive pad."""
-    R, c = 0.031, 0.0
+def round_body(R, c=0.0, stretch=1.04):
+    """A round steel body on Y (slightly tall, the lower half a touch slimmer): its lathe profile, its fuze-well top and its radius at a height."""
     prof = [(0, c - R)]
     for i in range(1, 24):
         th = math.pi * i / 24
-        prof.append((R * math.sin(th) * (1.0 if th > math.pi / 2 else 0.97), c - R * math.cos(th) * 1.04))
-    top = c + R * 1.04 - 0.0035
+        prof.append((R * math.sin(th) * (1.0 if th > math.pi / 2 else 0.97), c - R * math.cos(th) * stretch))
+    top = c + R * stretch - 0.0035
     prof.append((0.0105, top - 0.0005))
     prof.append((0.0098, top))
     prof.append((0, top))
-    body_r = lambda y: R * math.sqrt(max(0.0, 1 - ((y - c) / (R * 1.04)) ** 2))
+    return prof, top, lambda y: R * math.sqrt(max(0.0, 1 - ((y - c) / (R * stretch)) ** 2))
+
+
+def frag_grenade():
+    """The frag: a round olive steel body with its seam, a yellow filler band under the fuze, the spoon and pin."""
+    R, c = 0.032, 0.0
+    prof, top, body_r = round_body(R, c)
+    ms = [('body', ycyl(prof, 'od'))]
+    ms.append(('seam', yring(R + 0.0009, R - 0.003, c - 0.0013, c + 0.0013, 'steel', c=0.0005)))
+    yb = c + R * 0.62  # the band sits on the shoulder, a ring hugging the curve
+    ms.append(('band', yring(body_r(yb) + 0.0006, body_r(yb + 0.004) - 0.002, yb, yb + 0.004, 'yellow', c=0.0003)))
+    ms.append(('base_ring', yring(0.0095, 0.004, c - R * 1.0 - 0.0006, c - R * 0.96, 'steel', c=0.0003)))
+    ms += fuze(top, 0.012, c + 0.004, body_profile=body_r)
+    return ms
+
+
+def frag_grenade_alt():
+    """The sticky: a round steel body, the lower half under a knobbed adhesive pad."""
+    R, c = 0.031, 0.0
+    prof, top, body_r = round_body(R, c)
     ms = [('body', ycyl(prof, 'od'))]
     ms.append(('seam', yring(R + 0.0009, R - 0.003, c - 0.0013, c + 0.0013, 'steel', c=0.0005)))
     pad = [(0, c - R * 1.04 - 0.0042)]
@@ -230,6 +248,7 @@ def frag_grenade_alt():
 KNIFE_FROM = (0.0, -0.083, 0.052)  # the pommel end of the shipped knife's axis (grip_socket and the view hold were tuned on it)
 KNIFE_TILT = -29.8                 # degrees about X: the axis leans from +Y toward -Z
 KNIFE_FLIP = 180.0                 # degrees about the blade's own axis: the edge on the side the slash leads with
+BLADE_W, BLADE_T = 0.037, 0.0062   # a real fighting knife's blade: 37 mm deep, a 6 mm spine (thin enough to vanish edge-on otherwise)
 
 
 def blade(y0, length, spine_t, width):
@@ -298,17 +317,17 @@ def combat_knife():
     for s in (-1, 1):
         ms.append(('guard_tip_%d' % (s > 0), ycyl([(0, -0.004), (0.0052, -0.004), (0.0058, 0.0), (0.0052, 0.004), (0, 0.004)], 'steel', segs=16).xf([('x', 90)], (0, y + guard_h / 2, 0.002 + s * 0.030))))
     y += guard_h
-    ms.append(('ricasso', box(0.0046, 0.012, 0.030, 'blade', bevel=0.0007).xf(None, (0, y + 0.006, 0.0005))))
-    ms.append(('blade', blade(y + 0.0115, blade_l - 0.0115, 0.0046, 0.0305)))
-    ms.append(('fuller_a', box(0.0007, blade_l * 0.48, 0.0045, 'core', bevel=0.0003, seg=1).xf(None, (0.0021, y + 0.018 + blade_l * 0.24, 0.0062))))
-    ms.append(('fuller_b', box(0.0007, blade_l * 0.48, 0.0045, 'core', bevel=0.0003, seg=1).xf(None, (-0.0021, y + 0.018 + blade_l * 0.24, 0.0062))))
+    ms.append(('ricasso', box(BLADE_T, 0.012, BLADE_W, 'blade', bevel=0.0008).xf(None, (0, y + 0.006, 0.0005))))
+    ms.append(('blade', blade(y + 0.0115, blade_l - 0.0115, BLADE_T, BLADE_W)))
+    for k, s in (('a', 1), ('b', -1)):  # a fuller ground into each flat, just under the spine
+        ms.append(('fuller_' + k, box(0.0008, blade_l * 0.48, 0.0055, 'core', bevel=0.0003, seg=1).xf(None, (s * (BLADE_T / 2 - 0.0006), y + 0.018 + blade_l * 0.24, 0.0078))))
     for _, m in ms:
         m.xf([('y', KNIFE_FLIP), ('x', KNIFE_TILT)], KNIFE_FROM)
     return ms
 
 
 MODELS = {'flash_grenade': flash_grenade, 'smoke_grenade': smoke_grenade, 'incendiary_grenade': incendiary_grenade,
-          'frag_grenade_alt': frag_grenade_alt, 'combat_knife': combat_knife}
+          'frag_grenade': frag_grenade, 'frag_grenade_alt': frag_grenade_alt, 'combat_knife': combat_knife}
 
 
 def main():

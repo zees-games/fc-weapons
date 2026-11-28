@@ -6,7 +6,7 @@ Why: the current weapon art is 1024 px upstream art (Styloo, Polyy); the texture
 | --- | --- | --- | --- | --- | --- |
 | Poly Haven `service_pistol` (Mateusz Sadek) | https://polyhaven.com/a/service_pistol | CC0 (https://polyhaven.com/license: "CC0 means absolute freedom") | semi-auto pistol with slide, hammer, trigger, magazine, round; ~27.5k tris for both states | 2K diffuse, normal, ARM (JPEG), 4K available | USED (`pistol_ph`) |
 | Poly Haven `bolt_action_rifle_7_62` (Mateusz Sadek) | https://polyhaven.com/a/bolt_action_rifle_7_62 | CC0 | scoped bolt-action rifle, moving bolt, sling wrap, round; ~20k tris | 2K, two sets (body, scope): diffuse, normal, ARM | USED (`sniper_ph`) |
-| Poly Haven `stick_grenade` (singaii) | https://polyhaven.com/a/stick_grenade | CC0 | stick grenade, 6.2k tris | 2K | Candidate for the thrown slot; not wired (WW2 look beside modern guns) |
+| Poly Haven `stick_grenade` (singaii) | https://polyhaven.com/a/stick_grenade | CC0 | stick grenade, 6.2k tris | 2K | Was the frag for a while; replaced by the own `frag_grenade` (WW2 look beside modern guns) |
 | Poly Haven `fish_knife` (Mateusz Sadek) | https://polyhaven.com/a/fish_knife | CC0 | fixed-blade knife, 2.7k tris | 2K | Shipped as `knife` until the own-work `combat_knife` (tools/build_thrown_melee.py) replaced it; removed |
 | Poly Haven `machete` (Ulan Cabanilla) | https://polyhaven.com/a/machete | CC0 | machete, 3k tris | 2K | Candidate, melee variety; not wired |
 | Poly Haven others (`ammo_box`, `old_military_crate`, medieval blades, axes) | https://polyhaven.com/models | CC0 | props and melee; no further firearms in the catalogue | 2K to 8K | Props only |

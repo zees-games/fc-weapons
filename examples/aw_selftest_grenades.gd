@@ -226,7 +226,7 @@ func _thrown() -> bool:
 	var art := AwWeaponVisual.make(&"frag")
 	art.model_forward = Vector3.UP
 	AwArtDress.apply(art, AwSpawnProvider.role_art()[&"frag"])
-	return art.model_path == AwWeaponArt.model_path("stick_grenade") and art.model_forward == Vector3.UP
+	return art.model_path == AwWeaponArt.model_path("frag_grenade") and art.model_forward == Vector3.UP
 
 
 
@@ -282,10 +282,11 @@ func _rockets() -> void:
 	_check("sv_rocket_jump_self_damage_scale scales the shooter's own hurt; a plain missile's is whole", is_equal_approx(AwRocketJump.self_damage_scale(rj, jr), 0.5) and AwRocketJump.self_damage_scale(single, jr) == 1.0 and AwRocketRules.new().jump_self_damage_scale == 0.0)
 
 	var missile := AwMissileArt.build(&"launcher")
-	var body_mesh: MeshInstance3D = missile.get_node_or_null(^"Body") as MeshInstance3D if missile != null else null
-	var box: AABB = body_mesh.transform * body_mesh.mesh.get_aabb() if body_mesh != null else AABB()
-	_check("the launcher flies its own missile, long along -Z and centred (%s)" % box.size, box.size.z > 0.3 and box.size.x < 0.2 and box.get_center().length() < 0.01)
+	var box: AABB = AwMissileArt._bounds(missile, Transform3D.IDENTITY) if missile != null else AABB()
+	_check("the launcher flies its own rocket, long along -Z and centred (%s)" % box.size, box.size.z > 0.3 and box.size.x < 0.2 and box.get_center().length() < 0.01)
 	var small := AwMissileArt.build(&"quad_launcher")
+	var small_box: AABB = AwMissileArt._bounds(small, Transform3D.IDENTITY) if small != null else AABB()
+	_check("the quad's rocket is the same round at 0.7 (%.3f m)" % small_box.size.z, is_equal_approx(small_box.size.z, box.size.z * 0.7))
 	var gren := AwMissileArt.build(&"grenade_launcher")
 	_check("the quad's is smaller, the grenade launcher flies its round, a rifle has none", small != null and gren != null and AwMissileArt.build(&"rifle") == null)
 	for n: Node in [missile, small, gren]:
