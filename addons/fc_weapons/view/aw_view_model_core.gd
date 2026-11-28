@@ -684,6 +684,8 @@ func _stow() -> void:
 			_StowGlass.release(node)
 	# A build pushed out of this view's own cache goes to the shared store (aw_equip_cache.gd spill), not the bin.
 	_equip_cache.spill = prewarmed
+	if is_inside_tree():
+		EquipCache.free_at_exit(get_tree(), prewarmed)
 	_equip_cache.put(_build_key, {
 		"roots": roots, "shape": _build_shape,
 		"weapon": _weapon, "magazine": _magazine, "sight": _sight, "belt": _belt, "carved": _carved,
