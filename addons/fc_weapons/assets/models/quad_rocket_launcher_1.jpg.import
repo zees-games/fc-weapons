@@ -2,13 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chckfb1moornv"
+uid="uid://c022gnp0tr0tj"
 path="res://.godot/imported/quad_rocket_launcher_1.jpg-58764af60e77bc8eca98c0968688e283.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "2834e27dfa27ac5e309542b1834dae82"
+"md5": "84cca0d96e367dd1db04aa4f8a2f072f"
 }
 
 [deps]
@@ -18,7 +18,7 @@ dest_files=["res://.godot/imported/quad_rocket_launcher_1.jpg-58764af60e77bc8eca
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

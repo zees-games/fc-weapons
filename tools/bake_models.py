@@ -1,14 +1,14 @@
 """Bakes the source models into this pack: generic names, muzzle toward -Z, scaled to hand size, origin at the grip.
 Run: blender -b -P tools/bake_models.py -- <source dir>... <addons/fc_weapons/assets/models>
 Each source file is looked up by name in every source dir (Styloo's zEmission GLB folder, the Polyy packs' models, the knife's folder); a missing one is skipped.
-The sticky, flash, smoke and incendiary grenades and the knife are own work now (tools/build_thrown_melee.py), the grenade launcher too (tools/build_launchers.py)."""
+The sticky, flash, smoke and incendiary grenades and the knife are own work now (tools/build_thrown_melee.py), the grenade and quad launchers too (tools/build_launchers.py)."""
 import bpy, sys, os, math, mathutils
 args = sys.argv[sys.argv.index('--') + 1:]
 srcs, dst = args[:-1], args[-1]
 # name -> (source file, scale, quarter turns about up so the muzzle ends at -Z, grip point in the source's glTF frame or None to keep its origin)
 M = {'pistol': ('pew.glb', 1.35, 1, None), 'smg': ('mac10.glb', 1.15, 1, None), 'rifle': ('ak47.glb', 1.15, 1, None), 'carbine': ('ak47variant.glb', 1.15, 1, None),
      'sniper_rifle': ('awp.glb', 1.0, 1, None), 'pump_shotgun': ('shotgun.glb', 1.4, 1, None), 'rocket_launcher': ('rocketlaucher.glb', 1.0, 1, None),
-     'rocket_launcher_alt': ('rocketlaunchervariant.glb', 1.0, 1, None), 'quad_rocket_launcher': ('quadrocket.glb', 1.0, 1, None),
+     'rocket_launcher_alt': ('rocketlaunchervariant.glb', 1.0, 1, None),
      'frag_grenade': ('nade_low.glb', 1.0, 0, None), 
      'ammo_box': ('ammobox_low.glb', 1.0, 0, None),
      'round_pistol': ('bulletPEW.glb', 1.0, 0, None), 'round_rifle': ('bullet1.glb', 1.0, 0, None), 'round_shell': ('bulletshotgun.glb', 1.0, 0, None), 'round_sniper': ('bulletsniper.glb', 1.0, 0, None),
