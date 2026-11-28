@@ -2,10 +2,13 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cixiwh14vrlbd"
+uid="uid://cpfb5pscogxy3"
 path="res://.godot/imported/frag_grenade_alt_0.jpg-e2ee7b8898aad1caa9e27be8c2198ee0.ctex"
 metadata={
 "vram_texture": false
+}
+generator_parameters={
+"md5": "d930229ba65e5f5b658f04c9005e38c5"
 }
 
 [deps]
@@ -23,7 +26,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

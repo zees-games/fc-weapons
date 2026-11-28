@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://4h78v1sjau48"
-path="res://.godot/imported/knife_ph.glb-24df5914dcaa718ac5956a89c716f768.scn"
+uid="uid://bfo8n6supg7rh"
+path="res://.godot/imported/combat_knife.glb-ab7d0862ed4e2ed309c9450f82bec19a.scn"
 
 [deps]
 
-source_file="res://addons/fc_weapons/assets/models/knife_ph.glb"
-dest_files=["res://.godot/imported/knife_ph.glb-24df5914dcaa718ac5956a89c716f768.scn"]
+source_file="res://addons/fc_weapons/assets/models/combat_knife.glb"
+dest_files=["res://.godot/imported/combat_knife.glb-ab7d0862ed4e2ed309c9450f82bec19a.scn"]
 
 [params]
 

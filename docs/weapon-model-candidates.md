@@ -7,7 +7,7 @@ Why: the current weapon art is 1024 px upstream art (Styloo, Polyy); the texture
 | Poly Haven `service_pistol` (Mateusz Sadek) | https://polyhaven.com/a/service_pistol | CC0 (https://polyhaven.com/license: "CC0 means absolute freedom") | semi-auto pistol with slide, hammer, trigger, magazine, round; ~27.5k tris for both states | 2K diffuse, normal, ARM (JPEG), 4K available | USED (`pistol_ph`) |
 | Poly Haven `bolt_action_rifle_7_62` (Mateusz Sadek) | https://polyhaven.com/a/bolt_action_rifle_7_62 | CC0 | scoped bolt-action rifle, moving bolt, sling wrap, round; ~20k tris | 2K, two sets (body, scope): diffuse, normal, ARM | USED (`sniper_ph`) |
 | Poly Haven `stick_grenade` (singaii) | https://polyhaven.com/a/stick_grenade | CC0 | stick grenade, 6.2k tris | 2K | Candidate for the thrown slot; not wired (WW2 look beside modern guns) |
-| Poly Haven `fish_knife` (Mateusz Sadek) | https://polyhaven.com/a/fish_knife | CC0 | fixed-blade knife, 2.7k tris | 2K | Candidate for `knife`; not wired |
+| Poly Haven `fish_knife` (Mateusz Sadek) | https://polyhaven.com/a/fish_knife | CC0 | fixed-blade knife, 2.7k tris | 2K | Shipped as `knife` until the own-work `combat_knife` (tools/build_thrown_melee.py) replaced it; removed |
 | Poly Haven `machete` (Ulan Cabanilla) | https://polyhaven.com/a/machete | CC0 | machete, 3k tris | 2K | Candidate, melee variety; not wired |
 | Poly Haven others (`ammo_box`, `old_military_crate`, medieval blades, axes) | https://polyhaven.com/models | CC0 | props and melee; no further firearms in the catalogue | 2K to 8K | Props only |
 | Kenney Blaster Kit | https://kenney.nl/assets/blaster-kit | CC0 ("CC0 licensed!") | stylised blasters, flat colour | palette, no PBR | No texture gain; fits the old look only |
@@ -35,7 +35,7 @@ Nothing with an unclear licence was committed.
 
 The pack has no web size budget file and `ci/efficiency/size.tsv` gates code lines only, so no gate trips either way; 1K is the default because the web download is the limit. For 2K, bake, copy the glb in as `<name>_2k.glb`, and point the row's `model` at it.
 
-Since fc-weapons-textures-hires-1 the guns held closest to the eye ship at 2K: `pistol_ph` (2.6 MB) and `knife_ph` (3.0 MB) from the Poly Haven 2K bake, `revolver` and `derringer` (3.7 MB each) from `addons/gs_weapon/tools/texbake/tex_pipeline.sh` at 2048. The grenades and ammo can ship at 1K (0.7-1.0 MB), the bullpup and burst rifle at 1K welded and smart-unwrapped (1.5-1.7 MB); every normal map is JPEG q92, not PNG. The web export re-encodes each map as lossy WebP at import quality 0.7, so its download grows less than the glb bytes do.
+Since fc-weapons-textures-hires-1 the guns held closest to the eye ship at 2K: `pistol_ph` (2.6 MB) from the Poly Haven 2K bake, `combat_knife` (4.0 MB) from texbake at 2048, `revolver` and `derringer` (3.7 MB each) from `addons/gs_weapon/tools/texbake/tex_pipeline.sh` at 2048. The grenades and ammo can ship at 1K (0.7-1.0 MB), the bullpup and burst rifle at 1K welded and smart-unwrapped (1.5-1.7 MB); every normal map is JPEG q92, not PNG. The web export re-encodes each map as lossy WebP at import quality 0.7, so its download grows less than the glb bytes do.
 
 ## Placement (three render rounds, frames in ~/wt/.3dm-shots/r2..r6)
 
@@ -45,7 +45,7 @@ Pistol: `hold (0.12, -0.06, -0.36)`, view `scale 1.4`, `support_grip` as the old
 
 - No muzzle or sight marks on either gun; the rifle's magazine is internal (no `mag_node`).
 - `headless_aim` fails its three hip-shot checks identically on the base commit ad70e8b (pre-existing, not this branch).
-- Stick grenade, fish knife and machete are CC0 and small (2.7k to 6k tris) but not wired: each needs its own hold/aim rounds.
+- Stick grenade and machete are CC0 and small (2.7k to 6k tris) but not wired: each needs its own hold/aim rounds.
 - `tools/render_weapons.sh` crashes on dev02 llvmpipe without `--rendering-method gl_compatibility --rendering-driver opengl3`.
 - Weapons with no equivalent yet (SMG, carbine, shotgun, LMG, launchers) need other sources; see the OpenGameArt leads.
 
