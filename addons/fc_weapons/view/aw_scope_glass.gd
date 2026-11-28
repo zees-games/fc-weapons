@@ -57,6 +57,13 @@ void fragment() {
 """
 
 static var _shader: Shader = null
+## A put-away glass gives back its picture: the port shrinks to one pixel until [method update] next makes it live (each kept lens held a
+## 384-pixel MSAA target, about 3.5 MB of video memory, for every scoped gun stowed in any view or kill-view rig). False keeps it, as before.
+static var release_stowed := true
+## Every lens shares one environment made from the scene's; false duplicates the scene's environment for each glass, as before.
+static var share_environment := true
+static var _env_source: Environment = null
+static var _env_lens: Environment = null
 
 
 ## The glass for [param style] (a weapon's scope style: its `ocular` [x, y, z, radius]) in the model's space, or null headless / without an ocular.
@@ -154,6 +161,39 @@ static func update(root: Node3D, main: Camera3D, fov_scale: float, shown: bool, 
 		port.size = Vector2i(side, side)
 
 
+## Lets [param root]'s port give back its picture while the glass is put away (see [member release_stowed]): one pixel and no render.
+## [method update] sizes it again the first frame it is live.
+static func release(root: Node3D) -> void:
+	if not release_stowed or not is_instance_valid(root):
+		return
+	var port := root.get_node_or_null(^"Port") as SubViewport
+	if port == null:
+		return
+	port.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	port.size = Vector2i(1, 1)
+
+
+## Draws [param root]'s lens once at full size through [param main]'s view, for a load cover: the lens's own pass (its MSAA and
+## environment) compiles its pipelines then, not on the first raised scope. The next [method update] puts it back as it should be.
+static func prime(root: Node3D, main: Camera3D) -> void:
+	if not is_instance_valid(root) or main == null:
+		return
+	var port := root.get_node_or_null(^"Port") as SubViewport
+	if port == null:
+		return
+	var camera := port.get_node_or_null(^"Lens") as Camera3D
+	if camera != null:
+		camera.global_transform = main.global_transform
+		camera.fov = main.fov
+		if camera.environment == null:
+			camera.environment = _lens_environment(main)
+	var disc := root.get_node_or_null(^"Disc") as Node3D
+	if disc != null:
+		disc.visible = true
+	port.size = Vector2i(RESOLUTION, RESOLUTION)
+	port.render_target_update_mode = SubViewport.UPDATE_ONCE
+
+
 ## How many pixels wide the lens is on [param main]'s screen.
 static func _lens_pixels(root: Node3D, main: Camera3D) -> float:
 	var depth := -(main.global_transform.affine_inverse() * root.global_position).z
@@ -172,12 +212,17 @@ static func _lens_environment(main: Camera3D) -> Environment:
 		source = main.get_world_3d().environment
 	if source == null:
 		return null
+	if share_environment and source == _env_source and _env_lens != null:
+		return _env_lens
 	var env := source.duplicate() as Environment
 	env.ssao_enabled = false
 	env.ssil_enabled = false
 	env.ssr_enabled = false
 	env.sdfgi_enabled = false
 	env.volumetric_fog_enabled = false
+	if share_environment:
+		_env_source = source
+		_env_lens = env
 	return env
 
 

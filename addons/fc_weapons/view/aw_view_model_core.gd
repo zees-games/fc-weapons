@@ -612,6 +612,7 @@ func _clear_models() -> void:
 
 
 const DressUndo := preload("aw_attachment_dress.gd")
+const _StowGlass := preload("aw_scope_glass.gd")
 
 ## How many put-away weapons are held for a quick switch back.
 func equip_cache_size() -> int:
@@ -678,6 +679,13 @@ func _stow() -> void:
 	var roots := _stow_roots()
 	for node: Node in roots:
 		_holder.remove_child(node)
+	for node: Variant in _attachments:
+		if node is Node3D and (node as Node3D).name == &"ScopeGlass":
+			_StowGlass.release(node)
+	# A build pushed out of this view's own cache goes to the shared store (aw_equip_cache.gd spill), not the bin.
+	_equip_cache.spill = prewarmed
+	if is_inside_tree():
+		EquipCache.free_at_exit(get_tree(), prewarmed)
 	_equip_cache.put(_build_key, {
 		"roots": roots, "shape": _build_shape,
 		"weapon": _weapon, "magazine": _magazine, "sight": _sight, "belt": _belt, "carved": _carved,

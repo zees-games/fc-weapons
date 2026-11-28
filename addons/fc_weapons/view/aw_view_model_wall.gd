@@ -25,7 +25,9 @@ var _clip_left: float = 0.0
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_PREDELETE:
-			_equip_cache.clear()
+			# Its put-away builds outlive it in the shared store (aw_equip_cache.gd spill) for the next view to take.
+			_equip_cache.spill = prewarmed
+			_equip_cache.spill_all()
 		NOTIFICATION_VISIBILITY_CHANGED, NOTIFICATION_DISABLED, NOTIFICATION_PAUSED, NOTIFICATION_EXIT_TREE, NOTIFICATION_PARENTED, NOTIFICATION_UNPARENTED:
 			if not _drawn_live():
 				_clip_left = 0.0

@@ -151,7 +151,7 @@ func compose(art: AwWeaponVisual, anchors: Dictionary, magazine: int, left: int,
 		&"bolt":
 			ejected = 1 if empty else 0
 			loaded = missing
-			_bolt(maxi(1, ceili(float(missing) / float(maxi(1, int(_spec.get("clip", 5)))))))
+			_bolt(maxi(1, ceili(float(missing) / float(maxi(1, int(_spec.get("clip", 5)))))), part)
 		&"belt":
 			_belt(left > 0)
 		_:
@@ -296,7 +296,8 @@ func _tube_props(count: int) -> void:
 		props.append({"part": StringName(str(_spec.get("round", "shell"))), "segments": [[_mid(StringName("fetch_%d" % i)), _t1(StringName("push_%d" % i)), "hand", Vector3.ZERO, 0]]})
 
 
-func _bolt(clips: int) -> void:
+## [param part] is what the hand carries in: the row's `part` (a sniper's single "round"), a stripper clip by default.
+func _bolt(clips: int, part: StringName = &"clip") -> void:
 	_add(&"lift", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt")
 	_add(&"bolt_up", 0.06, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.0))
 	_add(&"bolt_back", 0.08, &"port", &"fore", Vector3.ZERO, &"bolt", Vector3(0.0, 0.03, 0.09))
@@ -310,7 +311,7 @@ func _bolt(clips: int) -> void:
 	_add(&"rest", 0.05, &"rest", &"fore")
 	_eject_cases(&"casing", ejected, &"bolt_back", &"port")
 	for c in clips:
-		props.append({"part": &"clip", "segments": [[_mid(StringName("fetch_%d" % c)), _t1(StringName("clip_%d" % c)), "hand", Vector3.ZERO, 0],
+		props.append({"part": part, "segments": [[_mid(StringName("fetch_%d" % c)), _t1(StringName("clip_%d" % c)), "hand", Vector3.ZERO, 0],
 			[_t1(StringName("clip_%d" % c)), _t1(StringName("press_%d" % c)), "at", (_anchors[&"port"] as Vector3) + Vector3(0.0, 0.05, 0.0), 0]]})
 
 
