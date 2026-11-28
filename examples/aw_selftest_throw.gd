@@ -110,7 +110,38 @@ func run() -> void:
 	suite._check("an empty hand while a boomerang is out is bare fists, no model", bare.id == AwWeaponIds.FISTS and not bare.has_model()
 		and bare.pose == &"fists" and rig.empty_hand_view and not rig._empty_hand_shown())
 	rig.free()
+	_pin_pull()
 	suite._end()
+
+
+## A flashbang's pin comes out on the cook and is gone from the hand; the next grenade up has it back in.
+func _pin_pull() -> void:
+	var view := AwViewModel.new()
+	view.show_arms = false
+	suite.add_child(view)
+	var art := AwWeaponVisual.make(&"flash")
+	AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[&"flash"])
+	art.pose = AwWeaponArtTable.POSE_THROWN  # the pack's thrown carry, as the art table gives it
+	view.equip(art)
+	var ring := view.weapon_node().find_child("pull_ring", true, false) as Node3D if view.weapon_node() != null else null
+	var home := ring.position if ring != null else Vector3.ZERO
+	view.advance(STEP)
+	var seated: bool = ring != null and ring.visible and not view.grenade_pin().pulled()
+	view.on_charge(0.3)
+	var moved := 0.0
+	for i in int(0.1 / STEP):
+		view.advance(STEP)
+		moved = maxf(moved, ring.position.distance_to(home) if ring != null else 0.0)
+	for i in int(0.2 / STEP):
+		view.advance(STEP)
+	var gone := ring != null and not ring.visible
+	view.on_charge(-1.0)
+	view._pose.throw()
+	for i in int(1.2 / STEP):
+		view.advance(STEP)
+	var back: bool = ring != null and ring.visible and ring.position.distance_to(home) < 0.0001 and not view.grenade_pin().pulled()
+	suite._check("a grenade's pin comes out on the cook (%.3f m), is gone, and the next grenade has it in" % moved, seated and moved > 0.01 and gone and back)
+	view.queue_free()
 
 
 func _frames(pose: AwWeaponPose, seconds: float, speed: float) -> void:

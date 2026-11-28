@@ -132,25 +132,46 @@ static func _grenade(live: bool) -> Node3D:
 	return root
 
 
-## A rocket, 45 cm along its own +Y: an olive body, a dark cone nose and crossed fins.
+## A rocket, 45 cm along its own +Y, the launcher's warhead and not a stand-in cylinder: a dark booster tube with a
+## ring of four swept fins at its foot, a banded olive warhead that bulges out of it and tapers to a fuse probe,
+## the shape that reads as a rocket grenade at a hand's length. Fourteen primitives sharing three materials.
 static func _rocket() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Rocket"
-	var olive := _material(Color(0.36, 0.42, 0.24), 0.1, 0.7)
-	var dark := _material(Color(0.12, 0.13, 0.16), 0.2, 0.6)
-	_cylinder(root, 0.03, 0.34, Vector3(0.0, 0.17, 0.0), olive)
-	var nose := CylinderMesh.new()
-	nose.top_radius = 0.0
-	nose.bottom_radius = 0.03
-	nose.height = 0.11
-	nose.material = dark
-	var node := MeshInstance3D.new()
-	node.mesh = nose
-	node.position = Vector3(0.0, 0.395, 0.0)
-	root.add_child(node)
-	for i in 2:
-		_box(root, Vector3(0.004, 0.06, 0.09), Vector3(0.0, 0.03, 0.0), dark, Basis(Vector3.UP, PI * 0.5 * i))
+	var olive := _material(Color(0.33, 0.38, 0.22), 0.15, 0.6)
+	var dark := _material(Color(0.10, 0.11, 0.12), 0.5, 0.45)
+	var steel := _material(Color(0.55, 0.56, 0.58), 0.85, 0.35)
+	# The booster: a nozzle, the tube and a collar where the warhead screws on.
+	_cone(root, 0.012, 0.017, 0.02, Vector3(0.0, 0.01, 0.0), steel)
+	_cylinder(root, 0.016, 0.16, Vector3(0.0, 0.10, 0.0), dark)
+	_cylinder(root, 0.02, 0.012, Vector3(0.0, 0.186, 0.0), steel)
+	for i in 4:
+		var turn := Basis(Vector3.UP, PI * 0.5 * i + PI * 0.25)
+		_box(root, Vector3(0.003, 0.07, 0.03), Vector3(0.0, 0.06, 0.0) + turn * Vector3(0.0, 0.0, 0.03), dark,
+				turn * Basis(Vector3.RIGHT, -0.25))
+	# The warhead: flared out of the collar, a full body with a band, an ogive and the probe.
+	_cone(root, 0.02, 0.042, 0.045, Vector3(0.0, 0.215, 0.0), olive)
+	_cylinder(root, 0.042, 0.06, Vector3(0.0, 0.2675, 0.0), olive)
+	_cylinder(root, 0.0425, 0.008, Vector3(0.0, 0.255, 0.0), dark)
+	_cone(root, 0.042, 0.014, 0.085, Vector3(0.0, 0.34, 0.0), olive)
+	_cylinder(root, 0.007, 0.03, Vector3(0.0, 0.3975, 0.0), steel)
+	_cone(root, 0.007, 0.0, 0.015, Vector3(0.0, 0.42, 0.0), steel)
 	return root
+
+
+## A cone or frustum of [param bottom] to [param top] radius, [param height] tall, centred on [param at].
+static func _cone(root: Node3D, bottom: float, top: float, height: float, at: Vector3, material: Material) -> void:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = top
+	mesh.bottom_radius = bottom
+	mesh.height = height
+	mesh.radial_segments = 16
+	mesh.rings = 1
+	mesh.material = material
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.position = at
+	root.add_child(node)
 
 
 ## A speedloader: a dark ring with six rounds standing in it.

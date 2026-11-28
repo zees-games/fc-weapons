@@ -24,6 +24,7 @@ signal model_ready(id: StringName, weapon: Node3D)
 @export_group("Behaviour")
 
 const ChargeFx := preload("aw_charge_fx.gd")
+const GrenadePin := preload("aw_grenade_pin.gd")
 ## The shortest time (seconds) a scope takes to lower from full aim.
 const SCOPE_LOWER_TIME := 0.3
 var _charge_fx: Node3D = null
@@ -124,6 +125,7 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 
 	_reused = reuse and cache_equips and _unstow(_equip_key(art))
 	if _reused:
+		_pin.bind(_weapon if art.pose == AwWeaponArtTable.POSE_THROWN else null)
 		return GSResult.success(_weapon)
 
 	_weapon = AwModelCache.instantiate(art.model_path)
@@ -135,6 +137,7 @@ func _equip_head(art: AwWeaponVisual, reuse: bool = false) -> GSResult:
 
 	_weapon.name = "Weapon"
 	_drop_parts(art)
+	_pin.bind(_weapon if art.pose == AwWeaponArtTable.POSE_THROWN else null)
 	_holder.add_child(_weapon)
 	_set_on_top(_weapon)
 	return GSResult.success(_weapon)
@@ -281,6 +284,8 @@ func on_charge(fraction: float) -> void:
 	# A grenade's charge is its cook: the hand draws back by it like a knife's windup, and no charge ball glows on it.
 	if _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
 		_cook_windup = fraction if is_finite(fraction) and fraction > 0.0 else -1.0
+		if _cook_windup > 0.0:
+			_pin.pull()  # the pin comes out as the cook starts, once per grenade
 		_pose.set_windup(maxf(_cook_windup, _game_windup))
 		return
 	_pose.set_charge(fraction)
@@ -304,6 +309,13 @@ func on_windup(fraction: float) -> void:
 ## cook ([method on_charge]). Below 0 is none; both are sent every frame, so neither may clear the other.
 var _game_windup := -1.0
 var _cook_windup := -1.0
+## The grenade in hand's pin ([code]aw_grenade_pin.gd[/code]): pulled on the cook, back in on the next grenade.
+var _pin := GrenadePin.new()
+
+
+## The pin of the grenade in hand, for a suite.
+func grenade_pin() -> RefCounted:
+	return _pin
 
 
 ## The sprint stride for arms that pump the free hand: how much shows (0 to 1) and where in it, 0 to 1 a stride.
@@ -401,8 +413,13 @@ func advance(delta: float) -> void:
 	# so a gun kept for the lens view covers its glass. The scope body view keeps it: the lens is drawn into its ocular.
 	_animated.visible = scope_body_active() or not (scoped or scope_picture_up())
 	# A thrown weapon is gone from the hand from its release until the next is taken up from below.
-	if _weapon != null and _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN and _weapon.visible == _pose.thrown_out():
-		_weapon.visible = not _weapon.visible
+	# The next grenade up has its pin back in.
+	if _weapon != null and _art != null and _art.pose == AwWeaponArtTable.POSE_THROWN:
+		if _weapon.visible == _pose.thrown_out():
+			_weapon.visible = not _weapon.visible
+			if _weapon.visible:
+				_pin.reset()
+		_pin.advance(delta)
 	if _scope_glass != null:
 		ScopeGlass.update(_scope_glass, get_parent() as Camera3D, scope_zoom_scale(), _animated.visible and is_visible_in_tree() and not scope_body_active(), _aim_fraction)
 	if _arms != null:
