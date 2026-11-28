@@ -85,11 +85,13 @@ SMALL_THUMP = {"derringer": (90.0, -6.0), "revolver": (68.0, -2.0), "smg": (82.0
 LEVELS = {
     "derringer": (-21.0, -28.0), "pistol": (None, -27.0), "revolver": (-18.0, -26.0), "machine_pistol": (None, -27.0),
     "smg": (-19.0, -27.0), "carbine": (None, -26.0), "rifle": (None, -25.0), "bullpup": (None, -25.0),
-    "burst_rifle": (-18.0, -25.0), "battle_rifle": (None, -24.0), "marksman": (None, -24.0), "lmg": (None, -24.0),
+    "burst_rifle": (-18.0, -25.0), "battle_rifle": (None, -24.0), "marksman": (-19.0, -24.0), "lmg": (None, -24.0),
     "sniper": (None, -23.0), "shotgun": (None, -24.0), "drum_shotgun": (None, -24.0), "minigun": (-17.0, -24.0),
     "launcher": (-16.0, -22.0), "quad_launcher": (-16.0, -22.0), "grenade_launcher": (-19.0, -26.0),
     "beamer": (-17.0, -25.0), "charge_rifle": (-15.0, -22.0),
 }
+# Guns whose owner recording is thin (a tinny crack, no chest): the CC0 library take of GUNS is layered under its body.
+LIB_BODY = {"marksman"}
 CEILING = 0.89  # -1 dBFS, the peak every layer was written at before
 MADE_ATTACK_DB = -13.5  # the made guns' first 50 ms, at the firearm takes' attack loudness (-13 to -16 LUFS)
 
@@ -143,8 +145,9 @@ def levelled(y, target):
 
 
 def save(path, y):
-    """Writes [param y] at its own peak, as make_shot_layers' write() scales to the peak it is given."""
-    L["write"](path, y, 20 * np.log10(np.max(np.abs(y - np.mean(y))) + 1e-9))
+    """Writes [param y] at its own peak, held at most 3 dB under full scale so the Vorbis encode's overshoot cannot
+    clip (tools/audit_fire_sounds.py fails a layer with more than 3 full-scale samples)."""
+    L["write"](path, y, min(-3.0, 20 * np.log10(np.max(np.abs(y - np.mean(y))) + 1e-9)))
 
 
 def source(name):
@@ -299,6 +302,9 @@ def build(gun):
             x = norm(pitched(base, factor))
             f = norm(pitched(far_src, factor))
         attack, body, late = L["split"](x)
+        if gun in LIB_BODY and mine:
+            lib = L["split"](norm(pitched(take(folder_name, near), factor)))[1]
+            body = norm(body) * 0.5 + norm(fit(lib, len(body))) + 0.3 * thump(len(body), GUNS[gun][3] * factor, 90 + n)
         if hz > 0.0:
             body = mid_lift(body, MID_LIFT_DB) + 0.3 * thump(len(body), hz * factor, 90 + n)
         elif gun in SMALL_THUMP and not mine:
