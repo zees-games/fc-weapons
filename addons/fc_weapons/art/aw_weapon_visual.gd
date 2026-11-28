@@ -275,6 +275,13 @@ static var _dress_script: Script = null
 ## Which way [member bolt_node] slides, in its parent's space: toward the stock for a bolt (+Z in a model made muzzle -Z).
 @export var bolt_axis: Vector3 = Vector3(0.0, 0.0, 1.0)
 
+## Degrees a bolt's handle turns up about [member bolt_axis] before it slides and down after it closes
+## (a bolt-action's lift and lock); 0 slides it straight. The turn is about [member bolt_pivot].
+@export var bolt_lift: float = 0.0
+
+## The bolt's own axis, a point on it in its parent's space: what [member bolt_lift] turns the bolt about.
+@export var bolt_pivot: Vector3 = Vector3.ZERO
+
 ## Where the support hand takes hold of a bolt's handle, in the model's own space; zero keeps the hand
 ## on the fore-end (a pump's fore-end is where the hand already is).
 @export var cycle_at: Vector3 = Vector3.ZERO

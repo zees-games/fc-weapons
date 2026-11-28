@@ -68,6 +68,9 @@ func run() -> void:
 	var strung := _string_of_shots(&"sniper", AwSpawnProvider.weapon_defs())
 	suite._check("the sniper works its bolt after each of three shots at its own fire interval, and is ready again before the next (interval %.2f s, bolt travel per shot %s, idle at each next shot %s)" % [strung.interval, strung.travel, strung.idle],
 		strung.interval >= 0.6 and strung.travel.size() == 3 and strung.travel.all(func(t: float) -> bool: return t > 0.06) and strung.idle.all(func(i: bool) -> bool: return i))
+	var lift := _lift_through_cycle()
+	suite._check("the sniper's handle turns up before the bolt slides, stays up through the stroke and turns down after it closes, square at rest (turn before slide %.1f deg, turn at rearmost %.1f deg, slide while turning %.3f m, rest %s)" % [lift.early, lift.mid, lift.slide_early, lift.square],
+		lift.early > 50.0 and lift.mid > 55.0 and lift.slide_early < 0.005 and lift.square)
 	var belt: Node3D = load("res://addons/fc_weapons/view/aw_belt_feed.gd").new()
 	suite.add_child(belt)
 	belt.build(Vector3.ZERO, Vector3(0.0, 0.0, -0.3))
@@ -141,3 +144,36 @@ func _string_of_shots(id: StringName, defs: Array) -> Dictionary:
 		idle.append(view._cycle_t < 0.0 and part.position.distance_to(home) < 0.000001)
 	view.queue_free()
 	return {"interval": interval, "travel": travel, "idle": idle}
+
+
+## The sniper's bolt through one cycle: the turn it has when its handle is up but it has not slid yet, the turn at the rearmost
+## point, how far it slid while the handle was still turning, and whether its basis is square again at the end.
+func _lift_through_cycle() -> Dictionary:
+	var view := AwViewModel.new()
+	view.show_arms = false
+	view.fire_interval = 1.4
+	suite.add_child(view)
+	var art := AwWeaponVisual.make(&"sniper")
+	AwArtDress.apply(art, AwWeaponArt.weapon_rows("")[&"sniper"])
+	view.equip(art)
+	var bolt := view.weapon_node().find_child(String(art.bolt_node), true, false) as Node3D
+	var rest := bolt.transform
+	var shot := GSWeaponOutcome.of(GSWeaponOutcome.KIND_SHOT)
+	shot.used = true
+	view.on_used(shot)
+	var out := {"early": 0.0, "mid": 0.0, "slide_early": 0.0, "square": false}
+	var axis := art.bolt_axis.normalized()
+	for i in 120:
+		view.advance(1.0 / 60.0)
+		var turn := rad_to_deg((rest.basis.inverse() * bolt.transform.basis).get_rotation_quaternion().get_angle())
+		var f: float = (view._cycle_t - view._cycle_wait) / view._cycle_len if view._cycle_t >= 0.0 else -1.0
+		var slide := (bolt.transform * rest.affine_inverse() * art.bolt_pivot - art.bolt_pivot).dot(axis)
+		if f > 0.0 and f < AwViewModel.LIFT_SPLIT[0]:
+			out.slide_early = maxf(out.slide_early, absf(slide))
+		if f >= AwViewModel.LIFT_SPLIT[0] and f < AwViewModel.LIFT_SPLIT[0] + 0.03:
+			out.early = maxf(out.early, turn)
+		if absf(slide) > art.bolt_travel * 0.99:
+			out.mid = maxf(out.mid, turn)
+	out.square = bolt.transform.is_equal_approx(rest)
+	view.queue_free()
+	return out

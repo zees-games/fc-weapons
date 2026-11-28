@@ -8,7 +8,7 @@ const MAX_LIVE := 48
 
 ## Each weapon class's flash and case, by [AwWeaponSound] class: `size` scales the flash (1 is a rifle's, 12 cm across), `light` its light, `petals` the crossed
 ## streaks (a shotgun's fat four, a sniper's long two), `length` stretches them, `case` is the spent case's length in metres, `hull` true for a shotgun's fat red one,
-## `delay` seconds before it leaves: the cycle's rearmost point (AwViewModelState.CYCLE_WAIT + cycle_time * CYCLE_SPLIT[0]). A class not here is a rifle's; no `case` ejects nothing (a revolver, a launcher).
+## `delay` seconds before it leaves: the cycle's rearmost point (AwViewModelState.CYCLE_WAIT + cycle_time * CYCLE_SPLIT[0], or for a lifted bolt cycle_time * (LIFT_SPLIT[0] + CYCLE_SPLIT[0] * (LIFT_SPLIT[1] - LIFT_SPLIT[0]))). A class not here is a rifle's; no `case` ejects nothing (a revolver, a launcher).
 const FLASH := {
 	AwWeaponSound.LIGHT: {"size": 0.7, "light": 0.7, "petals": 2, "length": 0.9, "case": 0.024},
 	AwWeaponSound.SUPPRESSED: {"size": 0.3, "light": 0.15, "petals": 1, "length": 0.6, "case": 0.024},
@@ -16,7 +16,7 @@ const FLASH := {
 	AwWeaponSound.MAGNUM: {"size": 1.15, "light": 1.1, "petals": 3, "length": 1.0},
 	AwWeaponSound.RIFLE: {"size": 1.0, "light": 1.0, "petals": 2, "length": 1.0, "case": 0.038},
 	AwWeaponSound.HEAVY: {"size": 1.25, "light": 1.25, "petals": 3, "length": 1.1, "case": 0.05},
-	AwWeaponSound.SNIPER: {"size": 1.5, "light": 1.4, "petals": 2, "length": 2.0, "case": 0.04, "delay": 0.32},
+	AwWeaponSound.SNIPER: {"size": 1.5, "light": 1.4, "petals": 2, "length": 2.0, "case": 0.04, "delay": 0.5},
 	AwWeaponSound.SHOTGUN: {"size": 1.6, "light": 1.5, "petals": 4, "length": 0.9, "case": 0.055, "hull": true, "delay": 0.30},
 	AwWeaponSound.MINIGUN: {"size": 1.1, "light": 0.9, "petals": 3, "length": 1.2, "case": 0.038},
 	AwWeaponSound.LAUNCHER: {"size": 2.0, "light": 1.8, "petals": 4, "length": 1.4},
