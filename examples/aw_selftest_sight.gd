@@ -53,8 +53,7 @@ func _scope_body() -> void:
 		view._process(0.02)
 	_check("body: active on the sniper through the lens", view.scope_body_active() and view.is_scoped())
 	_check("body: the gun is drawn at full aim", view._animated.visible)
-	var points := view.scope_ocular_points()
-	var eye_space: Vector3 = camera.global_transform.affine_inverse() * (points.get("centre", Vector3.ZERO) as Vector3)
+	var eye_space: Vector3 = camera.global_transform.affine_inverse() * (view.scope_ocular_points().get("centre", Vector3.ZERO) as Vector3)
 	_check("body: the ocular is centred at the eye relief", Vector2(eye_space.x, eye_space.y).length() < 0.01 and absf(eye_space.z + view.scope_body_relief) < 0.01)
 	view._pull = 0.6
 	view._process(0.02)

@@ -28,16 +28,6 @@ const GrenadePin := preload("aw_grenade_pin.gd")
 ## The shortest time (seconds) a scope takes to lower from full aim.
 const SCOPE_LOWER_TIME := 0.3
 var _charge_fx: Node3D = null
-## The model's own rear aperture rings (mesh nodes named `rear_ring`) and a built sight's rear notch: drawn only once
-## the aim is this far in, since at the hip a ring a few centimetres from the eye is a hoop around the crosshair.
-const REAR_RING_SHOW_AIM := 0.35
-## The aim at which the rings start to fade in: from here to [constant REAR_RING_SHOW_AIM] they go from clear to solid,
-## so the ring grows into the picture as the gun rises instead of popping in on one frame (and out on the way down).
-const REAR_RING_FADE_FROM := 0.1
-## On the raise the fade runs to this aim instead: a raise takes ~0.16 s, and the narrow window fits inside one frame
-## and reads as a pop. The lower keeps the narrow window (it is slower, and a long fade there leaves a translucent ring
-## floating over the dropping gun).
-const REAR_RING_RAISE_SHOW_AIM := 0.7
 
 
 ## Hides the whole rig. What a "view model" video setting toggles.
@@ -520,29 +510,6 @@ func _apply_aim(f: float) -> void:
 func _scope_body_target(ocular: Vector3, eye: Vector3, grow: float) -> Transform3D:
 	var basis := _art.orientation().scaled(Vector3.ONE * _art.view_scale)
 	return Transform3D(basis, eye + Vector3(0.0, 0.0, -scope_body_relief / grow) - basis * ocular)
-
-
-## Shows the rear rings [param f] of the way into the aim: hidden below [constant REAR_RING_FADE_FROM], see-through
-## up to [constant REAR_RING_SHOW_AIM], solid past it.
-func _fade_rear_rings(f: float) -> void:
-	var raising := f > _ring_aim_last
-	_ring_aim_last = f
-	var solid_at := REAR_RING_RAISE_SHOW_AIM if raising else REAR_RING_SHOW_AIM
-	var clear := 1.0 - smoothstep(REAR_RING_FADE_FROM, solid_at, f)
-	if is_equal_approx(clear, _ring_fade):
-		return
-	_ring_fade = clear
-	for ring in _rear_rings:
-		if is_instance_valid(ring):
-			ring.visible = clear < 1.0
-			_set_clear(ring, clear)
-
-
-static func _set_clear(node: Node, clear: float) -> void:
-	if node is GeometryInstance3D:
-		(node as GeometryInstance3D).transparency = clear
-	for child in node.get_children():
-		_set_clear(child, clear)
 
 
 ## The holder's transform at full aim: down the measured sight line, or the art's written
