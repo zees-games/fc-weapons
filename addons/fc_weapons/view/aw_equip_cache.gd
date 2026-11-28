@@ -44,7 +44,7 @@ func put(key: String, slot: Dictionary) -> void:
 	_slots[key] = slot
 	while limit > 0 and _slots.size() > limit:
 		var oldest: String = _slots.keys()[0]
-		var gone: Dictionary = _slots[oldest]
+		var gone: Dictionary = _slots[oldest]  # perf-lint: allow untyped_array a slot is a mixed record (roots, nodes, state); callers build it untyped
 		_slots.erase(oldest)
 		_drop(oldest, gone)
 
@@ -56,7 +56,7 @@ func spill_all() -> void:
 	_slots.clear()
 
 
-func _drop(key: String, slot: Dictionary) -> void:
+func _drop(key: String, slot: Dictionary) -> void:  # perf-lint: allow untyped_array a slot is a mixed record; callers build it untyped
 	if spill_evicted and spill != null and spill != self and not key.is_empty() and not closing:
 		spill.call(&"put", key, slot)
 	else:
