@@ -1,7 +1,7 @@
 extends RefCounted
 
 ## The animation bake (tools/aw_anim_bake.gd): a bolt gun's sidecar has every clip with whole-frame tracks, a shot moves the bolt and kicks the
-## view, a reload moves the magazine, the idle sway stays small, and the lens block carries the numbers the viewer needs. Reports through
+## view, a reload moves the magazine (a magazine gun) or the round (the sniper's bolt), the idle sway stays small, and the lens block carries the numbers the viewer needs. Reports through
 ## the suite's `_begin`, `_check` and `_end`.
 
 const Bake := preload("res://tools/aw_anim_bake.gd")
@@ -56,7 +56,22 @@ func run() -> void:
 	_ok(whole, "every track holds exactly one value set per frame and each clip's length is its frames over 60")
 	_ok(_range(by.fire, "bolt") > 0.05 and _range(by.fire, "view_punch") > 0.5 and _range(by.fire, "weapon") > 0.01,
 			"a shot slides the bolt, kicks the view and moves the weapon")
-	_ok(_range(by.reload, "magazine") > 0.1 and _range(by.reload, "hand.left") > 0.1, "a reload carries the magazine and the support hand")
+	# The sniper loads one round through the bolt (no magazine of its own since its per-round reload): the hand carries the round in.
+	var round_range := -1.0
+	var reload_props: Dictionary = by.reload.props
+	for k in reload_props:
+		if str((reload_props[k] as Dictionary).get("part", "")) == "round":
+			round_range = maxf(round_range, _range(by.reload, "prop.%s" % str(k)))
+	_ok(round_range > 0.1 and _range(by.reload, "hand.left") > 0.1, "a bolt reload carries its round and the support hand (round %.3f)" % round_range)
+	# A magazine reload, on a gun that has one: the magazine and the support hand both travel.
+	var mag_gun := Bake.new().bake(suite, &"battle_rifle", defs[&"battle_rifle"])
+	var mag_reload: Dictionary = {}
+	for c: Dictionary in mag_gun.clips:
+		if c.name == "reload":
+			mag_reload = c
+	var mag_range := _range(mag_reload, "magazine") if not mag_reload.is_empty() else -1.0
+	var hand_range := _range(mag_reload, "hand.left") if not mag_reload.is_empty() else -1.0
+	_ok(mag_range > 0.1 and hand_range > 0.1, "a reload carries the magazine and the support hand (battle_rifle: magazine %.3f, hand %.3f)" % [mag_range, hand_range])
 	_ok(_range(by.idle, "weapon") < 0.02 and _range(by.idle, "weapon") > 0.0, "the idle sway is small but not still")
 	_ok(sc.lens.reference_fov == GSViewLens.REFERENCE_FOV and sc.lens.max_pull_in == GSViewLens.MAX_PULL_IN, "the sidecar carries the game's lens constants")
 	var tp: Dictionary = sc.third_person
