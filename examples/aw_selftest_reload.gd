@@ -91,8 +91,8 @@ func cues() -> void:
 	suite._end()
 
 
-## A magazine reload drops the old magazine and works the action on every reload by default (`cl_vm_reload_drop`,
-## `cl_vm_reload_charge`, both 1), and only on an empty one with both 0; the new magazine ends exactly in its well, unturned,
+## A magazine reload drops the old magazine on every reload by default (`cl_vm_reload_drop` 1) and works the action
+## only when empty (`cl_vm_reload_charge` 0); both on, every reload does both; the new magazine ends in its well, unturned,
 ## and the old and the new are never in sight together.
 func drop_charge() -> void:
 	suite._begin("magazine reloads drop the old magazine, seat the new one and work the action")
@@ -150,15 +150,15 @@ func drop_charge() -> void:
 					var turn: Vector3 = seq.props_at(out_end - 0.0005).filter(func(e: Dictionary) -> bool: return e.own)[0].turn
 					if absf(turn.x - float(art.reload.rock)) > 1.0:
 						rocked.append("%s %.1f" % [role, turn.x])
-	suite._check("%d magazine weapons: by default every reload drops the magazine (mag_drop cue) and works the action, a full one throwing its round (%s)" % [mags, str(wrong_default.slice(0, 4))], mags > 0 and wrong_default.is_empty())
-	suite._check("with both off only an empty reload drops and works the action (%s)" % str(wrong_off.slice(0, 4)), wrong_off.is_empty())
+	suite._check("%d magazine weapons: with both on every reload drops the magazine (mag_drop cue) and works the action, a full one throwing its round (%s)" % [mags, str(wrong_default.slice(0, 4))], mags > 0 and wrong_default.is_empty())
+	suite._check("with both off (the charge default) only an empty reload drops and works the action (%s)" % str(wrong_off.slice(0, 4)), wrong_off.is_empty())
 	suite._check("the new magazine ends seated in its well, unturned (%s)" % str(off_well.slice(0, 3)), off_well.is_empty())
 	suite._check("the old and the new magazine are never in sight together, and a rocking magazine leaves the well rocked (%s %s)" % [str(both.slice(0, 3)), str(rocked)], both.is_empty() and rocked.is_empty())
 	var feel := AwViewFeel.new()
-	var defaults := feel.reload_drop == 1.0 and feel.reload_charge == 1.0
-	var set_ok := feel.set_cvar(AwViewFeel.CVAR_RELOAD_DROP, "0") and feel.set_cvar(AwViewFeel.CVAR_RELOAD_CHARGE, "0")
-	suite._check("cl_vm_reload_drop and cl_vm_reload_charge default to 1 and set to 0 (%s %s)" % [defaults, set_ok],
-		defaults and set_ok and feel.reload_drop == 0.0 and feel.reload_charge == 0.0)
+	var defaults := feel.reload_drop == 1.0 and feel.reload_charge == 0.0
+	var set_ok := feel.set_cvar(AwViewFeel.CVAR_RELOAD_DROP, "0") and feel.set_cvar(AwViewFeel.CVAR_RELOAD_CHARGE, "1")
+	suite._check("cl_vm_reload_drop defaults to 1, cl_vm_reload_charge to 0 (a tactical reload keeps its round), and both set (%s %s)" % [defaults, set_ok],
+		defaults and set_ok and feel.reload_drop == 0.0 and feel.reload_charge == 1.0)
 	_reload_bolt(rows)
 	_sniper_feed(rows)
 	_shot_bolt(rows)
@@ -170,6 +170,7 @@ func _reload_bolt(rows: Dictionary) -> void:
 	var rifle := AwWeaponVisual.make(&"rifle")
 	AwArtDress.apply(rifle, rows[&"rifle"])
 	var bolt_seq := ReloadSequence.new()
+	bolt_seq.charge_always = true
 	bolt_seq.compose(rifle, ReloadSequence.anchors_for(Vector3.ZERO, Vector3(0, 0, -0.3), Vector3(0, 0, -0.6), null, rifle.reload.get("anchors", {}), Transform3D.IDENTITY), 30, 30, 0.0)
 	var peak := 0.0
 	var start_back := bolt_seq.bolt_back(0.0)

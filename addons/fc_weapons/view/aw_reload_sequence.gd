@@ -48,8 +48,8 @@ var props: Array = []
 var own_out: Array = []
 ## Set before [method compose]: drop the old magazine on every reload (else only an empty one, a full one going to the pouch).
 var drop_always := true
-## Set before [method compose]: work the charging handle or slide on every reload (else only after the last round).
-var charge_always := true
+## Set before [method compose]: work the charging handle or slide on every reload (default: only after the last round).
+var charge_always := false
 ## What the composed magazine reload does: the old magazine dropped, the action worked.
 var dropped := false
 var charged := false
