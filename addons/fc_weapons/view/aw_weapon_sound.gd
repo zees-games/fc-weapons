@@ -234,6 +234,9 @@ const WEAPONS := {
 	AwWeaponIds.DRUM_SHOTGUN: SHOTGUN,
 	AwWeaponIds.MINIGUN: MINIGUN,
 	AwWeaponIds.LAUNCHER: LAUNCHER,
+	&"lmg": HEAVY,
+	&"quad_launcher": LAUNCHER,
+	&"grenade_launcher": LAUNCHER,
 	AwWeaponIds.BEAMER: BEAM,
 	AwWeaponIds.CHARGE_RIFLE: CHARGE,
 }

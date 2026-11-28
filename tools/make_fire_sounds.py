@@ -83,7 +83,7 @@ SMALL_THUMP = {"derringer": (90.0, -6.0), "revolver": (68.0, -2.0), "smg": (82.0
 # Active loudness (LUFS) of each gun's body and far report; None keeps the take's own level. The far reports sat
 # 8-10 dB under the stock classes' and now step by size: sidearms, carbines and rifles, heavy guns, launchers.
 LEVELS = {
-    "derringer": (-21.0, -28.0), "pistol": (None, -27.0), "revolver": (-18.0, -26.0), "machine_pistol": (None, -27.0),
+    "derringer": (-23.5, -29.0), "pistol": (None, -27.0), "revolver": (-18.0, -26.0), "machine_pistol": (None, -27.0),
     "smg": (-19.0, -27.0), "carbine": (None, -26.0), "rifle": (None, -25.0), "bullpup": (None, -25.0),
     "burst_rifle": (-18.0, -25.0), "battle_rifle": (None, -24.0), "marksman": (-19.0, -24.0), "lmg": (None, -24.0),
     "sniper": (None, -23.0), "shotgun": (None, -24.0), "drum_shotgun": (None, -24.0), "minigun": (-17.0, -24.0),
@@ -92,6 +92,8 @@ LEVELS = {
 }
 # Guns whose owner recording is thin (a tinny crack, no chest): the CC0 library take of GUNS is layered under its body.
 LIB_BODY = {"marksman"}
+# Guns whose take is too bright: its high cut (Hz), the marksman's owner recording cracked at a 6 kHz centroid.
+SOFTEN = {"marksman": 3800.0}
 CEILING = 0.89  # -1 dBFS, the peak every layer was written at before
 MADE_ATTACK_DB = -13.5  # the made guns' first 50 ms, at the firearm takes' attack loudness (-13 to -16 LUFS)
 
@@ -236,7 +238,9 @@ def tube_pop(factor, n_var):
     bloop = np.sin(2 * np.pi * np.cumsum(f) / RATE) * decay(n, 0.09, 0.003)
     puff = band(rng.standard_normal(n), 200.0, 1400.0) * decay(n, 0.04, 0.001)
     gun = lowpass(fit(pitched(norm(take("Model 12", "K_22P")), 0.9 * factor), n), 1600.0, 3)
-    x = 0.8 * norm(bloop) + 0.7 * norm(puff) + 0.6 * norm(gun)
+    # A short high tick of the mechanism and the gas leaving, so the pop is not all low end (it had no highs at all).
+    tick = band(rng.standard_normal(n), 2200.0, 7000.0) * decay(n, 0.012, 0.0005)
+    x = 0.8 * norm(bloop) + 0.7 * norm(puff) + 0.6 * norm(gun) + 0.9 * norm(tick)
     far = norm(bloop) + 0.5 * norm(lowpass(fit(pitched(norm(take("Model 12", "K_17P")), 0.9 * factor), n), 500.0, 3))
     return norm(x), norm(far)
 
@@ -301,6 +305,9 @@ def build(gun):
         else:
             x = norm(pitched(base, factor))
             f = norm(pitched(far_src, factor))
+        if gun in SOFTEN:
+            x = norm(lowpass(x, SOFTEN[gun], 2))
+            f = norm(lowpass(f, SOFTEN[gun], 2))
         attack, body, late = L["split"](x)
         if gun in LIB_BODY and mine:
             lib = L["split"](norm(pitched(take(folder_name, near), factor)))[1]

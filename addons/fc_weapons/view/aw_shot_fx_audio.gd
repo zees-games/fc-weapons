@@ -235,7 +235,9 @@ func prewarm_layers() -> bool:
 func _layered(id: StringName, kind: StringName, at: Vector3) -> bool:
 	if not layered_shots or not is_inside_tree():
 		return false
-	var own := kind == GSWeaponOutcome.KIND_SHOT and AwShotLayers.has_gun_sound(id)
+	# A launcher's use is a spawn and the beamer's a beam: their own recordings play too, not the single synthesised sound.
+	var own := (kind == GSWeaponOutcome.KIND_SHOT or kind == GSWeaponOutcome.KIND_SPAWN or kind == GSWeaponOutcome.KIND_BEAM) \
+			and AwShotLayers.has_gun_sound(id)
 	if AwShotLayers.shot_class(AwWeaponSound.class_for(id, kind)) == &"" and not own:
 		return false
 	if not prewarm_layers():
